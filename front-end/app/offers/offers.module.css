@@ -1,0 +1,259 @@
+.header {
+  background-color: var(--gray-100);
+  padding: 6rem 0 3rem;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.header p {
+  font-size: 1.125rem;
+  color: var(--text-light);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.offersSection {
+  padding: 4rem 0;
+}
+
+.searchContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.searchInput {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  margin-right: 0.5rem;
+}
+
+.offersList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .offersList {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.offerCard {
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background-color: var(--white);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.offerCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.offerImage {
+  position: relative;
+  height: 200px;
+  width: 100%;
+}
+
+.offerContent {
+  padding: 1.5rem;
+}
+
+.offerTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.offerDescription {
+  color: var(--text-light);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.offerMeta {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-lighter);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.offerPrice {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 1.125rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 2rem 0;
+}
+
+.pageButton {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--gray-300);
+  background-color: var(--white);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.pageButton:hover {
+  background-color: var(--gray-100);
+}
+
+.activePageButton {
+  background-color: var(--primary-color);
+  color: var(--white);
+  border-color: var(--primary-color);
+}
+
+.offerDetailSection {
+  padding: 4rem 0;
+}
+
+.offerDetail {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.offerDetailHeader {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.offerDetailTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.offerDetailSubtitle {
+  color: var(--text-light);
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.offerDetailMeta {
+  color: var(--text-lighter);
+  font-size: 0.875rem;
+}
+
+.offerImageGallery {
+  margin-bottom: 2rem;
+}
+
+.offerImageMain {
+  position: relative;
+  height: 400px;
+  width: 100%;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.offerInfo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .offerInfo {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.offerDescription {
+  line-height: 1.6;
+}
+
+.offerDetailsCard {
+  background-color: var(--gray-50);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+}
+
+.offerDetailsTitle {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.offerDetailsRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.offerDetailsRow:last-child {
+  border-bottom: none;
+}
+
+.offerDetailLabel {
+  font-weight: 500;
+}
+
+.offerPriceCard {
+  background-color: var(--white);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.offerPriceTitle {
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.offerPriceAmount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.offerPriceDescription {
+  color: var(--text-light);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.phoneNumberPopup {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: var(--gray-100);
+  border-radius: var(--border-radius);
+  text-align: center;
+  font-weight: 500;
+}
+

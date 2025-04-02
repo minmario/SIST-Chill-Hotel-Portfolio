@@ -1,0 +1,415 @@
+.header {
+  background-color: var(--gray-100);
+  padding: 6rem 0 3rem;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.header p {
+  font-size: 1.125rem;
+  color: var(--text-light);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.mypageSection {
+  padding: 4rem 0;
+}
+
+.mypageContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .mypageContainer {
+    grid-template-columns: 250px 1fr;
+  }
+}
+
+.sidebar {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  height: fit-content;
+}
+
+.sidebarTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebarIcon {
+  color: var(--primary-color);
+}
+
+.sidebarNav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebarNavItem {
+  margin-bottom: 0.5rem;
+}
+
+.sidebarNavLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  color: var(--text-color);
+  text-decoration: none;
+  border-radius: var(--border-radius-sm);
+  transition: all 0.2s;
+}
+
+.sidebarNavLink:hover {
+  background-color: var(--gray-100);
+}
+
+.sidebarNavLinkActive {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+.sidebarNavLinkActive:hover {
+  background-color: var(--primary-hover);
+}
+
+.customerService {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.customerServiceTitle {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.customerServiceHours {
+  font-size: 0.875rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+.customerServicePhone {
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.contentArea {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 2rem;
+}
+
+.membershipCard {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.membershipIcon {
+  width: 60px;
+  height: 60px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: 1.5rem;
+}
+
+.membershipInfo {
+  flex-grow: 1;
+}
+
+.membershipTitle {
+  font-size: 0.875rem;
+  color: var(--text-light);
+  margin-bottom: 0.25rem;
+}
+
+.membershipName {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.membershipLevel {
+  font-size: 1rem;
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.statsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.statTitle {
+  font-size: 1rem;
+  color: var(--text-light);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.statIcon {
+  color: var(--primary-color);
+}
+
+.statCircle {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1rem;
+  position: relative;
+}
+
+.statValue {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.statUnit {
+  font-size: 0.875rem;
+  color: var(--text-light);
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.statTarget {
+  font-size: 0.875rem;
+  color: var(--text-light);
+  margin-top: 0.5rem;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.viewAllLink {
+  font-size: 0.875rem;
+  color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pointsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+}
+
+.pointsTable th,
+.pointsTable td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.pointsTable th {
+  font-weight: 600;
+  color: var(--text-color);
+  background-color: var(--gray-50);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem 0;
+  color: var(--text-light);
+}
+
+.pointSummaryCard {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.pointSummaryGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .pointSummaryGrid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.pointSummaryItem {
+  text-align: center;
+}
+
+.pointSummaryLabel {
+  font-size: 0.875rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+.pointSummaryValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.pointSummaryNote {
+  font-size: 0.75rem;
+  color: #ef4444;
+  margin-top: 0.25rem;
+}
+
+.periodTabs {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.periodTab {
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 0.5rem;
+}
+
+.periodTabActive {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+.dateRangeSelector {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.dateInput {
+  padding: 0.5rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+}
+
+.searchButton {
+  padding: 0.5rem 1rem;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.filterTabs {
+  display: flex;
+  border-bottom: 1px solid var(--gray-200);
+  margin-bottom: 1rem;
+}
+
+.filterTab {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filterTabActive {
+  border-bottom: 2px solid var(--primary-color);
+  font-weight: 500;
+}
+
+.pointHistoryTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pointHistoryTable th,
+.pointHistoryTable td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.pointHistoryTable th {
+  font-weight: 600;
+  background-color: var(--gray-50);
+}
+
+.categoryBadge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+.categoryBadgeEarned {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.categoryBadgeUsed {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.pointEarned {
+  color: #16a34a;
+  text-align: right;
+}
+
+.pointUsed {
+  color: #2563eb;
+  text-align: right;
+}
+
+.pointBalance {
+  font-weight: 500;
+  text-align: right;
+}
+

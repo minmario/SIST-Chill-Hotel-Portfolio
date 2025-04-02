@@ -1,0 +1,444 @@
+.header {
+  background-color: var(--gray-100);
+  padding: 6rem 0 3rem;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.header p {
+  font-size: 1.125rem;
+  color: var(--text-light);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.membershipSection {
+  padding: 4rem 0;
+}
+
+.membershipTiers {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+@media (min-width: 640px) {
+  .membershipTiers {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .membershipTiers {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.tierCard {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.tierCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.tierHeader {
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: var(--white);
+}
+
+.tierBronze {
+  background-color: #cd7f32;
+}
+
+.tierSilver {
+  background-color: #c0c0c0;
+}
+
+.tierGold {
+  background-color: #ffd700;
+  color: var(--text-color);
+}
+
+.tierVIP {
+  background: linear-gradient(135deg, #8a2387, #e94057, #f27121);
+}
+
+.tierName {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.tierDiscount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.tierDescription {
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
+.tierContent {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tierBenefits {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+
+.tierBenefit {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-light);
+}
+
+.tierBenefitIcon {
+  color: var(--primary-color);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.tierButton {
+  margin-top: auto;
+  width: 100%;
+}
+
+.membershipInfo {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.infoTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .infoGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.infoCard {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+}
+
+.infoCardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.infoCardIcon {
+  color: var(--primary-color);
+}
+
+.infoCardContent {
+  color: var(--text-light);
+  line-height: 1.6;
+}
+
+.infoCardList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.infoCardListItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.infoCardListItemIcon {
+  color: var(--primary-color);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.checkoutSection {
+  padding: 4rem 0;
+}
+
+.checkoutGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .checkoutGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.checkoutForm {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+}
+
+.formTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.formSection {
+  margin-bottom: 2rem;
+}
+
+.formSectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .formGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.formInput,
+.formSelect {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  font-family: inherit;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.2);
+}
+
+.formCheckboxContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.formCheckbox {
+  margin-top: 0.25rem;
+}
+
+.orderSummary {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  height: fit-content;
+}
+
+.orderSummaryTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.orderItems {
+  margin-bottom: 1.5rem;
+}
+
+.orderItem {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.orderItem:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.orderItemDetails {
+  flex-grow: 1;
+}
+
+.orderItemName {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.orderItemMeta {
+  font-size: 0.75rem;
+  color: var(--text-lighter);
+}
+
+.orderItemPrice {
+  font-weight: 500;
+  white-space: nowrap;
+  margin-left: 1rem;
+}
+
+.orderSummaryRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.orderSummaryLabel {
+  color: var(--text-light);
+}
+
+.orderSummaryValue {
+  font-weight: 500;
+}
+
+.orderSummaryDiscount {
+  color: #10b981;
+}
+
+.orderTotal {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--gray-200);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.orderTotalLabel {
+  color: var(--text-color);
+}
+
+.orderTotalValue {
+  color: var(--primary-color);
+}
+
+.placeOrderButton {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.75rem;
+  font-size: 1rem;
+}
+
+.paymentOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.paymentOption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.paymentOptionSelected {
+  border-color: var(--primary-color);
+  background-color: rgba(45, 212, 191, 0.05);
+}
+
+.paymentOptionRadio {
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--gray-400);
+  border-radius: 50%;
+  margin: 0;
+  position: relative;
+  cursor: pointer;
+}
+
+.paymentOptionRadio:checked {
+  border-color: var(--primary-color);
+}
+
+.paymentOptionRadio:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0.625rem;
+  height: 0.625rem;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+}
+
+.paymentOptionLabel {
+  font-weight: 500;
+}
+
+.paymentOptionIcon {
+  margin-left: auto;
+}
+

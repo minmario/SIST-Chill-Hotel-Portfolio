@@ -1,0 +1,527 @@
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { Users, Calendar, Home, ChevronDown, X } from "lucide-react"
+import styles from "../rooms/rooms.module.css"
+
+// 객실 데이터
+const rooms = [
+  {
+    id: "chill-comfort",
+    name: "Chill Comfort",
+    description: "편안함과 실용성을 갖춘 객실로, 비즈니스와 레저 여행객 모두에게 적합합니다.",
+    price: 250000,
+    image: "/placeholder.svg?height=400&width=600",
+    details: {
+      size: "36㎡",
+      bedType: "킹 또는 트윈",
+      view: "시티 뷰",
+      maxOccupancy: 2,
+    },
+  },
+  {
+    id: "chill-harmony",
+    name: "Chill Harmony",
+    description: "조화로운 디자인과 넓은 공간이 특징인 객실로, 도시의 스카이라인을 감상할 수 있습니다.",
+    price: 300000,
+    image: "/placeholder.svg?height=400&width=600",
+    details: {
+      size: "42㎡",
+      bedType: "킹 또는 트윈",
+      view: "시티 뷰",
+      maxOccupancy: 2,
+    },
+  },
+  {
+    id: "chill-serenity",
+    name: "Chill Serenity",
+    description: "고요함과 평온함을 느낄 수 있는 객실로, 프리미엄 어메니티와 넓은 공간을 제공합니다.",
+    price: 350000,
+    image: "/placeholder.svg?height=400&width=600",
+    details: {
+      size: "48㎡",
+      bedType: "킹",
+      view: "시티 뷰 또는 리버 뷰",
+      maxOccupancy: 2,
+    },
+  },
+  {
+    id: "chill-lake",
+    name: "Chill Lake",
+    description: "아름다운 호수 전망을 자랑하는 객실로, 자연과 도시가 조화를 이루는 특별한 경험을 제공합니다.",
+    price: 400000,
+    image: "/placeholder.svg?height=400&width=600",
+    details: {
+      size: "52㎡",
+      bedType: "킹",
+      view: "레이크 뷰",
+      maxOccupancy: 2,
+    },
+  },
+  {
+    id: "ultimate-chill-suite",
+    name: "Ultimate Chill Suite",
+    description:
+      "럭스 호텔의 최상급 스위트룸으로, 넓은 공간과 최고급 인테리어, 프라이빗 라운지 액세스 등 특별한 서비스를 제공합니다.",
+    price: 600000,
+    image: "/placeholder.svg?height=400&width=600",
+    details: {
+      size: "76㎡",
+      bedType: "킹",
+      view: "파노라마 뷰",
+      maxOccupancy: 3,
+    },
+  },
+]
+
+// 패키지 데이터
+const packages = [
+  {
+    id: "romantic-escape",
+    name: "로맨틱 이스케이프",
+    description: "소중한 사람과 특별한 시간을 보내세요. 스파클링 와인, 초콜릿, 장미 꽃잎 데코레이션이 포함됩니다.",
+    price: 350000,
+    image: "/placeholder.svg?height=400&width=600",
+    roomType: "Chill Harmony",
+    details: {
+      size: "42㎡",
+      bedType: "킹",
+      view: "시티 뷰",
+      maxOccupancy: 2,
+      includes: ["웰컴 스파클링 와인", "초콜릿 플레이트", "장미 꽃잎 데코레이션", "2인 조식"],
+    },
+  },
+  {
+    id: "family-fun",
+    name: "패밀리 펀",
+    description: "가족과 함께하는 즐거운 시간. 키즈 어메니티, 영화 관람권, 패밀리 게임 세트가 제공됩니다.",
+    price: 450000,
+    image: "/placeholder.svg?height=400&width=600",
+    roomType: "Chill Lake",
+    details: {
+      size: "52㎡",
+      bedType: "킹 + 소파베드",
+      view: "레이크 뷰",
+      maxOccupancy: 4,
+      includes: ["키즈 어메니티", "영화 관람권", "패밀리 게임 세트", "4인 조식"],
+    },
+  },
+  {
+    id: "wellness-retreat",
+    name: "웰니스 리트릿",
+    description: "몸과 마음의 휴식을 위한 패키지. 스파 트리트먼트, 요가 클래스, 웰니스 음료가 포함됩니다.",
+    price: 500000,
+    image: "/placeholder.svg?height=400&width=600",
+    roomType: "Chill Serenity",
+    details: {
+      size: "48㎡",
+      bedType: "킹",
+      view: "리버 뷰",
+      maxOccupancy: 2,
+      includes: ["60분 스파 트리트먼트", "요가 클래스", "웰니스 음료", "2인 조식"],
+    },
+  },
+]
+
+export default function Booking() {
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState("rooms") // 'rooms' or 'packages'
+  const [sortOption, setSortOption] = useState("price-asc")
+  const [selectedRoom, setSelectedRoom] = useState<any>(null)
+  const [modalOpen, setModalOpen] = useState(false)
+
+  const [searchParams, setSearchParams] = useState({
+    checkIn: "",
+    checkOut: "",
+    rooms: "1",
+    adults: "2",
+    children: "0",
+  })
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    // 검색 로직 구현
+    console.log("검색 파라미터:", searchParams)
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setSearchParams((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortOption(e.target.value)
+  }
+
+  const sortedRooms = [...rooms].sort((a, b) => {
+    if (sortOption === "price-asc") return a.price - b.price
+    if (sortOption === "price-desc") return b.price - a.price
+    return 0
+  })
+
+  const sortedPackages = [...packages].sort((a, b) => {
+    if (sortOption === "price-asc") return a.price - b.price
+    if (sortOption === "price-desc") return b.price - a.price
+    return 0
+  })
+
+  const openModal = (item: any) => {
+    setSelectedRoom(item)
+    setModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setModalOpen(false)
+  }
+
+  const handleBookNow = (room: any) => {
+    // 예약 정보를 로컬 스토리지에 저장
+    localStorage.setItem("selectedRoom", JSON.stringify(room))
+    localStorage.setItem("bookingParams", JSON.stringify(searchParams))
+
+    // 다음 단계로 이동
+    router.push("/booking/info")
+  }
+
+  return (
+    <>
+      <div className={styles.header}>
+        <div className="container">
+          <h1>객실 예약</h1>
+          <p>럭스 호텔에서 특별한 경험을 예약하세요.</p>
+        </div>
+      </div>
+
+      <section className={styles.bookingSection}>
+        <div className="container">
+          <div className={styles.bookingSteps}>
+            <div className={`${styles.bookingStep} ${styles.bookingStepActive}`}>
+              <div className={styles.bookingStepNumber}>1</div>
+              <div className={styles.bookingStepLabel}>객실 선택</div>
+            </div>
+            <div className={styles.bookingStep}>
+              <div className={styles.bookingStepNumber}>2</div>
+              <div className={styles.bookingStepLabel}>옵션 선택</div>
+            </div>
+            <div className={styles.bookingStep}>
+              <div className={styles.bookingStepNumber}>3</div>
+              <div className={styles.bookingStepLabel}>정보 입력</div>
+            </div>
+            <div className={styles.bookingStep}>
+              <div className={styles.bookingStepNumber}>4</div>
+              <div className={styles.bookingStepLabel}>예약 완료</div>
+            </div>
+          </div>
+
+          <form className={styles.searchForm} onSubmit={handleSearch}>
+            <div className={styles.searchGrid}>
+              <div className={styles.searchGroup}>
+                <label htmlFor="checkIn" className={styles.searchLabel}>
+                  체크인
+                </label>
+                <input
+                  type="date"
+                  id="checkIn"
+                  name="checkIn"
+                  className={styles.searchInput}
+                  value={searchParams.checkIn}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className={styles.searchGroup}>
+                <label htmlFor="checkOut" className={styles.searchLabel}>
+                  체크아웃
+                </label>
+                <input
+                  type="date"
+                  id="checkOut"
+                  name="checkOut"
+                  className={styles.searchInput}
+                  value={searchParams.checkOut}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className={styles.searchGroup}>
+                <label htmlFor="rooms" className={styles.searchLabel}>
+                  객실 수
+                </label>
+                <select
+                  id="rooms"
+                  name="rooms"
+                  className={styles.searchSelect}
+                  value={searchParams.rooms}
+                  onChange={handleInputChange}
+                >
+                  {[1, 2, 3, 4, 5].map((num) => (
+                    <option key={num} value={num}>
+                      {num}개
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.searchGroup}>
+                <label htmlFor="guests" className={styles.searchLabel}>
+                  인원
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    id="adults"
+                    name="adults"
+                    className={styles.searchSelect}
+                    value={searchParams.adults}
+                    onChange={handleInputChange}
+                  >
+                    <option value="1">성인 1명</option>
+                    <option value="2">성인 2명</option>
+                    <option value="3">성인 3명</option>
+                    <option value="4">성인 4명</option>
+                  </select>
+
+                  <select
+                    id="children"
+                    name="children"
+                    className={styles.searchSelect}
+                    value={searchParams.children}
+                    onChange={handleInputChange}
+                  >
+                    <option value="0">어린이 0명</option>
+                    <option value="1">어린이 1명</option>
+                    <option value="2">어린이 2명</option>
+                    <option value="3">어린이 3명</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" className={`button button-primary ${styles.searchButton}`}>
+                검색
+              </button>
+            </div>
+          </form>
+
+          <div className={styles.roomListHeader}>
+            <div className={styles.roomListTabs}>
+              <button
+                className={`${styles.roomListTab} ${activeTab === "rooms" ? styles.roomListTabActive : ""}`}
+                onClick={() => setActiveTab("rooms")}
+              >
+                객실
+              </button>
+              <button
+                className={`${styles.roomListTab} ${activeTab === "packages" ? styles.roomListTabActive : ""}`}
+                onClick={() => setActiveTab("packages")}
+              >
+                패키지
+              </button>
+            </div>
+
+            <select className={styles.sortSelect} value={sortOption} onChange={handleSortChange}>
+              <option value="price-asc">가격 낮은순</option>
+              <option value="price-desc">가격 높은순</option>
+            </select>
+          </div>
+
+          <div className={styles.roomList}>
+            {activeTab === "rooms"
+              ? sortedRooms.map((room) => (
+                  <div key={room.id} className={styles.roomListItem}>
+                    <div className={styles.roomListImageContainer} onClick={() => openModal(room)}>
+                      <Image
+                        src={room.image || "/placeholder.svg"}
+                        alt={room.name}
+                        fill
+                        style={{ objectFit: "cover" }}
+                      />
+                    </div>
+
+                    <div className={styles.roomListInfo}>
+                      <h3 className={styles.roomListName}>{room.name}</h3>
+                      <p className={styles.roomListDescription}>{room.description}</p>
+
+                      <div className={styles.roomListDetails}>
+                        <div className={styles.roomListDetail}>
+                          <Home size={16} className={styles.roomListDetailIcon} />
+                          <span>{room.details.size}</span>
+                        </div>
+                        <div className={styles.roomListDetail}>
+                          <Calendar size={16} className={styles.roomListDetailIcon} />
+                          <span>{room.details.bedType}</span>
+                        </div>
+                        <div className={styles.roomListDetail}>
+                          <Users size={16} className={styles.roomListDetailIcon} />
+                          <span>최대 {room.details.maxOccupancy}인</span>
+                        </div>
+                      </div>
+
+                      <div className={styles.roomListActions}>
+                        <Link href={`/rooms/${room.id}`} className={styles.roomListViewMore}>
+                          자세히 보기
+                        </Link>
+
+                        <div className={styles.roomListPriceContainer}>
+                          <div className={styles.roomListMemberPrice}>회원 특가</div>
+                          <div className={styles.roomListPrice}>₩{room.price.toLocaleString()}</div>
+                          <button
+                            className={`button button-primary ${styles.roomListBookButton}`}
+                            onClick={() => handleBookNow(room)}
+                          >
+                            예약하기
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              : sortedPackages.map((pkg) => (
+                  <div key={pkg.id} className={styles.roomListItem}>
+                    <div className={styles.roomListImageContainer} onClick={() => openModal(pkg)}>
+                      <Image src={pkg.image || "/placeholder.svg"} alt={pkg.name} fill style={{ objectFit: "cover" }} />
+                    </div>
+
+                    <div className={styles.roomListInfo}>
+                      <h3 className={styles.roomListName}>{pkg.name}</h3>
+                      <p className={styles.roomListDescription}>{pkg.description}</p>
+
+                      <div className={styles.roomListDetails}>
+                        <div className={styles.roomListDetail}>
+                          <Home size={16} className={styles.roomListDetailIcon} />
+                          <span>{pkg.roomType}</span>
+                        </div>
+                        <div className={styles.roomListDetail}>
+                          <Calendar size={16} className={styles.roomListDetailIcon} />
+                          <span>{pkg.details.bedType}</span>
+                        </div>
+                        <div className={styles.roomListDetail}>
+                          <Users size={16} className={styles.roomListDetailIcon} />
+                          <span>최대 {pkg.details.maxOccupancy}인</span>
+                        </div>
+                      </div>
+
+                      <div className={styles.roomListActions}>
+                        <Link
+                          href="#"
+                          className={styles.roomListViewMore}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            openModal(pkg)
+                          }}
+                        >
+                          자세히 보기
+                        </Link>
+
+                        <div className={styles.roomListPriceContainer}>
+                          <div className={styles.roomListMemberPrice}>회원 특가</div>
+                          <div className={styles.roomListPrice}>₩{pkg.price.toLocaleString()}</div>
+                          <button
+                            className={`button button-primary ${styles.roomListBookButton}`}
+                            onClick={() => handleBookNow(pkg)}
+                          >
+                            예약하기
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+          </div>
+        </div>
+      </section>
+
+      {modalOpen && selectedRoom && (
+        <div className={styles.roomModal} onClick={closeModal}>
+          <div className={styles.roomModalContent} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.roomModalClose} onClick={closeModal}>
+              <X size={24} />
+            </button>
+
+            <div className={styles.roomModalImageContainer}>
+              <Image
+                src={selectedRoom.image || "/placeholder.svg"}
+                alt={selectedRoom.name}
+                fill
+                style={{ objectFit: "cover" }}
+              />
+            </div>
+
+            <div className={styles.roomModalInfo}>
+              <h3 className={styles.roomModalName}>{selectedRoom.name}</h3>
+              <p className={styles.roomModalDescription}>{selectedRoom.description}</p>
+
+              <div className={styles.roomModalDetails}>
+                <div className={styles.roomModalDetail}>
+                  <Home size={18} className={styles.roomModalDetailIcon} />
+                  <div>
+                    <div className={styles.roomModalDetailLabel}>객실 크기</div>
+                    <div className={styles.roomModalDetailValue}>{selectedRoom.details.size}</div>
+                  </div>
+                </div>
+
+                <div className={styles.roomModalDetail}>
+                  <Calendar size={18} className={styles.roomModalDetailIcon} />
+                  <div>
+                    <div className={styles.roomModalDetailLabel}>침대 타입</div>
+                    <div className={styles.roomModalDetailValue}>{selectedRoom.details.bedType}</div>
+                  </div>
+                </div>
+
+                <div className={styles.roomModalDetail}>
+                  <Users size={18} className={styles.roomModalDetailIcon} />
+                  <div>
+                    <div className={styles.roomModalDetailLabel}>최대 인원</div>
+                    <div className={styles.roomModalDetailValue}>{selectedRoom.details.maxOccupancy}인</div>
+                  </div>
+                </div>
+
+                <div className={styles.roomModalDetail}>
+                  <ChevronDown size={18} className={styles.roomModalDetailIcon} />
+                  <div>
+                    <div className={styles.roomModalDetailLabel}>전망</div>
+                    <div className={styles.roomModalDetailValue}>{selectedRoom.details.view}</div>
+                  </div>
+                </div>
+              </div>
+
+              {selectedRoom.details.includes && (
+                <div className="mt-4">
+                  <h4 className="font-semibold mb-2">패키지 포함 사항</h4>
+                  <ul className="list-disc pl-5">
+                    {selectedRoom.details.includes.map((item: string, index: number) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="mt-6 flex justify-between items-center">
+                <div>
+                  <div className="text-sm text-gray-500">1박 기준</div>
+                  <div className="text-xl font-semibold text-primary-color">₩{selectedRoom.price.toLocaleString()}</div>
+                </div>
+
+                <button
+                  className="button button-primary"
+                  onClick={() => {
+                    handleBookNow(selectedRoom)
+                    closeModal()
+                  }}
+                >
+                  예약하기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+

@@ -1,0 +1,497 @@
+.main {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* 히어로 섹션 */
+.heroSection {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.activeSlide {
+  opacity: 1;
+  z-index: 1;
+}
+
+.slideBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(0, 0, 0, 0.4);
+  background-blend-mode: darken;
+}
+
+.slideContent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: var(--white);
+  z-index: 2;
+  width: 80%;
+  max-width: 800px;
+}
+
+.slideContent h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.slideContent p {
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.heroButton {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.heroButton:hover {
+  background-color: var(--primary-dark);
+}
+
+.sliderControl {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(255, 255, 255, 0.3);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  color: var(--white);
+  transition: background-color 0.3s;
+}
+
+.sliderControl:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.prevControl {
+  left: 20px;
+}
+
+.nextControl {
+  right: 20px;
+}
+
+.sliderIndicators {
+  position: absolute;
+  bottom: 180px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.activeIndicator {
+  background-color: var(--white);
+}
+
+/* 예약 폼 */
+.heroBookingBarContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: 0 20px;
+}
+
+.bookingForm {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  background-color: var(--white);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.bookingFormField {
+  display: flex;
+  flex-direction: column;
+}
+
+.bookingFormField label {
+  font-size: 0.875rem;
+  margin-bottom: 8px;
+  color: var(--text-color);
+}
+
+.bookingInput {
+  padding: 10px;
+  border: 1px solid var(--gray-300);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.formattedDate {
+  font-size: 0.75rem;
+  color: var(--gray-600);
+  margin-top: 4px;
+}
+
+.bookingFormButton {
+  display: flex;
+  align-items: flex-end;
+}
+
+.searchButton {
+  width: 100%;
+  padding: 10px;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.searchButton:hover {
+  background-color: var(--primary-dark);
+}
+
+/* 객실 섹션 */
+.roomsSection {
+  padding: 80px 0;
+  background-color: var(--light-bg);
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.sectionDescription {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 3rem;
+  color: var(--gray-600);
+  line-height: 1.6;
+}
+
+.roomsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.roomCard {
+  background-color: var(--white);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.roomCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.roomImageContainer {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.roomImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.roomCard:hover .roomImage {
+  transform: scale(1.05);
+}
+
+.roomInfo {
+  padding: 20px;
+}
+
+.roomName {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--text-color);
+}
+
+.roomDescription {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.roomDetails {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+}
+
+.roomDetailsButton {
+  display: inline-block;
+  padding: 8px 0;
+  color: var(--primary-color);
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.roomDetailsButton:hover {
+  color: var(--primary-dark);
+}
+
+.viewAllContainer {
+  text-align: center;
+}
+
+.viewAllButton {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.viewAllButton:hover {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+/* 다이닝 섹션 */
+.diningSection {
+  padding: 80px 0;
+  background-color: var(--white);
+}
+
+.diningSlider {
+  position: relative;
+  margin: 0 auto;
+  max-width: 1000px;
+  height: 400px;
+  overflow: hidden;
+}
+
+.diningSlide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.activeDiningSlide {
+  opacity: 1;
+  z-index: 1;
+}
+
+.diningImageContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.diningImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.diningInfo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  color: var(--white);
+}
+
+.diningName {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.diningDescription {
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+.diningHours {
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+.diningIndicators {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* 기프트샵 섹션 */
+.storeSection {
+  padding: 80px 0;
+  background-color: var(--light-bg);
+}
+
+.storeSlider {
+  position: relative;
+  margin: 0 auto;
+  max-width: 1000px;
+  height: 400px;
+  overflow: hidden;
+}
+
+.storeSlide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.activeStoreSlide {
+  opacity: 1;
+  z-index: 1;
+}
+
+.storeImageContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.storeImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.storeInfo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  color: var(--white);
+}
+
+.storeName {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.storeDescription {
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+.storePrice {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.storeDetailsButton {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  transition: background-color 0.3s;
+}
+
+.storeDetailsButton:hover {
+  background-color: var(--primary-dark);
+}
+
+.storeIndicators {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+  .slideContent h1 {
+    font-size: 2rem;
+  }
+
+  .slideContent p {
+    font-size: 1rem;
+  }
+
+  .bookingForm {
+    grid-template-columns: 1fr;
+  }
+
+  .roomsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
