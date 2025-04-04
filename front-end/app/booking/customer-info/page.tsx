@@ -12,7 +12,6 @@ export default function CustomerInfo() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userEmail, setUserEmail] = useState("")
   const [termsModalOpen, setTermsModalOpen] = useState(false)
-
   const [formData, setFormData] = useState({
     lastName: "",
     firstName: "",
