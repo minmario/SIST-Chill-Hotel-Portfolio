@@ -2,7 +2,7 @@ package sist.backend.controller.api;
 
 import sist.backend.dto.request.ReservationRequestDTO;
 import sist.backend.dto.response.ReservationResponse;
-import sist.backend.service.interfaces.ReservationService;
+import sist.backend.service.interfaces.reservationService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,5 +19,12 @@ public class ReservationController {
     public ResponseEntity<ReservationResponse> register(@RequestBody ReservationRequestDTO request) {
         ReservationResponse response = reservationService.createReservation(request);
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("/check")
+    public ReservationResponse getReservation(
+            @RequestParam Long userIdx,
+            @RequestParam String reservationNum
+    ) {
+        return reservationService.getReservation(userIdx, reservationNum);
     }
 }
