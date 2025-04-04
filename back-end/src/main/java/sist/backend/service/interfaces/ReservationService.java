@@ -1,7 +1,7 @@
-package java.sist.backend.service.interfaces;
+package sist.backend.service.interfaces;
 
-import java.sist.backend.dto.request.ReservationRequestDTO;
-import java.sist.backend.dto.response.ReservationResponse;
+import sist.backend.dto.request.ReservationRequestDTO;
+import sist.backend.dto.response.ReservationResponse;
 
 public interface ReservationService {
     ReservationResponse createReservation(ReservationRequestDTO request);

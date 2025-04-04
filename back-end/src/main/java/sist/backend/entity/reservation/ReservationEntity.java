@@ -1,5 +1,5 @@
 // Reservation 엔티티
-package java.sist.backend.entity.reservation;
+package sist.backend.entity.reservation;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.sist.backend.entity.enums.ReservationStatus;
+import sist.backend.entity.enums.ReservationStatus;
 import java.time.LocalDate;
 
 @Entity

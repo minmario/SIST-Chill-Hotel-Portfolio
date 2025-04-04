@@ -1,4 +1,4 @@
-package java.sist.backend.dto.response;
+package sist.backend.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,8 +7,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class ReservationLookupResponse {
-    private Long id;
+public class ReservationRequestDTO {
     private String name;
     private String email;
     private String phone;
@@ -18,5 +17,4 @@ public class ReservationLookupResponse {
     private int numberOfGuests;
     private int adults;
     private int price;
-    private String status;
 }

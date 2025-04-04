@@ -1,7 +1,7 @@
-package java.sist.backend.repository.jpa;
+package sist.backend.repository.jpa;
 
 
-import java.sist.backend.entity.reservation.ReservationEntity;
+import sist.backend.entity.reservation.ReservationEntity;
 import java.util.List;
 import java.util.Optional;
 

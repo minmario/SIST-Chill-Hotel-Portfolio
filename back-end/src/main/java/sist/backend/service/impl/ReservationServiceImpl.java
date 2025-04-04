@@ -1,11 +1,12 @@
-package java.sist.backend.service.impl;
+package sist.backend.service.impl;
 
-import java.sist.backend.dto.request.ReservationRequestDTO;
-import java.sist.backend.dto.response.ReservationResponse;
-import java.sist.backend.entity.enums.ReservationStatus;
-import java.sist.backend.entity.reservation.ReservationEntity;
-import java.sist.backend.repository.jpa.ReservationRepository;
-import java.sist.backend.service.interfaces.ReservationService;
+import sist.backend.dto.request.ReservationRequestDTO;
+import sist.backend.dto.response.ReservationResponse;
+import sist.backend.entity.enums.ReservationStatus;
+import sist.backend.entity.reservation.ReservationEntity;
+import sist.backend.exception.custom.ResourceNotFoundException;
+import sist.backend.repository.jpa.ReservationRepository;
+import sist.backend.service.interfaces.ReservationService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         ReservationEntity reservation = reservationRepository.findByUserIdxAndReservationNum(userIdx, reservationNum)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 예약 정보를 찾을 수 없습니다."));
-                
+
         return new ReservationResponse(reservation);
     }
 }

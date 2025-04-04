@@ -1,4 +1,4 @@
-package java.sist.backend.dto.request;
+package sist.backend.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
