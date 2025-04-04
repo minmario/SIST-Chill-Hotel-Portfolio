@@ -51,51 +51,52 @@ export default function Cart() {
       </div>
 
       <div className="container py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+        <div className={styles.cartGrid}>
+          <div>
             <div className={styles.cartItems}>
               {cartItems.map((item) => (
                 <div key={item.id} className={styles.cartItem}>
-                  <div className={styles.cartItemImage}>
-                    <Image
-                      src={item.image || "/placeholder.svg?height=100&width=100"}
-                      alt={item.name}
-                      width={100}
-                      height={100}
-                      className="object-cover rounded"
-                    />
-                  </div>
-                  <div className={styles.cartItemDetails}>
-                    <h3 className={styles.cartItemName}>{item.name}</h3>
-                    <p className={styles.cartItemPrice}>{item.price.toLocaleString()}원</p>
-                    <div className={styles.cartItemActions}>
-                      <div className={styles.quantityControl}>
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className={styles.quantityButton}
-                          aria-label="수량 감소"
-                        >
-                          <Minus size={16} />
-                        </button>
-                        <span className={styles.quantity}>{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className={styles.quantityButton}
-                          aria-label="수량 증가"
-                        >
-                          <Plus size={16} />
-                        </button>
-                      </div>
-                      <button
-                        onClick={() => removeFromCart(item.id)}
-                        className={styles.removeButton}
-                        aria-label="상품 삭제"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                  <div className={styles.cartItemProduct}>
+                    <div className={styles.cartItemImage}>
+                      <Image
+                        src={item.image || "/placeholder.svg?height=100&width=100"}
+                        alt={item.name}
+                        width={100}
+                        height={100}
+                        className="object-cover rounded"
+                      />
+                    </div>
+                    <div className={styles.cartItemDetails}>
+                      <h3 className={styles.cartItemName}>{item.name}</h3>
+                      <p className={styles.cartItemCategory}>상품</p>
                     </div>
                   </div>
+                  <div className={styles.cartItemPrice}>{item.price.toLocaleString()}원</div>
+                  <div className={styles.cartItemQuantity}>
+                    <button
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      className={styles.quantityButton}
+                      aria-label="수량 감소"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <input type="text" className={styles.quantityInput} value={item.quantity} readOnly />
+                    <button
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      className={styles.quantityButton}
+                      aria-label="수량 증가"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
                   <div className={styles.cartItemTotal}>{(item.price * item.quantity).toLocaleString()}원</div>
+                  <button
+                    onClick={() => removeFromCart(item.id)}
+                    className={styles.cartItemRemove}
+                    aria-label="상품 삭제"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </div>
               ))}
             </div>

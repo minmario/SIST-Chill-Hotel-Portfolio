@@ -8,7 +8,7 @@ import { CartProvider } from "@/context/cart-context"
 export const metadata: Metadata = {
   title: "럭스 호텔 - 럭셔리 숙박 시설",
   description: "럭스 호텔에서 최고급 서비스와 럭셔리한 경험을 느껴보세요.",
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
@@ -28,6 +28,8 @@ export default function RootLayout({
     </html>
   )
 }
+
+import "./globals.css"
 
 
 

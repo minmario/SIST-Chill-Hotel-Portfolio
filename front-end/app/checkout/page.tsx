@@ -5,7 +5,7 @@ import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/context/cart-context"
-import styles from "@/app/membership/membership.module.css"
+import styles from "./checkout.module.css"
 
 export default function Checkout() {
   const router = useRouter()
@@ -34,6 +34,9 @@ export default function Checkout() {
     setMounted(true)
   }, [])
 
+  // 클라이언트 컴포넌트 로직
+  const { cartItems, getCartTotal, clearCart } = useCart()
+
   // 서버 사이드 렌더링 중에는 기본 UI만 표시
   if (!mounted) {
     return (
@@ -43,9 +46,6 @@ export default function Checkout() {
       </div>
     )
   }
-
-  // 클라이언트 컴포넌트 로직
-  const { cartItems, getCartTotal, clearCart } = useCart()
 
   const handleInputChange = (e) => {
     const { name, value, type } = e.target
@@ -89,48 +89,48 @@ export default function Checkout() {
 
   return (
     <>
-      <div className={styles.header || "bg-gray-100 py-12 text-center"}>
+      <div className={styles.header}>
         <div className="container">
-          <h1 className="text-3xl font-bold mb-2">결제하기</h1>
+          <h1>결제하기</h1>
           <p>주문 정보를 입력하고 결제를 완료하세요.</p>
         </div>
       </div>
 
-      <section className={styles.checkoutSection || "py-12"}>
+      <section className={styles.checkoutSection}>
         <div className="container">
-          <div className={styles.checkoutGrid || "grid grid-cols-1 lg:grid-cols-3 gap-8"}>
-            <div className={styles.checkoutForm || "lg:col-span-2"}>
-              <h2 className={styles.formTitle || "text-2xl font-bold mb-6"}>주문 정보</h2>
+          <div className={styles.checkoutGrid}>
+            <div className={styles.checkoutForm}>
+              <h2 className={styles.formTitle}>주문 정보</h2>
 
               <form onSubmit={handleSubmit}>
-                <div className={styles.formSection || "mb-8 p-6 bg-white rounded-lg shadow-sm"}>
-                  <h3 className={styles.formSectionTitle || "text-xl font-semibold mb-4"}>배송 정보</h3>
+                <div className={styles.formSection}>
+                  <h3 className={styles.formSectionTitle}>배송 정보</h3>
 
-                  <div className={styles.formGrid || "grid grid-cols-1 md:grid-cols-2 gap-4"}>
-                    <div className={styles.formGroup || "mb-4"}>
-                      <label htmlFor="lastName" className={styles.formLabel || "block mb-2 font-medium"}>
+                  <div className={styles.formGrid}>
+                    <div className={styles.formGroup}>
+                      <label htmlFor="lastName" className={styles.formLabel}>
                         성
                       </label>
                       <input
                         type="text"
                         id="lastName"
                         name="lastName"
-                        className={styles.formInput || "w-full p-3 border border-gray-300 rounded-md"}
+                        className={styles.formInput}
                         value={formData.lastName}
                         onChange={handleInputChange}
                         required
                       />
                     </div>
 
-                    <div className={styles.formGroup || "mb-4"}>
-                      <label htmlFor="firstName" className={styles.formLabel || "block mb-2 font-medium"}>
+                    <div className={styles.formGroup}>
+                      <label htmlFor="firstName" className={styles.formLabel}>
                         이름
                       </label>
                       <input
                         type="text"
                         id="firstName"
                         name="firstName"
-                        className={styles.formInput || "w-full p-3 border border-gray-300 rounded-md"}
+                        className={styles.formInput}
                         value={formData.firstName}
                         onChange={handleInputChange}
                         required
@@ -138,30 +138,30 @@ export default function Checkout() {
                     </div>
                   </div>
 
-                  <div className={styles.formGroup || "mb-4"}>
-                    <label htmlFor="email" className={styles.formLabel || "block mb-2 font-medium"}>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="email" className={styles.formLabel}>
                       이메일
                     </label>
                     <input
                       type="email"
                       id="email"
                       name="email"
-                      className={styles.formInput || "w-full p-3 border border-gray-300 rounded-md"}
+                      className={styles.formInput}
                       value={formData.email}
                       onChange={handleInputChange}
                       required
                     />
                   </div>
 
-                  <div className={styles.formGroup || "mb-4"}>
-                    <label htmlFor="phone" className={styles.formLabel || "block mb-2 font-medium"}>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="phone" className={styles.formLabel}>
                       연락처
                     </label>
                     <input
                       type="tel"
                       id="phone"
                       name="phone"
-                      className={styles.formInput || "w-full p-3 border border-gray-300 rounded-md"}
+                      className={styles.formInput}
                       value={formData.phone}
                       onChange={handleInputChange}
                       required
@@ -175,18 +175,18 @@ export default function Checkout() {
                   </div>
                 </div>
 
-                <div className={styles.formSection || "mb-8 p-6 bg-white rounded-lg shadow-sm"}>
-                  <h3 className={styles.formSectionTitle || "text-xl font-semibold mb-4"}>결제 정보</h3>
+                <div className={styles.formSection}>
+                  <h3 className={styles.formSectionTitle}>결제 정보</h3>
 
-                  <div className="mb-4">
-                    <label htmlFor="cardNumber" className="block mb-2 font-medium">
+                  <div className={styles.formGroup}>
+                    <label htmlFor="cardNumber" className={styles.formLabel}>
                       카드 번호
                     </label>
                     <input
                       type="text"
                       id="cardNumber"
                       name="cardNumber"
-                      className="w-full p-3 border border-gray-300 rounded-md"
+                      className={styles.formInput}
                       value={formData.cardNumber}
                       onChange={handleInputChange}
                       placeholder="0000-0000-0000-0000"
@@ -194,15 +194,15 @@ export default function Checkout() {
                     />
                   </div>
 
-                  <div className="mb-4">
-                    <label htmlFor="cardName" className="block mb-2 font-medium">
+                  <div className={styles.formGroup}>
+                    <label htmlFor="cardName" className={styles.formLabel}>
                       카드 소유자 이름
                     </label>
                     <input
                       type="text"
                       id="cardName"
                       name="cardName"
-                      className="w-full p-3 border border-gray-300 rounded-md"
+                      className={styles.formInput}
                       value={formData.cardName}
                       onChange={handleInputChange}
                       placeholder="카드에 표시된 이름"
@@ -210,14 +210,14 @@ export default function Checkout() {
                     />
                   </div>
 
-                  <div className="mb-4">
-                    <label className="block mb-2 font-medium">만료일</label>
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>만료일</label>
+                    <div className={styles.formGrid}>
                       <div>
                         <select
                           id="expiryMonth"
                           name="expiryMonth"
-                          className="w-full p-3 border border-gray-300 rounded-md"
+                          className={styles.formInput}
                           value={formData.expiryMonth}
                           onChange={handleInputChange}
                           required
@@ -237,7 +237,7 @@ export default function Checkout() {
                         <select
                           id="expiryYear"
                           name="expiryYear"
-                          className="w-full p-3 border border-gray-300 rounded-md"
+                          className={styles.formInput}
                           value={formData.expiryYear}
                           onChange={handleInputChange}
                           required
@@ -257,12 +257,12 @@ export default function Checkout() {
                   </div>
                 </div>
 
-                <div className={styles.formCheckboxContainer || "mb-6 flex items-start"}>
+                <div className={styles.formCheckboxContainer}>
                   <input
                     type="checkbox"
                     id="agreeTerms"
                     name="agreeTerms"
-                    className={styles.formCheckbox || "mr-2 mt-1"}
+                    className={styles.formCheckbox}
                     checked={formData.agreeTerms}
                     onChange={handleInputChange}
                     required
@@ -272,48 +272,43 @@ export default function Checkout() {
                   </label>
                 </div>
 
-                <button type="submit" className={`button button-primary ${styles.placeOrderButton || "w-full py-3"}`}>
+                <button type="submit" className={`button button-primary ${styles.placeOrderButton}`}>
                   결제하기
                 </button>
               </form>
             </div>
 
-            <div className={styles.orderSummary || "bg-white p-6 rounded-lg shadow-sm h-fit"}>
-              <h2 className={styles.orderSummaryTitle || "text-xl font-bold mb-4"}>주문 요약</h2>
+            <div className={styles.orderSummary}>
+              <h2 className={styles.orderSummaryTitle}>주문 요약</h2>
 
-              <div className={styles.orderItems || "mb-6 divide-y"}>
+              <div className={styles.orderItems}>
                 {cartItems.map((item) => (
-                  <div key={item.id} className={styles.orderItem || "py-3 flex justify-between"}>
-                    <div className={styles.orderItemDetails || ""}>
-                      <div className={styles.orderItemName || "font-medium"}>{item.name}</div>
-                      <div className={styles.orderItemMeta || "text-sm text-gray-500"}>수량: {item.quantity}</div>
+                  <div key={item.id} className={styles.orderItem}>
+                    <div className={styles.orderItemDetails}>
+                      <div className={styles.orderItemName}>{item.name}</div>
+                      <div className={styles.orderItemMeta}>수량: {item.quantity}</div>
                     </div>
-                    <div className={styles.orderItemPrice || "font-medium"}>
-                      {(item.price * item.quantity).toLocaleString()}원
-                    </div>
+                    <div className={styles.orderItemPrice}>{(item.price * item.quantity).toLocaleString()}원</div>
                   </div>
                 ))}
               </div>
 
-              <div className={styles.orderSummaryRow || "flex justify-between py-2"}>
-                <span className={styles.orderSummaryLabel || ""}>소계</span>
-                <span className={styles.orderSummaryValue || "font-medium"}>{subtotal.toLocaleString()}원</span>
+              <div className={styles.orderSummaryRow}>
+                <span className={styles.orderSummaryLabel}>소계</span>
+                <span className={styles.orderSummaryValue}>{subtotal.toLocaleString()}원</span>
               </div>
 
-              <div className={styles.orderSummaryRow || "flex justify-between py-2"}>
-                <span className={styles.orderSummaryLabel || ""}>회원 등급 할인 (2%)</span>
-                <span className={styles.orderSummaryDiscount || "text-green-600"}>-{discount.toLocaleString()}원</span>
+              <div className={styles.orderSummaryRow}>
+                <span className={styles.orderSummaryLabel}>회원 등급 할인 (2%)</span>
+                <span className={styles.orderSummaryDiscount}>-{discount.toLocaleString()}원</span>
               </div>
 
-              <div className={styles.orderTotal || "flex justify-between py-3 mt-2 border-t border-gray-200"}>
-                <span className={styles.orderTotalLabel || "font-bold"}>총 결제 금액</span>
-                <span className={styles.orderTotalValue || "font-bold text-lg"}>{total.toLocaleString()}원</span>
+              <div className={styles.orderTotal}>
+                <span className={styles.orderTotalLabel}>총 결제 금액</span>
+                <span className={styles.orderTotalValue}>{total.toLocaleString()}원</span>
               </div>
 
-              <Link
-                href="/cart"
-                className={styles.continueShoppingButton || "flex items-center text-gray-600 mt-4 hover:text-gray-900"}
-              >
+              <Link href="/cart" className={styles.continueShoppingButton}>
                 <ChevronLeft size={16} />
                 장바구니로 돌아가기
               </Link>

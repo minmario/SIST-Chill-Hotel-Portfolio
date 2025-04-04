@@ -8,7 +8,7 @@ import { ChevronLeft, Minus, Plus, ShoppingBag } from "lucide-react"
 import { useCart } from "@/context/cart-context"
 import styles from "@/app/store/store.module.css"
 
-// 상품 데이터 (실제로는 API에서 가져올 것)
+// 상품 데이터 - 스토어 페이지와 일치시킴
 const products = [
   {
     id: 1,
@@ -112,6 +112,102 @@ const products = [
       "/placeholder.svg?height=600&width=600",
     ],
   },
+  {
+    id: 7,
+    name: "럭스 시그니처 아로마 디퓨저",
+    price: 58000,
+    image: "/placeholder.svg?height=600&width=600",
+    category: "signature",
+    subcategory: "aroma",
+    description:
+      "럭스 호텔의 시그니처 향을 담은 프리미엄 디퓨저입니다. 은은한 우드와 시트러스 향이 조화롭게 어우러져 호텔의 고급스러운 분위기를 그대로 느낄 수 있습니다.",
+    features: ["100% 천연 에센셜 오일", "최대 12주 지속", "친환경 리드 스틱", "200ml 용량", "고급 유리 용기"],
+    images: [
+      "/placeholder.svg?height=600&width=600",
+      "/placeholder.svg?height=600&width=600",
+      "/placeholder.svg?height=600&width=600",
+    ],
+  },
+  {
+    id: 8,
+    name: "럭스 바디 워시",
+    price: 35000,
+    image: "/placeholder.svg?height=600&width=600",
+    category: "signature",
+    subcategory: "bath",
+    description:
+      "럭스 호텔에서 직접 사용하는 프리미엄 바디 워시입니다. 자연에서 추출한 성분으로 만들어져 피부에 자극 없이 부드럽게 클렌징해주며, 호텔의 시그니처 향이 오래 지속됩니다.",
+    features: ["천연 식물성 성분", "파라벤 무첨가", "pH 밸런스 조절", "300ml 용량", "재활용 가능 용기"],
+    images: [
+      "/placeholder.svg?height=600&width=600",
+      "/placeholder.svg?height=600&width=600",
+      "/placeholder.svg?height=600&width=600",
+    ],
+  },
+  {
+    id: 9,
+    name: "럭스 시그니처 베개",
+    price: 120000,
+    image: "/placeholder.svg?height=600&width=600",
+    category: "signature",
+    subcategory: "bedding",
+    description:
+      "럭스 호텔의 객실에서 사용되는 최고급 베개입니다. 100% 구스 다운 충전재를 사용하여 부드러운 감촉과 탁월한 지지력을 제공합니다.",
+    features: ["100% 구스 다운 충전재", "고급 면 커버", "항균 처리", "알레르기 방지", "세탁 가능"],
+    images: [
+      "/placeholder.svg?height=600&width=600",
+      "/placeholder.svg?height=600&width=600",
+      "/placeholder.svg?height=600&width=600",
+    ],
+  },
+  {
+    id: 10,
+    name: "명상 캔들 세트",
+    price: 45000,
+    image: "/placeholder.svg?height=600&width=600",
+    category: "wellness",
+    subcategory: "meditation",
+    description:
+      "명상과 휴식을 위한 프리미엄 캔들 세트입니다. 라벤더, 유칼립투스, 샌달우드 향의 3가지 캔들로 구성되어 있으며, 각각 다른 효과를 제공합니다.",
+    features: ["100% 소이 왁스", "천연 코튼 심지", "최대 50시간 지속", "3종 세트", "선물용 패키지"],
+    images: [
+      "/placeholder.svg?height=600&width=600",
+      "/placeholder.svg?height=600&width=600",
+      "/placeholder.svg?height=600&width=600",
+    ],
+  },
+  {
+    id: 11,
+    name: "럭스 수면 안대",
+    price: 28000,
+    image: "/placeholder.svg?height=600&width=600",
+    category: "wellness",
+    subcategory: "sleep",
+    description:
+      "완벽한 수면을 위한 프리미엄 실크 안대입니다. 100% 뽕나무 실크로 제작되어 피부에 자극이 없고 부드러운 착용감을 제공합니다.",
+    features: ["100% 뽕나무 실크", "인체공학적 디자인", "조절 가능한 스트랩", "완벽한 빛 차단", "여행용 파우치 포함"],
+    images: [
+      "/placeholder.svg?height=600&width=600",
+      "/placeholder.svg?height=600&width=600",
+      "/placeholder.svg?height=600&width=600",
+    ],
+  },
+  {
+    id: 12,
+    name: "에센셜 오일 컬렉션",
+    price: 65000,
+    image: "/placeholder.svg?height=600&width=600",
+    category: "wellness",
+    subcategory: "aromatherapy",
+    description:
+      "6가지 프리미엄 에센셜 오일로 구성된 컬렉션입니다. 라벤더, 유칼립투스, 페퍼민트, 티트리, 레몬그라스, 오렌지 오일이 포함되어 있어 다양한 아로마테라피 효과를 경험할 수 있습니다.",
+    features: ["100% 천연 성분", "6종 세트", "각 10ml 용량", "다양한 용도", "선물용 우드 박스"],
+    images: [
+      "/placeholder.svg?height=600&width=600",
+      "/placeholder.svg?height=600&width=600",
+      "/placeholder.svg?height=600&width=600",
+    ],
+  },
 ]
 
 export default function ProductDetail() {
@@ -120,6 +216,7 @@ export default function ProductDetail() {
   const [activeImage, setActiveImage] = useState(0)
   const params = useParams()
   const router = useRouter()
+  const { addToCart } = useCart() // useCart 훅을 여기로 이동, 조건부 반환 이전에 호출
 
   // 클라이언트 사이드에서만 실행되도록 처리
   useEffect(() => {
@@ -135,8 +232,6 @@ export default function ProductDetail() {
       </div>
     )
   }
-
-  const { addToCart } = useCart()
 
   const productId = Number(params.id)
   const product = products.find((p) => p.id === productId)
