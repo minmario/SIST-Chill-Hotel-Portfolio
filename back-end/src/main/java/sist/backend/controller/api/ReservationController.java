@@ -1,6 +1,6 @@
 package sist.backend.controller.api;
 
-import sist.backend.dto.request.ReservationRequestDTO;
+import sist.backend.dto.request.ReservationRequest;
 import sist.backend.dto.response.ReservationResponse;
 import sist.backend.service.interfaces.ReservationService;
 
@@ -16,15 +16,15 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @PostMapping
-    public ResponseEntity<ReservationResponse> register(@RequestBody ReservationRequestDTO request) {
+    public ResponseEntity<ReservationResponse> register(@RequestBody ReservationRequest request) {
         ReservationResponse response = reservationService.createReservation(request);
         return ResponseEntity.ok(response);
     }
     @GetMapping("/check")
-    public ReservationResponse getReservation(
+    public ResponseEntity<ReservationResponse> getReservation(
             @RequestParam Long userIdx,
             @RequestParam String reservationNum
     ) {
-        return reservationService.getReservation(userIdx, reservationNum);
+        return ResponseEntity.ok(reservationService.getReservation(userIdx, reservationNum));
     }
 }

@@ -1,15 +1,12 @@
 package sist.backend.service.impl;
 
-import sist.backend.dto.request.ReservationRequestDTO;
-import sist.backend.dto.response.ReservationResponse;
-import sist.backend.entity.enums.ReservationStatus;
-import sist.backend.entity.reservation.ReservationEntity;
-import sist.backend.exception.custom.ResourceNotFoundException;
-import sist.backend.repository.jpa.ReservationRepository;
-import sist.backend.service.interfaces.ReservationService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import sist.backend.dto.request.ReservationRequest;
+import sist.backend.dto.response.ReservationResponse;
+import sist.backend.domain.reservation.entity.Reservation;
+import sist.backend.repository.jpa.ReservationRepository;
+import sist.backend.service.interfaces.ReservationService;
 
 @Service
 @RequiredArgsConstructor
@@ -18,37 +15,26 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationRepository reservationRepository;
 
     @Override
-    public ReservationResponse createReservation(ReservationRequestDTO request) {
-        ReservationEntity reservation = new ReservationEntity();
-        reservation.setName(request.getName());
-        reservation.setEmail(request.getEmail());
-        reservation.setPhone(request.getPhone());
-        reservation.setCheckInDate(request.getCheckInDate());
-        reservation.setCheckOutDate(request.getCheckOutDate());
-        reservation.setRoomType(request.getRoomType());
-        reservation.setNumberOfGuests(request.getNumberOfGuests());
-        reservation.setAdults(request.getAdults());
-        reservation.setPrice(request.getPrice());
-        reservation.setStatus(ReservationStatus.PENDING); // 기본값
-
-        ReservationEntity saved = reservationRepository.save(reservation);
-
-        ReservationResponse response = new ReservationResponse();
-        response.setId(saved.getId());
-        response.setName(saved.getName());
-        response.setCheckInDate(saved.getCheckInDate());
-        response.setCheckOutDate(saved.getCheckOutDate());
-        response.setStatus(saved.getStatus().name());
-
-        return response;
-    }
-    
-    @Override
     public ReservationResponse getReservation(Long userIdx, String reservationNum) {
+        Reservation entity = reservationRepository.findByUserIdxAndReservationNum(userIdx, reservationNum)
+                .orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다."));
+        return ReservationResponse.fromEntity(entity);
+    }
 
-        ReservationEntity reservation = reservationRepository.findByUserIdxAndReservationNum(userIdx, reservationNum)
-                .orElseThrow(() -> new ResourceNotFoundException("해당 예약 정보를 찾을 수 없습니다."));
-
-        return new ReservationResponse(reservation);
+    @Override
+    public ReservationResponse createReservation(ReservationRequest request) {
+        Reservation entity = Reservation.builder()
+                .userIdx(request.getUserIdx())
+                .roomIdx(request.getRoomIdx())
+                .checkInDate(request.getCheckInDate())
+                .checkOutDate(request.getCheckOutDate())
+                .adults(request.getAdults())
+                .status(request.getStatus())
+                .totalAmount(request.getTotalAmount())
+                .paymentMethodsIdx(request.getPaymentMethodsIdx())
+                .reservationNum(request.getReservationNum())
+                .specialRequest(request.getSpecialRequest())
+                .build();
+        return ReservationResponse.fromEntity(reservationRepository.save(entity));
     }
 }

@@ -1,13 +1,8 @@
-// Reservation 엔티티
-package sist.backend.entity.reservation;
+// ReservationEntity.java
+package sist.backend.domain.reservation.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import sist.backend.entity.enums.ReservationStatus;
+import lombok.*;
 import java.time.LocalDate;
 
 @Entity
@@ -16,20 +11,19 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReservationEntity {
+@Builder
+public class Reservation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "reservation_idx")
+    private Long reservationIdx;
 
-    @Column(nullable = false)
-    private String name;
+    @Column(name = "user_idx", nullable = false)
+    private Long userIdx;
 
-    @Column(nullable = false)
-    private String email;
-
-    @Column(nullable = false)
-    private String phone;
+    @Column(name = "room_idx", nullable = false)
+    private Long roomIdx;
 
     @Column(name = "check_in_date", nullable = false)
     private LocalDate checkInDate;
@@ -37,38 +31,22 @@ public class ReservationEntity {
     @Column(name = "check_out_date", nullable = false)
     private LocalDate checkOutDate;
 
-    @Column(name = "room_type", nullable = false)
-    private String roomType;
-
-    @Column(name = "number_of_guests", nullable = false)
-    private int numberOfGuests;
-
-    @Column(name = "adults", nullable = false)
-    private int adults;
-
     @Column(nullable = false)
-    private int price;
+    private int adults;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReservationStatus status;
 
+    @Column(name = "total_amount", nullable = false)
+    private int totalAmount;
+
+    @Column(name = "payment_methods_idx", nullable = false)
+    private Long paymentMethodsIdx;
+
     @Column(name = "reservation_num", nullable = false, unique = true)
     private String reservationNum;
 
-    @Column(name = "user_idx", nullable = false)
-    private Long userIdx;
-
-    public ReservationEntity(String name, String email, String phone, LocalDate checkInDate, LocalDate checkOutDate, String roomType, int numberOfGuests, int adults, int price, ReservationStatus status) {
-        this.name = name;
-        this.email = email;
-        this.phone = phone;
-        this.checkInDate = checkInDate;
-        this.checkOutDate = checkOutDate;
-        this.roomType = roomType;
-        this.numberOfGuests = numberOfGuests;
-        this.adults = adults;
-        this.price = price;
-        this.status = status;
-    }
+    @Column(name = "special_request")
+    private String specialRequest;
 }

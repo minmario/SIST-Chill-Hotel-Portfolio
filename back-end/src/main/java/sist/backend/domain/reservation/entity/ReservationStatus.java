@@ -1,4 +1,4 @@
-package sist.backend.entity.enums;
+package sist.backend.domain.reservation.entity;
 
 public enum ReservationStatus {
     PENDING,       // 예약 요청 중
