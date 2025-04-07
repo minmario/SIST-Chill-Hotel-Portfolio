@@ -1,131 +1,111 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Trash2, Plus, Minus, ShoppingBag } from "lucide-react"
-import { useCart } from "@/context/cart-context"
-import styles from "./cart.module.css"
+import { useCart } from '@/context/cart-context';
+import { CartItem } from '@/components/Cart/CartItem';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
-export default function Cart() {
-  const [mounted, setMounted] = useState(false)
-  const { cartItems, removeFromCart, updateQuantity, getCartTotal } = useCart()
-
-  // 클라이언트 사이드에서만 실행되도록 처리
+export default function CartPage() {
+  const { items, totalItems, totalPrice, clearCart } = useCart();
+  // JWT 관련 상태
+  // const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    /* JWT 관련 코드 - 나중에 활성화
+    const token = localStorage.getItem('token');
+    if (token) {
+      // 토큰 유효성 검사
+      fetch('/api/auth/verify', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        setIsLoggedIn(!!data.user);
+      });
+    }
+    */
+  }, []);
 
-  // 서버 사이드 렌더링 중에는 기본 UI만 표시
-  if (!mounted) {
-    return (
-      <div className="container py-20 text-center">
-        <h2 className="text-2xl font-bold mb-4">장바구니 로딩 중...</h2>
-        <p className="mb-6">잠시만 기다려주세요.</p>
-      </div>
-    )
-  }
+  const handleCheckout = () => {
+    /* JWT 관련 코드 - 나중에 활성화
+    if (!isLoggedIn) {
+      // 로그인 페이지로 리다이렉트
+      alert('결제를 진행하려면 로그인이 필요합니다.');
+      router.push('/login?redirect=/cart');
+      return;
+    }
+    */
+    
+    // 결제 페이지로 이동
+    // window.location.href = '/checkout';
+    alert('결제 페이지로 이동합니다.');
+  };
 
-  if (cartItems.length === 0) {
+  if (totalItems === 0) {
     return (
-      <div className="container py-20 text-center">
-        <div className="mb-8">
-          <ShoppingBag size={64} className="mx-auto text-gray-300" />
+      <div className="container mx-auto py-10 px-4">
+        <h1 className="text-2xl font-bold mb-6">장바구니</h1>
+        <div className="text-center py-10">
+          <p className="mb-4">장바구니가 비어있습니다.</p>
+          <Link href="/products" className="text-blue-500 hover:underline">
+            쇼핑 계속하기
+          </Link>
         </div>
-        <h2 className="text-2xl font-bold mb-4">장바구니가 비어있습니다</h2>
-        <p className="mb-6">상품을 장바구니에 담아보세요.</p>
-        <Link href="/store" className="button button-primary">
-          쇼핑하러 가기
-        </Link>
       </div>
-    )
+    );
   }
 
   return (
-    <>
-      <div className={styles.header}>
-        <div className="container">
-          <h1>장바구니</h1>
-          <p>{cartItems.length}개의 상품이 장바구니에 있습니다.</p>
+    <div className="container mx-auto py-10 px-4">
+      <h1 className="text-2xl font-bold mb-6">장바구니 ({totalItems}개)</h1>
+      
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="p-4 bg-gray-50 border-b flex">
+          <div className="flex-1">상품정보</div>
+          <div className="w-32 text-center">수량</div>
+          <div className="w-32 text-center">가격</div>
+          <div className="w-20 text-center">삭제</div>
         </div>
-      </div>
-
-      <div className="container py-12">
-        <div className={styles.cartGrid}>
-          <div>
-            <div className={styles.cartItems}>
-              {cartItems.map((item) => (
-                <div key={item.id} className={styles.cartItem}>
-                  <div className={styles.cartItemProduct}>
-                    <div className={styles.cartItemImage}>
-                      <Image
-                        src={item.image || "/placeholder.svg?height=100&width=100"}
-                        alt={item.name}
-                        width={100}
-                        height={100}
-                        className="object-cover rounded"
-                      />
-                    </div>
-                    <div className={styles.cartItemDetails}>
-                      <h3 className={styles.cartItemName}>{item.name}</h3>
-                      <p className={styles.cartItemCategory}>상품</p>
-                    </div>
-                  </div>
-                  <div className={styles.cartItemPrice}>{item.price.toLocaleString()}원</div>
-                  <div className={styles.cartItemQuantity}>
-                    <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className={styles.quantityButton}
-                      aria-label="수량 감소"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <input type="text" className={styles.quantityInput} value={item.quantity} readOnly />
-                    <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className={styles.quantityButton}
-                      aria-label="수량 증가"
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                  <div className={styles.cartItemTotal}>{(item.price * item.quantity).toLocaleString()}원</div>
-                  <button
-                    onClick={() => removeFromCart(item.id)}
-                    className={styles.cartItemRemove}
-                    aria-label="상품 삭제"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.cartSummary}>
-            <h2 className={styles.summaryTitle}>주문 요약</h2>
-            <div className={styles.summaryRow}>
-              <span>상품 금액</span>
-              <span>{getCartTotal().toLocaleString()}원</span>
-            </div>
-            <div className={styles.summaryRow}>
-              <span>배송비</span>
-              <span>무료</span>
-            </div>
-            <div className={styles.summaryTotal}>
-              <span>총 결제 금액</span>
-              <span>{getCartTotal().toLocaleString()}원</span>
-            </div>
-            <Link href="/checkout" className={styles.checkoutButton}>
-              결제하기
-            </Link>
-            <Link href="/store" className={styles.continueShoppingButton}>
-              쇼핑 계속하기
-            </Link>
+        
+        <div>
+          {items.map(item => (
+            <CartItem 
+              key={item.id}
+              id={item.id}
+              name={item.name}
+              price={item.price}
+              quantity={item.quantity}
+              image={item.image}
+            />
+          ))}
+        </div>
+        
+        <div className="p-4 bg-gray-50 flex justify-between items-center">
+          <button 
+            onClick={clearCart}
+            className="px-4 py-2 text-red-500 border border-red-500 rounded hover:bg-red-50"
+          >
+            장바구니 비우기
+          </button>
+          <div className="text-xl font-bold">
+            합계: {totalPrice.toLocaleString()}원
           </div>
         </div>
       </div>
-    </>
-  )
+      
+      <div className="mt-6 flex justify-end">
+        <Link href="/products" className="px-6 py-3 mr-4 bg-gray-200 rounded hover:bg-gray-300">
+          쇼핑 계속하기
+        </Link>
+        <button
+          onClick={handleCheckout}
+          className="px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          주문하기
+        </button>
+      </div>
+    </div>
+  );
 }
-

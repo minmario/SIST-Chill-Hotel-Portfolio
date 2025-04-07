@@ -52,7 +52,7 @@ dependencies {
 def querydslDir = "$buildDir/generated/querydsl"
 
 tasks.withType(JavaCompile) {
-    options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
+    options.generatedSourceOutputDirectory.set(file(querydslDir))
 }
 
 clean {

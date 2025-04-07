@@ -14,33 +14,32 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import sist.backend.domain.user.entity.User;
 import sist.backend.global.common.BaseTimeEntity;
 
 @Entity
-@Table(name = "cart_items")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CartItem extends BaseTimeEntity {
-
+public class CartItem {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long cartItemIdx;
-
+    private Long id;
+    
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_idx", nullable = false)
-    private Cart cart;
-
+    @JoinColumn(name = "user_id")
+    private User user;
+    
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_idx", nullable = false)
-    private GiftShop item;
-
-    @Column(nullable = false)
-    private Integer quantity;
-
-    // Cart에서 양방향 관계 설정을 위한 메서드
-    public void setCart(Cart cart) {
-        this.cart = cart;
+    @JoinColumn(name = "giftshop_id")
+    private GiftShop giftshop;
+    
+    private int quantity;
+    
+    // 수량 증가 메서드
+    public void increaseQuantity(int quantity) {
+        this.quantity += quantity;
     }
 }

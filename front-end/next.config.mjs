@@ -1,11 +1,3 @@
-let userConfig = undefined
-try {
-  userConfig = await import('./v0-user-next.config')
-} catch (e) {
-  // ignore error
-}
-
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
@@ -30,13 +22,18 @@ const nextConfig = {
       },
     ];
   },
-}
+};
 
-mergeConfig(nextConfig, userConfig)
+let userConfig = undefined;
+try {
+  userConfig = await import('./v0-user-next.config');
+} catch (e) {
+  // ignore error
+}
 
 function mergeConfig(nextConfig, userConfig) {
   if (!userConfig) {
-    return
+    return nextConfig;
   }
 
   for (const key in userConfig) {
@@ -47,11 +44,12 @@ function mergeConfig(nextConfig, userConfig) {
       nextConfig[key] = {
         ...nextConfig[key],
         ...userConfig[key],
-      }
+      };
     } else {
-      nextConfig[key] = userConfig[key]
+      nextConfig[key] = userConfig[key];
     }
   }
+  return nextConfig;
 }
 
-export default nextConfig
+export default mergeConfig(nextConfig, userConfig?.default);

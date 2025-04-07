@@ -1,138 +1,142 @@
-"use client"
+'use client';
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// 장바구니 아이템 타입 정의
-export interface CartItem {
-  id: number
-  name: string
-  price: number
-  image: string
-  quantity: number
-  category?: string
-  subcategory?: string
+interface CartItem {
+  id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
 }
 
-// 장바구니 컨텍스트 타입 정의
 interface CartContextType {
-  cartItems: CartItem[]
-  addToCart: (item: CartItem) => void
-  removeFromCart: (itemId: number) => void
-  updateQuantity: (itemId: number, quantity: number) => void
-  clearCart: () => void
-  getCartTotal: () => number
+  items: CartItem[];
+  addItem: (item: CartItem) => void;
+  removeItem: (id: number) => void;
+  updateQuantity: (id: number, quantity: number) => void;
+  clearCart: () => void;
+  totalItems: number;
+  totalPrice: number;
 }
 
-// 기본값 생성
-const defaultCartContext: CartContextType = {
-  cartItems: [],
-  addToCart: () => {},
-  removeFromCart: () => {},
-  updateQuantity: () => {},
-  clearCart: () => {},
-  getCartTotal: () => 0,
-}
+const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// 컨텍스트 생성
-const CartContext = createContext<CartContextType>(defaultCartContext)
-
-// 컨텍스트 프로바이더 컴포넌트
-export function CartProvider({ children }: { children: ReactNode }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([])
-  const [isClient, setIsClient] = useState(false)
-
-  // 클라이언트 사이드에서만 로컬 스토리지 접근
+export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  const [items, setItems] = useState<CartItem[]>([]);
+  
+  // JWT 토큰에서 사용자 정보 가져오기
+  // const [user, setUser] = useState<any>(null);
+  
   useEffect(() => {
-    setIsClient(true)
-    try {
-      const storedCartItems = localStorage.getItem("cartItems")
-      if (storedCartItems) {
-        setCartItems(JSON.parse(storedCartItems))
-      }
-    } catch (error) {
-      console.error("장바구니 데이터를 불러오는 중 오류가 발생했습니다:", error)
+    // 로컬 스토리지에서 장바구니 불러오기
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      setItems(JSON.parse(savedCart));
     }
-  }, [])
-
-  // 장바구니 상태가 변경될 때마다 로컬 스토리지 업데이트
+    
+    /* JWT 관련 코드 - 나중에 활성화
+    const token = localStorage.getItem('token');
+    if (token) {
+      // 토큰 검증 및 사용자 정보 가져오기
+      fetch('/api/auth/verify', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          setUser(data.user);
+          // 서버에서 해당 사용자의 장바구니 데이터 불러오기
+          fetch(`/api/cart/${data.user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          .then(res => res.json())
+          .then(cartData => {
+            if (cartData.items) {
+              setItems(cartData.items);
+            }
+          });
+        }
+      });
+    }
+    */
+  }, []);
+  
   useEffect(() => {
-    if (isClient) {
-      try {
-        localStorage.setItem("cartItems", JSON.stringify(cartItems))
-      } catch (error) {
-        console.error("장바구니 데이터를 저장하는 중 오류가 발생했습니다:", error)
-      }
+    // 장바구니 변경시 로컬 스토리지에 저장
+    localStorage.setItem('cart', JSON.stringify(items));
+    
+    /* JWT 관련 코드 - 나중에 활성화
+    const token = localStorage.getItem('token');
+    const userInfo = user;
+    if (token && userInfo) {
+      // 서버에 장바구니 데이터 저장
+      fetch(`/api/cart/${userInfo.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ items })
+      });
     }
-  }, [cartItems, isClient])
-
-  // 장바구니에 상품 추가
-  const addToCart = (item: CartItem) => {
-    setCartItems((prevItems) => {
-      const existingItemIndex = prevItems.findIndex((i) => i.id === item.id)
-
-      if (existingItemIndex >= 0) {
-        // 이미 있는 상품이면 수량만 증가
-        const updatedItems = [...prevItems]
-        updatedItems[existingItemIndex].quantity += item.quantity
-        return updatedItems
-      } else {
-        // 새 상품이면 추가
-        return [...prevItems, item]
+    */
+  }, [items]);
+  
+  const addItem = (item: CartItem) => {
+    setItems(prevItems => {
+      const existingItem = prevItems.find(i => i.id === item.id);
+      if (existingItem) {
+        return prevItems.map(i => 
+          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
+        );
       }
-    })
-  }
-
-  // 장바구니에서 상품 제거
-  const removeFromCart = (itemId: number) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId))
-  }
-
-  // 상품 수량 업데이트
-  const updateQuantity = (itemId: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(itemId)
-      return
-    }
-
-    setCartItems((prevItems) => prevItems.map((item) => (item.id === itemId ? { ...item, quantity } : item)))
-  }
-
-  // 장바구니 비우기
+      return [...prevItems, item];
+    });
+  };
+  
+  const removeItem = (id: number) => {
+    setItems(prevItems => prevItems.filter(item => item.id !== id));
+  };
+  
+  const updateQuantity = (id: number, quantity: number) => {
+    setItems(prevItems => 
+      prevItems.map(item => 
+        item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
+      )
+    );
+  };
+  
   const clearCart = () => {
-    setCartItems([])
-    if (isClient) {
-      try {
-        localStorage.setItem("cartItems", JSON.stringify([]))
-      } catch (error) {
-        console.error("장바구니 데이터를 비우는 중 오류가 발생했습니다:", error)
-      }
-    }
-  }
-
-  // 총 가격 계산
-  const getCartTotal = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
-  }
-
+    setItems([]);
+  };
+  
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
   return (
-    <CartContext.Provider
-      value={{
-        cartItems,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        getCartTotal,
-      }}
-    >
+    <CartContext.Provider value={{
+      items,
+      addItem,
+      removeItem,
+      updateQuantity,
+      clearCart,
+      totalItems,
+      totalPrice
+    }}>
       {children}
     </CartContext.Provider>
-  )
-}
+  );
+};
 
-// 커스텀 훅
-export function useCart() {
-  const context = useContext(CartContext)
-  return context
-}
-
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (context === undefined) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+};
