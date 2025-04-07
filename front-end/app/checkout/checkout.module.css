@@ -1,0 +1,236 @@
+/* 체크아웃 헤더 */
+.header {
+  background-color: #f9fafb;
+  padding: 4rem 0;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.header p {
+  font-size: 1.125rem;
+  color: #6b7280;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* 체크아웃 섹션 */
+.checkoutSection {
+  padding: 2rem 0 4rem;
+}
+
+/* 체크아웃 그리드 레이아웃 */
+.checkoutGrid {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .checkoutGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 체크아웃 폼 */
+.checkoutForm {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.formTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1.5rem;
+}
+
+.formSection {
+  background-color: white;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.formSectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1.5rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formLabel {
+  display: block;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #2dd4bf;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.2);
+}
+
+.formCheckboxContainer {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.formCheckbox {
+  margin-top: 0.25rem;
+  margin-right: 0.75rem;
+}
+
+.placeOrderButton {
+  width: 100%;
+  padding: 0.875rem 0;
+  font-size: 1rem;
+}
+
+/* 주문 요약 */
+.orderSummary {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+
+.orderSummaryTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.orderItems {
+  margin-bottom: 1.5rem;
+}
+
+.orderItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.orderItem:last-child {
+  border-bottom: none;
+}
+
+.orderItemDetails {
+  flex: 1;
+}
+
+.orderItemName {
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.orderItemMeta {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.orderItemPrice {
+  font-weight: 500;
+  color: #111827;
+  margin-left: 1rem;
+}
+
+.orderSummaryRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  color: #4b5563;
+}
+
+.orderSummaryLabel {
+  color: #6b7280;
+}
+
+.orderSummaryValue {
+  font-weight: 500;
+  color: #111827;
+}
+
+.orderSummaryDiscount {
+  font-weight: 500;
+  color: #10b981;
+}
+
+.orderTotal {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.orderTotalLabel {
+  font-weight: 600;
+  color: #111827;
+}
+
+.orderTotalValue {
+  font-weight: 600;
+  color: #111827;
+  font-size: 1.25rem;
+}
+
+.continueShoppingButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s;
+}
+
+.continueShoppingButton:hover {
+  color: #2dd4bf;
+}
+

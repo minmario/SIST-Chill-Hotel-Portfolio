@@ -1,0 +1,361 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { Check, ChevronLeft, Minus, Plus, Search } from "lucide-react"
+import styles from "../../rooms/rooms.module.css"
+
+export default function BookingInfo() {
+  const router = useRouter()
+  const [selectedRoom, setSelectedRoom] = useState<any>(null)
+  const [bookingParams, setBookingParams] = useState<any>(null)
+  const [bedType, setBedType] = useState("king")
+  const [adultBreakfast, setAdultBreakfast] = useState(0)
+  const [childBreakfast, setChildBreakfast] = useState(0)
+  const [specialRequests, setSpecialRequests] = useState("")
+  const [loginOption, setLoginOption] = useState("member")
+
+  // 로컬 스토리지에서 예약 정보 불러오기
+  useEffect(() => {
+    const roomData = localStorage.getItem("selectedRoom")
+    const paramsData = localStorage.getItem("bookingParams")
+
+    if (roomData) {
+      setSelectedRoom(JSON.parse(roomData))
+    } else {
+      router.push("/booking")
+    }
+
+    if (paramsData) {
+      setBookingParams(JSON.parse(paramsData))
+    }
+  }, [router])
+
+  if (!selectedRoom || !bookingParams) {
+    return <div className="container py-20 text-center">로딩 중...</div>
+  }
+
+  const handleAdultBreakfastChange = (value: number) => {
+    const maxAdults = Number.parseInt(bookingParams.adults)
+    if (value >= 0 && value <= maxAdults) {
+      setAdultBreakfast(value)
+    }
+  }
+
+  const handleChildBreakfastChange = (value: number) => {
+    const maxChildren = Number.parseInt(bookingParams.children)
+    if (value >= 0 && value <= maxChildren) {
+      setChildBreakfast(value)
+    }
+  }
+
+  const calculateTotal = () => {
+    let total = selectedRoom.price
+
+    // 조식 추가 비용
+    const adultBreakfastPrice = 35000 * adultBreakfast
+    const childBreakfastPrice = 20000 * childBreakfast
+
+    total += adultBreakfastPrice + childBreakfastPrice
+
+    // 회원 할인 (2%)
+    const discount = Math.round(total * 0.02)
+
+    return {
+      roomPrice: selectedRoom.price,
+      adultBreakfastPrice,
+      childBreakfastPrice,
+      subtotal: total,
+      discount,
+      total: total - discount,
+    }
+  }
+
+  const handleContinue = () => {
+    // 예약 정보 저장
+    const bookingInfo = {
+      room: selectedRoom,
+      params: bookingParams,
+      options: {
+        bedType,
+        adultBreakfast,
+        childBreakfast,
+        specialRequests,
+      },
+      pricing: calculateTotal(),
+    }
+
+    localStorage.setItem("bookingInfo", JSON.stringify(bookingInfo))
+
+    if (loginOption === "member") {
+      router.push("/booking/login")
+    } else {
+      router.push("/booking/customer-info")
+    }
+  }
+
+  const priceInfo = calculateTotal()
+
+  return (
+    <>
+      <div className={styles.header}>
+        <div className="container">
+          <h1>객실 예약</h1>
+          <p>객실 옵션을 선택하고 예약을 진행하세요.</p>
+        </div>
+      </div>
+
+      <section className={styles.bookingInfoSection}>
+        <div className="container">
+          <div className={styles.bookingSteps}>
+            <div className={`${styles.bookingStep} ${styles.bookingStepCompleted}`}>
+              <div className={styles.bookingStepNumber}>
+                <Check size={16} />
+              </div>
+              <div className={styles.bookingStepLabel}>객실 선택</div>
+            </div>
+            <div className={`${styles.bookingStep} ${styles.bookingStepActive}`}>
+              <div className={styles.bookingStepNumber}>2</div>
+              <div className={styles.bookingStepLabel}>옵션 선택</div>
+            </div>
+            <div className={styles.bookingStep}>
+              <div className={styles.bookingStepNumber}>3</div>
+              <div className={styles.bookingStepLabel}>정보 입력</div>
+            </div>
+            <div className={styles.bookingStep}>
+              <div className={styles.bookingStepNumber}>4</div>
+              <div className={styles.bookingStepLabel}>예약 완료</div>
+            </div>
+          </div>
+
+          <div className={styles.bookingInfoGrid}>
+            <div>
+              <div className={styles.bookingInfoCard}>
+                <h2 className={styles.bookingInfoCardTitle}>예약 정보</h2>
+
+                <div className={styles.selectedRoomInfo}>
+                  <div className={styles.selectedRoomImageContainer}>
+                    <Image
+                      src={selectedRoom.image || "/placeholder.svg"}
+                      alt={selectedRoom.name}
+                      fill
+                      style={{ objectFit: "cover" }}
+                    />
+                  </div>
+
+                  <div className={styles.selectedRoomDetails}>
+                    <h3 className={styles.selectedRoomName}>{selectedRoom.name}</h3>
+                    <p className={styles.selectedRoomDates}>
+                      체크인: {bookingParams.checkIn} / 체크아웃: {bookingParams.checkOut}
+                    </p>
+                    <p className={styles.selectedRoomGuests}>
+                      객실 {bookingParams.rooms}개 / 성인 {bookingParams.adults}명
+                      {Number.parseInt(bookingParams.children) > 0 ? `, 어린이 ${bookingParams.children}명` : ""}
+                    </p>
+
+                    <button className={styles.searchAgainButton} onClick={() => router.push("/booking")}>
+                      <Search size={14} /> 객실 다시 검색
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.bedTypeOptions}>
+                  <h3 className={styles.bedTypeTitle}>침대 타입</h3>
+                  <div className={styles.bedTypeRadioGroup}>
+                    {selectedRoom.details.bedType.toLowerCase().includes("킹") && (
+                      <label className={styles.bedTypeRadio}>
+                        <input
+                          type="radio"
+                          name="bedType"
+                          value="king"
+                          checked={bedType === "king"}
+                          onChange={() => setBedType("king")}
+                          className={styles.bedTypeRadioInput}
+                        />
+                        킹 베드
+                      </label>
+                    )}
+
+                    {selectedRoom.details.bedType.toLowerCase().includes("트윈") && (
+                      <label className={styles.bedTypeRadio}>
+                        <input
+                          type="radio"
+                          name="bedType"
+                          value="twin"
+                          checked={bedType === "twin"}
+                          onChange={() => setBedType("twin")}
+                          className={styles.bedTypeRadioInput}
+                        />
+                        트윈 베드
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                <div className={styles.breakfastOptions}>
+                  <h3 className={styles.breakfastTitle}>조식 추가</h3>
+
+                  <div className={styles.breakfastOption}>
+                    <div className={styles.breakfastOptionInfo}>
+                      <div className={styles.breakfastOptionName}>성인 조식</div>
+                      <div className={styles.breakfastOptionPrice}>₩35,000 / 1인</div>
+                    </div>
+
+                    <div className={styles.breakfastQuantity}>
+                      <button
+                        className={styles.breakfastQuantityButton}
+                        onClick={() => handleAdultBreakfastChange(adultBreakfast - 1)}
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <input
+                        type="number"
+                        className={styles.breakfastQuantityInput}
+                        value={adultBreakfast}
+                        onChange={(e) => handleAdultBreakfastChange(Number.parseInt(e.target.value) || 0)}
+                        min="0"
+                        max={Number.parseInt(bookingParams.adults)}
+                      />
+                      <button
+                        className={styles.breakfastQuantityButton}
+                        onClick={() => handleAdultBreakfastChange(adultBreakfast + 1)}
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {Number.parseInt(bookingParams.children) > 0 && (
+                    <div className={styles.breakfastOption}>
+                      <div className={styles.breakfastOptionInfo}>
+                        <div className={styles.breakfastOptionName}>어린이 조식</div>
+                        <div className={styles.breakfastOptionPrice}>₩20,000 / 1인</div>
+                      </div>
+
+                      <div className={styles.breakfastQuantity}>
+                        <button
+                          className={styles.breakfastQuantityButton}
+                          onClick={() => handleChildBreakfastChange(childBreakfast - 1)}
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <input
+                          type="number"
+                          className={styles.breakfastQuantityInput}
+                          value={childBreakfast}
+                          onChange={(e) => handleChildBreakfastChange(Number.parseInt(e.target.value) || 0)}
+                          min="0"
+                          max={Number.parseInt(bookingParams.children)}
+                        />
+                        <button
+                          className={styles.breakfastQuantityButton}
+                          onClick={() => handleChildBreakfastChange(childBreakfast + 1)}
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.specialRequestsContainer}>
+                  <h3 className={styles.specialRequestsTitle}>특별 요청사항</h3>
+                  <textarea
+                    className={styles.specialRequestsTextarea}
+                    value={specialRequests}
+                    onChange={(e) => setSpecialRequests(e.target.value)}
+                    placeholder="객실 또는 투숙과 관련된 특별 요청사항이 있으시면 입력해 주세요."
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className={styles.bookingInfoCard}>
+                <h2 className={styles.bookingInfoCardTitle}>로그인 옵션</h2>
+
+                <div className={styles.loginOptions}>
+                  <label
+                    className={`${styles.loginOption} ${loginOption === "member" ? styles.loginOptionSelected : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="loginOption"
+                      value="member"
+                      className={styles.loginOptionRadio}
+                      checked={loginOption === "member"}
+                      onChange={() => setLoginOption("member")}
+                    />
+                    <span className={styles.loginOptionLabel}>회원 예약</span>
+                  </label>
+
+                  <label
+                    className={`${styles.loginOption} ${loginOption === "nonMember" ? styles.loginOptionSelected : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="loginOption"
+                      value="nonMember"
+                      className={styles.loginOptionRadio}
+                      checked={loginOption === "nonMember"}
+                      onChange={() => setLoginOption("nonMember")}
+                    />
+                    <span className={styles.loginOptionLabel}>비회원 예약</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.bookingSummary}>
+              <h2 className={styles.bookingSummaryTitle}>예약 내역</h2>
+
+              <div className={styles.bookingSummaryRow}>
+                <span className={styles.bookingSummaryLabel}>객실 요금</span>
+                <span className={styles.bookingSummaryValue}>₩{priceInfo.roomPrice.toLocaleString()}</span>
+              </div>
+
+              {adultBreakfast > 0 && (
+                <div className={styles.bookingSummaryRow}>
+                  <span className={styles.bookingSummaryLabel}>성인 조식 ({adultBreakfast}명)</span>
+                  <span className={styles.bookingSummaryValue}>₩{priceInfo.adultBreakfastPrice.toLocaleString()}</span>
+                </div>
+              )}
+
+              {childBreakfast > 0 && (
+                <div className={styles.bookingSummaryRow}>
+                  <span className={styles.bookingSummaryLabel}>어린이 조식 ({childBreakfast}명)</span>
+                  <span className={styles.bookingSummaryValue}>₩{priceInfo.childBreakfastPrice.toLocaleString()}</span>
+                </div>
+              )}
+
+              <div className={styles.bookingSummaryRow}>
+                <span className={styles.bookingSummaryLabel}>소계</span>
+                <span className={styles.bookingSummaryValue}>₩{priceInfo.subtotal.toLocaleString()}</span>
+              </div>
+
+              <div className={styles.bookingSummaryRow}>
+                <span className={styles.bookingSummaryLabel}>회원 등급 할인 (2%)</span>
+                <span className={styles.membershipDiscount}>-₩{priceInfo.discount.toLocaleString()}</span>
+              </div>
+
+              <div className={styles.bookingSummaryTotal}>
+                <span className={styles.bookingSummaryTotalLabel}>총 결제 금액</span>
+                <span className={styles.bookingSummaryTotalValue}>₩{priceInfo.total.toLocaleString()}</span>
+              </div>
+
+              <button className={`button button-primary ${styles.bookingButton}`} onClick={handleContinue}>
+                예약하기
+              </button>
+
+              <Link href="/booking" className={styles.continueShoppingButton}>
+                <ChevronLeft size={16} />
+                객실 선택으로 돌아가기
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  )
+}
+

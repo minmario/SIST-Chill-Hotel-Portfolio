@@ -1,0 +1,116 @@
+"use client"
+
+import type React from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import styles from "./login.module.css"
+
+export default function Login() {
+  const router = useRouter()
+  const [loginData, setLoginData] = useState({
+    email: "",
+    password: "",
+  })
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setLoginData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!isClient) return
+
+    try {
+      // 로그인 처리 (실제로는 API 호출 등이 필요)
+      console.log("로그인 정보:", loginData)
+
+      // 세션 정보 저장 (실제로는 토큰 등을 저장)
+      localStorage.setItem("isLoggedIn", "true")
+      localStorage.setItem("userEmail", loginData.email)
+      localStorage.setItem("userName", "Brown") // 테스트용 사용자 이름
+
+      // 메인 페이지로 이동
+      router.push("/")
+    } catch (error) {
+      console.error("로그인 중 오류가 발생했습니다:", error)
+      alert("로그인에 실패했습니다. 다시 시도해주세요.")
+    }
+  }
+
+  return (
+    <>
+      <div className={styles.header || "py-12 bg-gray-100"}>
+        <div className="container">
+          <h1 className="text-3xl font-bold">로그인</h1>
+          <p>회원 정보로 로그인하여 서비스를 이용하세요.</p>
+        </div>
+      </div>
+
+      <section className="py-12">
+        <div className="container">
+          <div className="max-w-md mx-auto bg-white rounded-lg shadow p-6 mt-8">
+            <h2 className="text-xl font-semibold mb-6">회원 로그인</h2>
+
+            <form onSubmit={handleLogin}>
+              <div className="mb-4">
+                <label htmlFor="email" className="block mb-2 font-medium">
+                  이메일
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  className="w-full p-3 border border-gray-300 rounded"
+                  value={loginData.email}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <div className="mb-6">
+                <label htmlFor="password" className="block mb-2 font-medium">
+                  비밀번호
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  className="w-full p-3 border border-gray-300 rounded"
+                  value={loginData.password}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 rounded-md font-medium text-white"
+                style={{ backgroundColor: "#2dd4bf" }}
+              >
+                로그인
+              </button>
+            </form>
+
+            <div className="mt-4 text-center">
+              <p className="text-gray-600">
+                아직 회원이 아니신가요?{" "}
+                <Link href="/membership/join" style={{ color: "#2dd4bf" }}>
+                  회원가입
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  )
+}
+
