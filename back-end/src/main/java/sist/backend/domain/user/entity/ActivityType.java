@@ -1,4 +1,4 @@
-package sist.backend.infrastructure.logging;
+package sist.backend.domain.user.entity;
 
 public enum ActivityType {
     HOTEL_RESERVATION, PASSWORD_CHANGE, PAYMENT, DINING_RESERVATION, PAYMENT_CANCEL, ACCOUNT_DELETE, LOGIN, LOGOUT

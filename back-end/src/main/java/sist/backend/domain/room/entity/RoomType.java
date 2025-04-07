@@ -66,6 +66,7 @@ public class RoomType extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer totalCount;
 
+    @Builder.Default
     @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL)
     private List<Room> rooms = new ArrayList<>();
 

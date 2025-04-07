@@ -1,4 +1,4 @@
-package sist.backend.infrastructure.logging;
+package sist.backend.domain.user.entity;
 
 import java.time.LocalDateTime;
 import jakarta.persistence.Column;
@@ -17,7 +17,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import sist.backend.domain.user.entity.User;
 
 @Entity
 @Table(name = "user_activity_log")
