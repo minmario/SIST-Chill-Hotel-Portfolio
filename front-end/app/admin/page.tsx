@@ -101,6 +101,7 @@ export default function LoginPage() {
       setError("등록된 사용자 정보가 없습니다. 회원가입을 진행해주세요.")
     }
   }
+  
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
@@ -153,7 +154,7 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <Button variant="outline" className="w-full" asChild>
-            <Link href="/register">회원가입</Link>
+            <Link href="/admin/register">회원가입</Link>
           </Button>
         </CardFooter>
       </Card>

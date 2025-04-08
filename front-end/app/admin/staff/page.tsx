@@ -16,7 +16,6 @@ import { Search, UserPlus, Edit, Trash2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // 스태프 타입 정의
 type Staff = {
@@ -147,6 +146,7 @@ export default function StaffPage() {
     (staff) =>
       staff.name.includes(searchTerm) ||
       staff.email.includes(searchTerm) ||
+      staff.phone.includes(searchTerm) ||
       staff.position.includes(searchTerm) ||
       staff.department.includes(searchTerm),
   )
@@ -157,8 +157,8 @@ export default function StaffPage() {
       name: "",
       email: "",
       phone: "",
-      position: "",
-      department: "",
+      position: "스태프",
+      department: "일반",
       status: "active",
       role: "staff",
     })
@@ -209,8 +209,8 @@ export default function StaffPage() {
       position: staffForm.position,
       department: staffForm.department,
       joinDate,
-      status: staffForm.status as "active" | "inactive",
-      role: staffForm.role as "admin" | "staff",
+      status: "active", // Always set to active
+      role: "staff", // Always set to staff
     }
 
     // 스태프 목록에 추가
@@ -222,14 +222,14 @@ export default function StaffPage() {
   const handleUpdateStaff = () => {
     if (!selectedStaff) return
 
-    // 스태프 정보 업데이트
+    // 스태프 정보 업데이트 - 이름, 이메일, 전화번호만 업데이트
     const updatedStaffList = staffList.map((staff) =>
       staff.id === selectedStaff.id
         ? {
             ...staff,
-            position: staffForm.position,
-            department: staffForm.department,
-            role: staffForm.role as "admin" | "staff",
+            name: staffForm.name,
+            email: staffForm.email,
+            phone: staffForm.phone,
           }
         : staff,
     )
@@ -313,9 +313,8 @@ export default function StaffPage() {
               <TableRow>
                 <TableHead>이름</TableHead>
                 <TableHead>이메일</TableHead>
-                <TableHead>직책</TableHead>
-                <TableHead>부서</TableHead>
-                <TableHead>입사일</TableHead>
+                <TableHead>전화번호</TableHead>
+                <TableHead>가입일</TableHead>
                 <TableHead>역할</TableHead>
                 <TableHead>상태</TableHead>
                 <TableHead>관리</TableHead>
@@ -327,8 +326,7 @@ export default function StaffPage() {
                   <TableRow key={staff.id}>
                     <TableCell className="font-medium">{staff.name}</TableCell>
                     <TableCell>{staff.email}</TableCell>
-                    <TableCell>{staff.position}</TableCell>
-                    <TableCell>{staff.department}</TableCell>
+                    <TableCell>{staff.phone}</TableCell>
                     <TableCell>{staff.joinDate}</TableCell>
                     <TableCell>{getRoleBadge(staff.role)}</TableCell>
                     <TableCell>
@@ -388,7 +386,7 @@ export default function StaffPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                     검색 결과가 없습니다.
                   </TableCell>
                 </TableRow>
@@ -400,7 +398,7 @@ export default function StaffPage() {
 
       {/* 스태프 추가 다이얼로그 */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-white/90 backdrop-blur-md shadow-2xl rounded-xl p-6 border border-gray-200">
+        <DialogContent className="	bg-white/90 backdrop-blur-md shadow-2xl rounded-xl p-6 border border-gray-200">
           <DialogHeader>
             <DialogTitle>스태프 추가</DialogTitle>
             <DialogDescription>새 스태프 정보를 입력하세요. 모든 필드를 올바르게 입력해주세요.</DialogDescription>
@@ -440,80 +438,6 @@ export default function StaffPage() {
                 className="col-span-3"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="add-position" className="text-right">
-                직책
-              </Label>
-              <Select
-                value={staffForm.position}
-                onValueChange={(value) => setStaffForm({ ...staffForm, position: value })}
-              >
-                <SelectTrigger id="add-position" className="col-span-3 h-10 rounded-md border border-gray-300 bg-white/90 backdrop-blur-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <SelectValue placeholder="직책 선택" />
-                </SelectTrigger>
-                <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg rounded-md border border-gray-200 text-sm">
-                  {positions.map((position) => (
-                    <SelectItem key={position} value={position}>
-                      {position}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="add-department" className="text-right">
-                부서
-              </Label>
-              <Select
-                value={staffForm.department}
-                onValueChange={(value) => setStaffForm({ ...staffForm, department: value })}
-              >
-                <SelectTrigger className="col-span-3 h-10 rounded-md border border-gray-300 bg-white/90 backdrop-blur-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" id="add-department" >
-                  <SelectValue placeholder="부서 선택" />
-                </SelectTrigger>
-                <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg rounded-md border border-gray-200 text-sm">
-                  {departments.map((department) => (
-                    <SelectItem key={department} value={department}>
-                      {department}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="add-status" className="text-right">
-                상태
-              </Label>
-              <Select
-                value={staffForm.status}
-                onValueChange={(value) => setStaffForm({ ...staffForm, status: value as "active" | "inactive" })}
-              >
-                <SelectTrigger id="add-status" className="col-span-3 h-10 rounded-md border border-gray-300 bg-white/90 backdrop-blur-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <SelectValue placeholder="상태 선택" />
-                </SelectTrigger>
-                <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg rounded-md border border-gray-200 text-sm">
-                  <SelectItem value="active">활성</SelectItem>
-                  <SelectItem value="inactive">비활성</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="add-role" className="text-right">
-                역할
-              </Label>
-              <Select
-                value={staffForm.role}
-                onValueChange={(value) => setStaffForm({ ...staffForm, role: value as "admin" | "staff" })}
-              >
-                <SelectTrigger id="add-role" className="col-span-3 h-10 rounded-md border border-gray-300 bg-white/90 backdrop-blur-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <SelectValue placeholder="역할 선택" />
-                </SelectTrigger>
-                <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg rounded-md border border-gray-200 text-sm">
-                  <SelectItem value="admin">관리자</SelectItem>
-                  <SelectItem value="staff">스태프</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
@@ -526,76 +450,45 @@ export default function StaffPage() {
 
       {/* 스태프 수정 다이얼로그 */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-white/90 backdrop-blur-md shadow-2xl rounded-xl p-6 border border-gray-200">
+        <DialogContent className="	bg-white/90 backdrop-blur-md shadow-2xl rounded-xl p-6 border border-gray-200">
           <DialogHeader>
             <DialogTitle>스태프 정보 수정</DialogTitle>
-            <DialogDescription>스태프의 직책, 부서, 역할 정보를 수정합니다.</DialogDescription>
+            <DialogDescription>스태프의 이름, 이메일, 전화번호 정보를 수정합니다.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="p-4 bg-gray-50 rounded-md mb-4">
-              <p className="font-medium text-gray-700">
-                <strong>이름:</strong> {selectedStaff?.name}
-              </p>
-              <p className="text-gray-600">
-                <strong>이메일:</strong> {selectedStaff?.email}
-              </p>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-name" className="text-right">
+                이름
+              </Label>
+              <Input
+                id="edit-name"
+                value={staffForm.name}
+                onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })}
+                className="col-span-3"
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-position" className="text-right">
-                직책
+              <Label htmlFor="edit-email" className="text-right">
+                이메일
               </Label>
-              <Select
-                value={staffForm.position}
-                onValueChange={(value) => setStaffForm({ ...staffForm, position: value })}
-              >
-                <SelectTrigger id="edit-position" className="col-span-3 h-10 rounded-md border border-gray-300 bg-white/90 backdrop-blur-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <SelectValue placeholder="직책 선택" />
-                </SelectTrigger>
-                <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg rounded-md border border-gray-200 text-sm">
-                  {positions.map((position) => (
-                    <SelectItem key={position} value={position}>
-                      {position}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                id="edit-email"
+                type="email"
+                value={staffForm.email}
+                onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
+                className="col-span-3"
+              />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-department" className="text-right">
-                부서
+              <Label htmlFor="edit-phone" className="text-right">
+                전화번호
               </Label>
-              <Select
-                value={staffForm.department}
-                onValueChange={(value) => setStaffForm({ ...staffForm, department: value })}
-              >
-                <SelectTrigger id="edit-department" className="col-span-3 h-10 rounded-md border border-gray-300 bg-white/90 backdrop-blur-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <SelectValue placeholder="부서 선택" />
-                </SelectTrigger>
-                <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg rounded-md border border-gray-200 text-sm">
-                  {departments.map((department) => (
-                    <SelectItem key={department} value={department}>
-                      {department}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-role" className="text-right">
-                역할
-              </Label>
-              <Select
-                value={staffForm.role}
-                onValueChange={(value) => setStaffForm({ ...staffForm, role: value as "admin" | "staff" })}
-              >
-                <SelectTrigger id="edit-role" className="col-span-3 h-10 rounded-md border border-gray-300 bg-white/90 backdrop-blur-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <SelectValue placeholder="역할 선택" />
-                </SelectTrigger>
-                <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg rounded-md border border-gray-200 text-sm">
-                  <SelectItem value="admin">관리자</SelectItem>
-                  <SelectItem value="staff">스태프</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                id="edit-phone"
+                value={staffForm.phone}
+                onChange={(e) => setStaffForm({ ...staffForm, phone: e.target.value })}
+                className="col-span-3"
+              />
             </div>
           </div>
           <DialogFooter>
@@ -609,7 +502,7 @@ export default function StaffPage() {
 
       {/* 스태프 삭제 다이얼로그 */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-white/90 backdrop-blur-md shadow-2xl rounded-xl p-6 border border-gray-200">
+        <DialogContent className="	bg-white/90 backdrop-blur-md shadow-2xl rounded-xl p-6 border border-gray-200">
           <DialogHeader>
             <DialogTitle>스태프 삭제</DialogTitle>
             <DialogDescription>정말로 이 스태프를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</DialogDescription>
@@ -624,10 +517,7 @@ export default function StaffPage() {
                   <strong>이메일:</strong> {selectedStaff.email}
                 </p>
                 <p>
-                  <strong>직책:</strong> {selectedStaff.position}
-                </p>
-                <p>
-                  <strong>부서:</strong> {selectedStaff.department}
+                  <strong>전화번호:</strong> {selectedStaff.phone}
                 </p>
               </div>
             )}
@@ -645,7 +535,7 @@ export default function StaffPage() {
 
       {/* 비밀번호 초기화 다이얼로그 */}
       <Dialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-white/90 backdrop-blur-md shadow-2xl rounded-xl p-6 border border-gray-200">
+        <DialogContent className="	bg-white/90 backdrop-blur-md shadow-2xl rounded-xl p-6 border border-gray-200">
           <DialogHeader>
             <DialogTitle>비밀번호 초기화</DialogTitle>
             <DialogDescription>
@@ -661,6 +551,9 @@ export default function StaffPage() {
                 <p>
                   <strong>이메일:</strong> {selectedStaff.email}
                 </p>
+                <p>
+                  <strong>전화번호:</strong> {selectedStaff.phone}
+                </p>
               </div>
             )}
           </div>
@@ -675,4 +568,3 @@ export default function StaffPage() {
     </div>
   )
 }
-

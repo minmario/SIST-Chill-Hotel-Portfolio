@@ -7,7 +7,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/lib/auth"
 import AdminSidebar from "@/components/admin-sidebar"
 import AdminHeader from "@/components/admin-header"
-
+import "@/styles/admin-global.css";
 
 
 // 관리자 권한 체크 함수를 수정합니다.
@@ -29,8 +29,8 @@ export default function AdminLayout({
   // Update the useEffect hook to redirect from /admin to /admin/dashboard
   useEffect(() => {
     // Skip auth check for the admin login page
-    if (pathname === "/admin") {
-      return
+    if (pathname === "/admin" || pathname === "/admin/register" || pathname === "/admin/register/complete") {
+      return;
     }
 
     // 로그인 상태 및 관리자 권한 체크
@@ -52,7 +52,7 @@ export default function AdminLayout({
   }, [isLoggedIn, user, router, pathname])
 
   // Don't show sidebar on the admin login page
-  if (pathname === "/admin") {
+  if (pathname === "/admin" || pathname === "/admin/register" || pathname === "/admin/register/complete") {
     return <>{children}</>
   }
 

@@ -1,12 +1,24 @@
+"use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, UserCog, Hotel, Calendar, CreditCard, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react"
+import { useEffect, useState } from "react"
 
 export default function AdminDashboard() {
   // 대시보드 통계 데이터 (실제로는 API에서 가져와야 함)
+  const [totalUsers, setTotalUsers] = useState<number | null>(null)
+
+  // API 호출: 총 회원 수
+  useEffect(() => {
+    fetch('http://localhost:8080/admin/count')
+      .then((res) => res.json())
+      .then((data) => setTotalUsers(data))
+      .catch((err) => console.error('회원 수 불러오기 실패:', err))
+  }, [])
+  
   const stats = [
     {
       title: "총 회원수",
-      value: "1,234",
+      value: totalUsers !== null ? totalUsers.toLocaleString() : '로딩 중...',
       change: "+12%",
       trend: "up",
       icon: Users,
