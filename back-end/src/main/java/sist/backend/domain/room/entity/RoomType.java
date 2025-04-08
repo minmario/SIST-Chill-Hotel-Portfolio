@@ -1,60 +1,96 @@
 package sist.backend.domain.room.entity;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
-
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import sist.backend.global.common.BaseTimeEntity;
 
 @Entity
 @Table(name = "room_types")
 @Getter
-@Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class RoomType {
+public class RoomType extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "room_types_idx")
     private Long roomTypesIdx;
 
-    @Column(name = "room_name", nullable = false)
+    @Column(nullable = false, length = 100)
     private String roomName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String grade;
 
     @Column(nullable = false)
-    private String size;
+    private Integer size;
 
-    @Column(name = "view_type", nullable = false)
+    @Column(nullable = false, length = 50)
     private String viewType;
 
-    @Column(name = "max_people", nullable = false)
-    private int maxPeople;
+    @Column(nullable = false)
+    private Integer maxPeople;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "week_price", nullable = false)
-    private int weekPrice;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal weekPrice;
 
-    @Column(name = "weekend_price", nullable = false)
-    private int weekendPrice;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal weekendPrice;
 
-    @Column(name = "peak_week_price", nullable = false)
-    private int peakWeekPrice;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal peakWeekPrice;
 
-    @Column(name = "peak_weekend_price", nullable = false)
-    private int peakWeekendPrice;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal peakWeekendPrice;
 
-    @Column(name = "total_count", nullable = false)
-    private int totalCount;
-    @OneToMany(mappedBy = "roomType")
-    private List<Room> rooms;
+    @Column(nullable = false)
+    private Integer totalCount;
 
-    public List<Room> getRooms() {
-        return rooms;
+    @Column(nullable = false, length = 100)
+    private String roomImage;
+
+    @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL)
+    private List<Room> rooms = new ArrayList<>();
+
+    // 비즈니스 메서드
+    public void updatePrices(BigDecimal weekPrice, BigDecimal weekendPrice,
+            BigDecimal peakWeekPrice, BigDecimal peakWeekendPrice) {
+        this.weekPrice = weekPrice;
+        this.weekendPrice = weekendPrice;
+        this.peakWeekPrice = peakWeekPrice;
+        this.peakWeekendPrice = peakWeekendPrice;
+    }
+
+    public void updateCapacity(Integer maxPeople) {
+        this.maxPeople = maxPeople;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void addRoom(Room room) {
+        rooms.add(room);
+        room.setRoomType(this);
+    }
+    public void updateRoomImage(String roomImage) {
+        this.roomImage = roomImage;
     }
 }
