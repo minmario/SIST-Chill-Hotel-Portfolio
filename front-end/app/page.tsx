@@ -5,6 +5,11 @@ import Link from "next/link"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import styles from "./page.module.css"
+import { useRouter } from "next/navigation"
+
+
+
+
 
 const slides = [
   {
@@ -34,6 +39,7 @@ const slides = [
 ]
 
 export default function Home() {
+  const router = useRouter()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [checkInDate, setCheckInDate] = useState("")
   const [checkOutDate, setCheckOutDate] = useState("")
@@ -72,7 +78,7 @@ export default function Home() {
     setCurrentStoreSlide((prev) => (prev === 0 ? storeItems.length - 1 : prev - 1))
   }
 
-  const formatDate = (date) => {
+  const formatDate = (date: string | number | Date) => {
     const d = new Date(date)
     const day = d.getDate().toString().padStart(2, "0")
     const month = (d.getMonth() + 1).toString().padStart(2, "0")
@@ -80,7 +86,9 @@ export default function Home() {
     const dayOfWeek = ["일", "월", "화", "수", "목", "금", "토"][d.getDay()]
     return `${year}.${month}.${day} (${dayOfWeek})`
   }
-
+  const handleSearch = () => {
+    router.push(`/booking?checkIn=${checkInDate}&checkOut=${checkOutDate}&guests=${guestCount}`)
+  }
   // 객실 정보
   const rooms = [
     {
@@ -245,16 +253,16 @@ export default function Home() {
                   onChange={(e) => setGuestCount(e.target.value)}
                   className={styles.bookingInput}
                 >
-                  <option value="성인 1명">성인 1명</option>
-                  <option value="성인 2명">성인 2명</option>
-                  <option value="성인 3명">성인 3명</option>
-                  <option value="성인 4명">성인 4명</option>
+                  <option value="1">성인 1명</option>
+                  <option value="2">성인 2명</option>
+                  <option value="3">성인 3명</option>
+                  <option value="4">성인 4명</option>
                 </select>
               </div>
               <div className={styles.bookingFormButton}>
-                <Link href="/booking" className={styles.searchButton}>
-                  객실 검색
-                </Link>
+              <button onClick={handleSearch} className={styles.searchButton}>
+                객실 검색
+              </button>
               </div>
             </div>
           </div>

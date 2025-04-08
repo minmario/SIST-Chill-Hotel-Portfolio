@@ -2,15 +2,15 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Users, Calendar, Home, ChevronDown, X } from "lucide-react"
 import styles from "../rooms/rooms.module.css"
+import { useSearchParams } from 'next/navigation'
 
-// 객실 데이터
-const rooms = [
+/*const rooms = [
   {
     id: "chill-comfort",
     name: "Chill Comfort",
@@ -127,13 +127,17 @@ const packages = [
     },
   },
 ]
+  */
 
 export default function Booking() {
   const router = useRouter()
+  const [rooms, setRooms] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState("rooms") // 'rooms' or 'packages'
   const [sortOption, setSortOption] = useState("price-asc")
   const [selectedRoom, setSelectedRoom] = useState<any>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  
+
 
   const [searchParams, setSearchParams] = useState({
     checkIn: "",
@@ -142,7 +146,42 @@ export default function Booking() {
     adults: "2",
     children: "0",
   })
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setSearchParams({
+      checkIn: params.get("checkIn") || "",
+      checkOut: params.get("checkOut") || "",
+      rooms: "1",
+      adults: params.get("guests") || "2",
+      children: "0",
+    })
+    
+  }, [])
 
+  useEffect(() => {
+    const fetchAvailableRooms = async () => {
+      if (!searchParams.checkIn || !searchParams.checkOut || !searchParams.adults) return
+      
+      try {
+        const guestCount = parseInt(searchParams.adults.replace(/[^0-9]/g, ""), 10);
+        const res = await fetch(
+          `/api/rooms/available?checkIn=${searchParams.checkIn}&checkOut=${searchParams.checkOut}&guests=${guestCount}`
+        )
+        const data = await res.json()
+        if (Array.isArray(data)) {
+          setRooms(data)
+          console.log("가져온 객실 데이터:", data)
+        } else {
+          console.warn("객실 API 응답이 배열이 아닙니다:", data)
+          setRooms([])
+        }
+      } catch (err) {
+        console.error("객실 조회 실패:", err)
+      }
+    }
+  
+    fetchAvailableRooms()
+  }, [searchParams.checkIn, searchParams.checkOut, searchParams.adults])
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     // 검색 로직 구현
@@ -164,7 +203,7 @@ export default function Booking() {
     return 0
   })
 
-  const sortedPackages = [...packages].sort((a, b) => {
+  const sortedPackages = [...rooms].sort((a, b) => {
     if (sortOption === "price-asc") return a.price - b.price
     if (sortOption === "price-desc") return b.price - a.price
     return 0
