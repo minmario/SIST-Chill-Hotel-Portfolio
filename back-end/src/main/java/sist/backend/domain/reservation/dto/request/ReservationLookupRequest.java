@@ -1,4 +1,4 @@
-package sist.backend.dto.request;
+package sist.backend.domain.reservation.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -24,7 +24,7 @@ import sist.backend.global.common.BaseTimeEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Room extends BaseTimeEntity {
+public class Room{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,9 +44,6 @@ public class Room extends BaseTimeEntity {
     @Column(nullable = false)
     private RoomStatus status;
 
-    @Column(nullable = false, length = 100)
-    private String roomImage;
-
     // 비즈니스 메서드
     public void updateStatus(RoomStatus status) {
         this.status = status;
@@ -56,7 +53,4 @@ public class Room extends BaseTimeEntity {
         this.roomType = roomType;
     }
 
-    public void updateRoomImage(String roomImage) {
-        this.roomImage = roomImage;
-    }
 }

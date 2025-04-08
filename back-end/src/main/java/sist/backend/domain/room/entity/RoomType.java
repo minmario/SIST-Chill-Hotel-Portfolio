@@ -24,7 +24,7 @@ import sist.backend.global.common.BaseTimeEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class RoomType extends BaseTimeEntity {
+public class RoomType  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

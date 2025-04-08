@@ -1,8 +1,9 @@
-package sist.backend.controller.api;
+package sist.backend.domain.reservation.controller;
 
-import sist.backend.dto.request.ReservationRequest;
-import sist.backend.dto.response.ReservationResponse;
-import sist.backend.service.interfaces.ReservationService;
+import sist.backend.domain.reservation.dto.request.ReservationRequest;
+import sist.backend.domain.reservation.dto.response.ReservationResponse;
+import sist.backend.domain.reservation.service.ReservationService;
+
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

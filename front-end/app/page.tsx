@@ -43,9 +43,11 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [checkInDate, setCheckInDate] = useState("")
   const [checkOutDate, setCheckOutDate] = useState("")
-  const [guestCount, setGuestCount] = useState("성인 2명")
   const [currentDiningSlide, setCurrentDiningSlide] = useState(0)
   const [currentStoreSlide, setCurrentStoreSlide] = useState(0)
+  const [adults, setAdults] = useState(2)
+  const [children, setChildren] = useState(0)
+  const [roomCount, setRoomCount] = useState(1)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -87,7 +89,7 @@ export default function Home() {
     return `${year}.${month}.${day} (${dayOfWeek})`
   }
   const handleSearch = () => {
-    router.push(`/booking?checkIn=${checkInDate}&checkOut=${checkOutDate}&guests=${guestCount}`)
+    router.push(`/booking?checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&roomCount=${roomCount}&adults=${adults}&children=${children}`)
   }
   // 객실 정보
   const rooms = [
@@ -246,17 +248,46 @@ export default function Home() {
                 {checkOutDate && <div className={styles.formattedDate}>{formatDate(checkOutDate)}</div>}
               </div>
               <div className={styles.bookingFormField}>
-                <label htmlFor="guests">인원</label>
+                <label htmlFor="roomCount">객실 수</label>
                 <select
-                  id="guests"
-                  value={guestCount}
-                  onChange={(e) => setGuestCount(e.target.value)}
+                  id="roomCount"
+                  value={roomCount}
+                  onChange={(e) => setRoomCount(Number(e.target.value))}
                   className={styles.bookingInput}
                 >
-                  <option value="1">성인 1명</option>
-                  <option value="2">성인 2명</option>
-                  <option value="3">성인 3명</option>
-                  <option value="4">성인 4명</option>
+                  <option value={1}>1개</option>
+                  <option value={2}>2개</option>
+                  <option value={3}>3개</option>
+                  <option value={4}>4개</option>
+                </select>
+              </div>
+              <div className={styles.bookingFormField}>
+                <label htmlFor="adults">성인</label>
+                <select
+                  id="adults"
+                  value={adults}
+                  onChange={(e) => setAdults(Number(e.target.value))}
+                  className={styles.bookingInput}
+                >
+                  <option value={1}>1명</option>
+                  <option value={2}>2명</option>
+                  <option value={3}>3명</option>
+                  <option value={4}>4명</option>
+                </select>
+              </div>
+
+              <div className={styles.bookingFormField}>
+                <label htmlFor="children">어린이</label>
+                <select
+                  id="children"
+                  value={children}
+                  onChange={(e) => setChildren(Number(e.target.value))}
+                  className={styles.bookingInput}
+                >
+                  <option value={0}>0명</option>
+                  <option value={1}>1명</option>
+                  <option value={2}>2명</option>
+                  <option value={3}>3명</option>
                 </select>
               </div>
               <div className={styles.bookingFormButton}>

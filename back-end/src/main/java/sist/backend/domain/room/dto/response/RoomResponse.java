@@ -25,7 +25,6 @@ public class RoomResponse {
                 .roomNum(room.getRoomNum())
                 .floor(room.getFloor())
                 .status(room.getStatus())
-                .roomImage(room.getRoomImage())
                 .build();
     }
 

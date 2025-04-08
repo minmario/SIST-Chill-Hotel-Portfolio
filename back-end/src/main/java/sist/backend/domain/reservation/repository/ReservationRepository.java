@@ -13,22 +13,16 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
-        Optional<Reservation> findByUserIdxAndReservationNum(Long userIdx, String reservationNum);
-        List<RoomType> findByRoomTypesIdxIn(List<Long> roomTypesIdxList);
-        
+        Optional<Reservation> findByUser_UserIdxAndReservationNum(Long userIdx, String reservationNum);
         @Query("""
-                SELECT r.roomIdx FROM Reservation r
+                SELECT r.room.roomIdx FROM Reservation r
                 WHERE r.checkInDate < :checkOut AND r.checkOutDate > :checkIn
                 """)
                 List<Long> findReservedRoomIds(@Param("checkIn") LocalDate checkIn, @Param("checkOut") LocalDate checkOut);
-
-        @Query("""
-        SELECT r.roomTypesIdx, COUNT(r) FROM Room r
-        WHERE (:reservedRoomIds IS NULL OR r.roomIdx NOT IN :reservedRoomIds)
-        GROUP BY r.roomTypesIdx
-        """)
-        List<Object[]> countAvailableRoomsByRoomType(@Param("reservedRoomIds") List<Long> reservedRoomIds);
-
+                @Query("SELECT r.roomType.roomTypesIdx, COUNT(r) FROM Room r " +
+                "WHERE (:reservedRoomIds IS NULL OR r.roomIdx NOT IN :reservedRoomIds) " +
+                "GROUP BY r.roomType.roomTypesIdx")
+         List<Object[]> countAvailableRoomsByRoomType(@Param("reservedRoomIds") List<Long> reservedRoomIds);
         @Query("SELECT r FROM Reservation r WHERE r.room = :room " +
        "AND r.checkOutDate > :checkInDate " +
        "AND r.checkInDate < :checkOutDate")

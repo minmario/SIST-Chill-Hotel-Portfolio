@@ -1,4 +1,4 @@
-package sist.backend.repository.jpa;
+package sist.backend.domain.room.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,10 +13,12 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     List<Room> findByRoomIdxNotIn(List<Long> reservedRoomIds);
 
     // 1. 전체 Room 개수를 RoomType 기준으로 묶어서 세는 쿼리
-    @Query("SELECT r.roomTypesIdx, COUNT(r) FROM Room r GROUP BY r.roomTypesIdx")
+    @Query("SELECT r.roomType.roomTypesIdx, COUNT(r) FROM Room r GROUP BY r.roomType.roomTypesIdx")
     List<Object[]> countAllRoomsGroupedByType();
 
     // 2. 예약 가능한 Room만 RoomType 기준으로 묶어서 세는 쿼리
-    @Query("SELECT r.roomTypesIdx, COUNT(r) FROM Room r WHERE r.roomIdx NOT IN :reservedRoomIds GROUP BY r.roomTypesIdx")
+    @Query("SELECT r.roomType.roomTypesIdx, COUNT(r) FROM Room r " +
+       "WHERE (:reservedRoomIds IS NULL OR r.roomIdx NOT IN :reservedRoomIds) " +
+       "GROUP BY r.roomType.roomTypesIdx")
     List<Object[]> countAvailableRoomsByRoomType(List<Long> reservedRoomIds);
 }

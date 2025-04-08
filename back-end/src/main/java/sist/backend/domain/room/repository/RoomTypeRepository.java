@@ -12,11 +12,7 @@ public interface RoomTypeRepository extends JpaRepository<RoomType, Long> {
     @Query("SELECT rt.roomTypesIdx, COUNT(rt) FROM RoomType rt GROUP BY rt.roomTypesIdx")
     List<Object[]> countAllRoomTypesGroupedByType();
 
-    // 2. 예약 가능한 RoomType만 RoomType 기준으로 묶어서 세는 쿼리
-    @Query("SELECT rt.roomTypesIdx, COUNT(rt) FROM RoomType rt WHERE rt.roomIdx NOT IN :reservedRoomIds GROUP BY rt.roomTypesIdx")
-    List<Object[]> countAvailableRoomTypesByRoomType(List<Long> reservedRoomIds);
-
     // 방 타입 ID로 방 타입을 찾는 메서드
-List<RoomType> findByRoomTypesIdxIn(List<Long> roomTypesIdxList);
+    List<RoomType> findByRoomTypesIdxIn(List<Long> roomTypesIdxList);
 
 }

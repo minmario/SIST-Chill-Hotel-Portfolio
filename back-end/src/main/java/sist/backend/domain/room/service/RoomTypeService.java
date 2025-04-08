@@ -1,15 +1,14 @@
 package sist.backend.domain.room.service;
 
-import lombok.Builder;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import sist.backend.domain.reservation.entity.Reservation;
 import sist.backend.domain.reservation.repository.ReservationRepository;
-import sist.backend.domain.room.entity.Room;
 import sist.backend.domain.room.entity.RoomType;
 import sist.backend.domain.room.dto.response.RoomTypeResponse;
-import sist.backend.domain.room.repository.*;
+import sist.backend.domain.room.repository.RoomTypeRepository;
 
 import java.time.LocalDate;
 import java.util.*;

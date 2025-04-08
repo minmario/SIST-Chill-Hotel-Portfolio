@@ -149,11 +149,12 @@ export default function Booking() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     setSearchParams({
-      checkIn: params.get("checkIn") || "",
-      checkOut: params.get("checkOut") || "",
-      rooms: "1",
-      adults: params.get("guests") || "2",
-      children: "0",
+      checkIn: params.get("checkInDate") || "",
+      checkOut: params.get("checkOutDate") || "",
+      rooms: params.get("roomCount") || "1",
+      adults: params.get("adults") || "1",
+      children: params.get("children") || "0",
+
     })
     
   }, [])
@@ -165,9 +166,10 @@ export default function Booking() {
       try {
         const guestCount = parseInt(searchParams.adults.replace(/[^0-9]/g, ""), 10);
         const res = await fetch(
-          `/api/rooms/available?checkIn=${searchParams.checkIn}&checkOut=${searchParams.checkOut}&guests=${guestCount}`
+          `/api/room-types/available?checkInDate=${searchParams.checkIn}&checkOutDate=${searchParams.checkOut}&roomCount=${searchParams.rooms}&adults=${searchParams.adults}&children=${searchParams.children}`
         )
         const data = await res.json()
+        console.log("객실 API 응답:", data);
         if (Array.isArray(data)) {
           setRooms(data)
           console.log("가져온 객실 데이터:", data)

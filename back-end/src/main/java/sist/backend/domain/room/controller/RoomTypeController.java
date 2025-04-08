@@ -1,10 +1,10 @@
-package sist.backend.controller.api;
+package sist.backend.domain.room.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import sist.backend.dto.response.RoomTypeResponse;
-import sist.backend.service.interfaces.RoomTypeService;
+import sist.backend.domain.room.dto.response.RoomTypeResponse;
+import sist.backend.domain.room.service.RoomTypeService;
 
 import java.time.LocalDate;
 import java.util.List;
