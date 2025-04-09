@@ -6,3 +6,4 @@ spring:
         url: jdbc:mysql://ted19horse.mysql.database.azure.com:3306/chill
         username: sist
         password: 1111
+

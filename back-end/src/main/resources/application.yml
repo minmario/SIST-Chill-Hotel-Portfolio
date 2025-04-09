@@ -2,3 +2,8 @@ spring:
   profiles:
     active: dev
     include: secret
+
+  # 도커 제외
+  docker:
+    compose:
+      enabled: false

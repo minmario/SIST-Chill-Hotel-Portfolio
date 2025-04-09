@@ -87,10 +87,42 @@ export default function DiningReservePage() {
         })
       : ""
 
-  const handleSubmit = () => {
-    alert("예약이 완료되었습니다!")
-    router.push("/dining")
-  }
+      const handleSubmit = async () => {
+        const reservationData = {
+          restaurantId: restaurant?.id, 
+          reservationDate: date,
+          mealTime,
+          reservationTime: time,
+          adults,
+          children,
+          firstName,
+          lastName,
+          phone,
+          email,
+          request,
+        }
+      
+        try {
+          const res = await fetch("http://localhost:8080/dining/reservation", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(reservationData),
+          })
+      
+          if (res.ok) {
+            const result = await res.json()
+            localStorage.setItem("reservationResult", JSON.stringify(result)) // 저장
+            // alert(`예약이 완료되었습니다!\n예약번호: ${result.reservationNum}`)
+            router.push("/dining/reserve/complete") // 또는 "/dining"
+          } else {
+            const errorText = await res.text()
+            alert("예약 실패: " + errorText)
+          }
+        } catch (err) {
+          alert("서버 오류가 발생했습니다.")
+        }
+      }
+      
 
   if (!restaurant) return <div className="p-10 text-center">존재하지 않는 레스토랑입니다.</div>
 

@@ -1,6 +1,7 @@
 package sist.backend.domain.dining_reservation.service.interfaces;
 
 import lombok.RequiredArgsConstructor;
+import sist.backend.domain.dining_reservation.dto.ReservationRequest;
 import sist.backend.domain.dining_reservation.entity.DiningReservation;
 import sist.backend.domain.dining_reservation.repository.jpa.DiningReservationRepository;
 
@@ -26,4 +27,20 @@ public class DiningReservationService {
         } while (reservationRepository.existsByReservationNum(code));
         return code;
     }
+
+    public DiningReservation fromDTO(ReservationRequest dto) {
+    return DiningReservation.builder()
+        .restaurantId(dto.getRestaurantId())
+        .reservationDate(dto.getReservationDate())
+        .mealTime(dto.getMealTime())
+        .reservationTime(dto.getReservationTime())
+        .adults(dto.getAdults())
+        .children(dto.getChildren())
+        .firstName(dto.getFirstName())
+        .lastName(dto.getLastName())
+        .phone(dto.getPhone())
+        .email(dto.getEmail())
+        .request(dto.getRequest())
+        .build();
+}
 }
