@@ -25,6 +25,7 @@ import sist.backend.global.common.BaseTimeEntity;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "cart_items")
@@ -41,11 +42,13 @@ public class CartItem extends BaseTimeEntity {
     private Long cartItemIdx;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_id")
+    @JoinColumn(name = "cart_idx", nullable = false)
+    @JsonIgnore
     private Cart cart;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_idx")
+    @JoinColumn(name = "item_idx", nullable = false)
+    @JsonIgnore
     private GiftShop item;
 
     @Column(nullable = false)

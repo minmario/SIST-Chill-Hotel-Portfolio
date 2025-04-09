@@ -7,13 +7,25 @@ import { useParams, useRouter } from 'next/navigation';
 import { fetchProductById } from '@/lib/api';
 import { useCart } from '@/context/cart-context';
 
+interface Product {
+  itemIdx: number;
+  itemName: string;
+  price: number;
+  description: string;
+  category: string;
+  stockQuantity: number;
+  imageUrl: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { addItem } = useCart();
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
@@ -30,7 +42,7 @@ export default function ProductDetailPage() {
         setProduct(data);
         setLoading(false);
       } catch (err) {
-        setError(err.message);
+        setError(err instanceof Error ? err.message : '상품을 불러오는데 실패했습니다.');
         setLoading(false);
       }
     };
@@ -42,10 +54,22 @@ export default function ProductDetailPage() {
   if (error) return <div className="container mx-auto p-4 text-red-500">오류: {error}</div>;
   if (!product) return <div className="container mx-auto p-4">상품을 찾을 수 없습니다.</div>;
 
-  const handleQuantityChange = (e) => {
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
     if (value > 0 && value <= product.stockQuantity) {
       setQuantity(value);
+    }
+  };
+
+  const handleQuantityIncrement = () => {
+    if (quantity < product.stockQuantity) {
+      setQuantity(prev => prev + 1);
+    }
+  };
+
+  const handleQuantityDecrement = () => {
+    if (quantity > 1) {
+      setQuantity(prev => prev - 1);
     }
   };
 
@@ -89,20 +113,36 @@ export default function ProductDetailPage() {
           
           <div className="mb-6">
             <label htmlFor="quantity" className="block mb-2">수량 (재고: {product.stockQuantity}개)</label>
-            <input
-              type="number"
-              id="quantity"
-              min="1"
-              max={product.stockQuantity}
-              value={quantity}
-              onChange={handleQuantityChange}
-              className="border rounded p-2 w-20"
-            />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleQuantityDecrement}
+                className="w-10 h-10 flex items-center justify-center border rounded-l hover:bg-gray-100"
+                disabled={quantity <= 1}
+              >
+                -
+              </button>
+              <input
+                type="number"
+                id="quantity"
+                min="1"
+                max={product.stockQuantity}
+                value={quantity}
+                onChange={handleQuantityChange}
+                className="w-20 h-10 text-center border-t border-b [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <button
+                onClick={handleQuantityIncrement}
+                className="w-10 h-10 flex items-center justify-center border rounded-r hover:bg-gray-100"
+                disabled={quantity >= product.stockQuantity}
+              >
+                +
+              </button>
+            </div>
           </div>
           
           <button
             onClick={handleAddToCart}
-            className="bg-blue-600 text-white py-2 px-6 rounded hover:bg-blue-700 transition-colors"
+            className="w-full bg-blue-600 text-white py-3 px-6 rounded hover:bg-blue-700 transition-colors"
             disabled={product.stockQuantity < 1}
           >
             {product.stockQuantity < 1 ? '품절' : '장바구니에 추가'}

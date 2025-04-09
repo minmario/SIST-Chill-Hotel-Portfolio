@@ -52,12 +52,15 @@ import sist.backend.domain.shop.entity.QOrderItem;
      public List<Order> findTopSellingItems(LocalDateTime start, LocalDateTime end, int limit) {
          QOrder order = QOrder.order;
          QOrderItem orderItem = QOrderItem.orderItem;
+         QGiftShop giftShop = QGiftShop.giftShop;
          
          return queryFactory
                  .selectFrom(order)
                  .leftJoin(order.orderItems, orderItem).fetchJoin()
+                 .leftJoin(orderItem.item, giftShop).fetchJoin()
                  .where(order.orderDate.between(start, end))
                  .orderBy(orderItem.quantity.sum().desc())
+                 .groupBy(orderItem.item)
                  .limit(limit)
                  .fetch();
      }

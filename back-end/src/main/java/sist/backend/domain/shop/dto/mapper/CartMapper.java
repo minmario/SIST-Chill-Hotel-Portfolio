@@ -29,6 +29,10 @@ public class CartMapper {
         return dto;
     }
     
+    public CartItemResponseDTO toCartItemResponseDTO(CartItem entity) {
+        return toCartItemDto(entity);
+    }
+    
     public CartResponseDTO toDto(Cart entity) {
         List<CartItemResponseDTO> items = entity.getItems().stream()
                 .map(this::toCartItemDto)

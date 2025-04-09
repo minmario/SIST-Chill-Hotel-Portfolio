@@ -15,6 +15,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "order_items")
@@ -30,10 +31,12 @@ public class OrderItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_idx", nullable = false)
+    @JsonIgnore
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_idx", nullable = false)
+    @JsonIgnore
     private GiftShop item;
 
     @Column(nullable = false)

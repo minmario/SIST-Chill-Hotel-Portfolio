@@ -30,9 +30,9 @@ export async function fetchProducts(): Promise<Product[]> {
 }
 
 // 단일 상품 상세 조회
-export async function fetchProductById(itemIdx: number): Promise<Product> {
+export async function fetchProductById(productIdx: number): Promise<Product> {
   try {
-    const response = await fetch(`${API_BASE_URL}/gift-shop/${itemIdx}`);
+    const response = await fetch(`${API_BASE_URL}/gift-shop/${productIdx}`);
     if (!response.ok) {
       throw new Error('상품을 불러오는데 실패했습니다.');
     }

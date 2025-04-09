@@ -4,7 +4,9 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import axios from "../../lib/axios"
 import styles from "./login.module.css"
+import { useAuth } from "@/context/auth-context"
 
 export default function Login() {
   const router = useRouter()
@@ -13,6 +15,8 @@ export default function Login() {
     password: "",
   })
   const [isClient, setIsClient] = useState(false)
+  const [error, setError] = useState("")
+  const { login } = useAuth()
 
   useEffect(() => {
     setIsClient(true)
@@ -21,27 +25,34 @@ export default function Login() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setLoginData((prev) => ({ ...prev, [name]: value }))
+    setError("") // 에러 메시지 초기화
   }
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!isClient) return
 
     try {
-      // 로그인 처리 (실제로는 API 호출 등이 필요)
-      console.log("로그인 정보:", loginData)
+      // 백엔드 API 호출
+      const response = await axios.post("/api/auth/login", {
+        email: loginData.email,
+        password: loginData.password,
+      })
 
-      // 세션 정보 저장 (실제로는 토큰 등을 저장)
-      localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("userEmail", loginData.email)
-      localStorage.setItem("userName", "Brown") // 테스트용 사용자 이름
+      // 토큰 저장
+      const { token } = response.data
+      login(token)
 
       // 메인 페이지로 이동
       router.push("/")
-    } catch (error) {
+    } catch (error: any) {
       console.error("로그인 중 오류가 발생했습니다:", error)
-      alert("로그인에 실패했습니다. 다시 시도해주세요.")
+      if (error.response?.status === 401) {
+        setError("이메일 또는 비밀번호가 올바르지 않습니다.")
+      } else {
+        setError("로그인 중 오류가 발생했습니다. 다시 시도해주세요.")
+      }
     }
   }
 
@@ -89,6 +100,12 @@ export default function Login() {
                   required
                 />
               </div>
+
+              {error && (
+                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+                  {error}
+                </div>
+              )}
 
               <button
                 type="submit"

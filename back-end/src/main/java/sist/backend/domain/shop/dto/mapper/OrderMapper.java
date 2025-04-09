@@ -30,10 +30,14 @@ public class OrderMapper {
     public OrderResponseDTO toDto(Order entity) {
         return OrderResponseDTO.builder()
                 .orderIdx(entity.getOrderIdx())
+                .userIdx(entity.getUser().getUserIdx())
                 .orderStatus(entity.getOrderStatus())
                 .totalAmount(entity.getTotalAmount())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
+                .orderItems(entity.getOrderItems().stream()
+                        .map(this::toOrderItemDto)
+                        .collect(Collectors.toList()))
                 .build();
     }
     

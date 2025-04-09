@@ -4,10 +4,30 @@ spring:
     include: secret
   main:
     allow-bean-definition-overriding: true
+    allow-circular-references: true
   security:
     jwt:
-      secret: your-secret-key-here-must-be-at-least-256-bits-long
-      expiration: 86400000 # 24 hours
+      secret: 9a4f2c8d3b7e1a5f8c2d4e6b9a7c5f3d1e8b4a6c2f9d7e5b3a8c4f6e2d9a7b5c
+      expiration: 36000000  # 10시간 (밀리초 단위)
       header: Authorization
       prefix: Bearer
-     
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://ted19horse.mysql.database.azure.com:3306/chill?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: sist
+    password: 1111
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+
+server:
+  port: 8080
+ 

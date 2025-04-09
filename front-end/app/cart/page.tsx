@@ -1,143 +1,183 @@
-'use client';
+"use client"
 
-import { useCart } from '@/context/cart-context';
-import { CartItem } from '@/components/Cart/CartItem';
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { Trash2, Plus, Minus, ShoppingBag } from "lucide-react"
+import { useCart } from "@/context/cart-context"
+import { fetchProductById } from "@/lib/api"
+import styles from "./cart.module.css"
 
-export default function CartPage() {
-  const { items, totalItems, totalPrice, clearCart } = useCart();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const router = useRouter();
-  
+interface CartItem {
+  cartItemIdx: number;
+  productIdx: number;
+  productName: string;
+  price: number;
+  quantity: number;
+  subtotal: number;
+  image?: string;
+}
+
+interface StockQuantities {
+  [key: number]: number;
+}
+
+export default function Cart() {
+  const [mounted, setMounted] = useState(false)
+  const { items: cartItems, updateQuantity, removeItem: removeFromCart, totalItems, totalPrice, isLoggedIn } = useCart()
+  const [stockQuantities, setStockQuantities] = useState<StockQuantities>({})
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // 토큰 유효성 검사
-      fetch('http://localhost:8080/api/auth/verify', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error('인증 실패');
-        }
-        return res.json();
-      })
-      .then(data => {
-        setIsLoggedIn(true);
-      })
-      .catch(() => {
-        localStorage.removeItem('token');
-        setIsLoggedIn(false);
-      });
-    }
-  }, []);
+    setMounted(true)
+    loadStockQuantities()
+  }, [])
 
-  const handleCheckout = () => {
-    if (!isLoggedIn) {
-      alert('결제를 진행하려면 로그인이 필요합니다.');
-      router.push('/login?redirect=/cart');
-      return;
-    }
-    
-    // 주문 생성 API 호출
-    const token = localStorage.getItem('token');
-    const orderData = {
-      items: items.map(item => ({
-        productId: item.id,
-        quantity: item.quantity
-      }))
-    };
-
-    fetch('http://localhost:8080/api/orders', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(orderData)
-    })
-    .then(res => {
-      if (!res.ok) {
-        throw new Error('주문 생성 실패');
+  const loadStockQuantities = async () => {
+    try {
+      const quantities: StockQuantities = {}
+      for (const item of cartItems) {
+        const product = await fetchProductById(item.productIdx)
+        quantities[item.productIdx] = product.stockQuantity
       }
-      return res.json();
-    })
-    .then(data => {
-      clearCart();
-      router.push(`/orders/${data.orderId}`);
-    })
-    .catch(error => {
-      alert('주문 처리 중 오류가 발생했습니다: ' + error.message);
-    });
-  };
+      setStockQuantities(quantities)
+      setLoading(false)
+    } catch (error) {
+      console.error('재고 정보를 불러오는데 실패했습니다:', error)
+      setLoading(false)
+    }
+  }
 
-  if (totalItems === 0) {
+  // 서버 사이드 렌더링 중에는 기본 UI만 표시
+  if (!mounted || loading) {
     return (
-      <div className="container mx-auto py-10 px-4">
-        <h1 className="text-2xl font-bold mb-6">장바구니</h1>
-        <div className="text-center py-10">
-          <p className="mb-4">장바구니가 비어있습니다.</p>
-          <Link href="/store" className="text-blue-500 hover:underline">
-            쇼핑 계속하기
-          </Link>
-        </div>
+      <div className="container py-20 text-center">
+        <h2 className="text-2xl font-bold mb-4">장바구니 로딩 중...</h2>
+        <p className="mb-6">잠시만 기다려주세요.</p>
       </div>
-    );
+    )
+  }
+
+  if (cartItems.length === 0) {
+    return (
+      <div className="container py-20 text-center">
+        <div className="mb-8">
+          <ShoppingBag size={64} className="mx-auto text-gray-300" />
+        </div>
+        <h2 className="text-2xl font-bold mb-4">장바구니가 비어있습니다</h2>
+        <p className="mb-6">상품을 장바구니에 담아보세요.</p>
+        <Link href="/store" className="button button-primary">
+          쇼핑하러 가기
+        </Link>
+      </div>
+    )
   }
 
   return (
-    <div className="container mx-auto py-10 px-4">
-      <h1 className="text-2xl font-bold mb-6">장바구니 ({totalItems}개)</h1>
-      
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-4 bg-gray-50 border-b flex">
-          <div className="flex-1">상품정보</div>
-          <div className="w-32 text-center">수량</div>
-          <div className="w-32 text-center">가격</div>
-          <div className="w-20 text-center">삭제</div>
+    <>
+      <div className={styles.header}>
+        <div className="container">
+          <h1>장바구니 {!isLoggedIn && "(비회원)"}</h1>
+          <p>{cartItems.length}개의 상품이 장바구니에 있습니다.</p>
+          {!isLoggedIn && (
+            <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
+              <p className="text-yellow-700">
+                로그인하시면 장바구니 상품을 저장하고 다음에도 이용하실 수 있습니다.
+                <Link href="/login" className="ml-2 text-blue-600 hover:underline">
+                  로그인하기
+                </Link>
+              </p>
+            </div>
+          )}
         </div>
-        
-        <div>
-          {items.map(item => (
-            <CartItem 
-              key={item.id}
-              id={item.id}
-              name={item.name}
-              price={item.price}
-              quantity={item.quantity}
-              image={item.image}
-            />
-          ))}
-        </div>
-        
-        <div className="p-4 bg-gray-50 flex justify-between items-center">
-          <button 
-            onClick={clearCart}
-            className="px-4 py-2 text-red-500 border border-red-500 rounded hover:bg-red-50"
-          >
-            장바구니 비우기
-          </button>
-          <div className="text-xl font-bold">
-            합계: {totalPrice.toLocaleString()}원
+      </div>
+
+      <div className="container py-12">
+        <div className={styles.cartGrid}>
+          <div>
+            <div className={styles.cartItems}>
+              {cartItems.map((item) => (
+                <div key={item.cartItemIdx} className="flex items-center justify-between p-4 border-b">
+                  <div className={styles.cartItemProduct}>
+                    <div className={styles.cartItemImage}>
+                      <Image
+                        src={item.image || "/placeholder.svg?height=100&width=100"}
+                        alt={item.productName}
+                        width={100}
+                        height={100}
+                        className="object-cover rounded"
+                      />
+                    </div>
+                    <div className={styles.cartItemDetails}>
+                      <h3 className={styles.cartItemName}>{item.productName}</h3>
+                      <p className={styles.cartItemCategory}>상품</p>
+                      <p className="text-sm text-gray-500">재고: {stockQuantities[item.productIdx]}개</p>
+                    </div>
+                  </div>
+                  <div className={styles.cartItemPrice}>{item.price.toLocaleString()}원</div>
+                  <div className={styles.cartItemQuantity}>
+                    <button
+                      onClick={() => updateQuantity(item.cartItemIdx, item.quantity - 1)}
+                      className={styles.quantityButton}
+                      aria-label="수량 감소"
+                      disabled={item.quantity <= 1}
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <input 
+                      type="text" 
+                      className={styles.quantityInput} 
+                      value={item.quantity} 
+                      readOnly 
+                    />
+                    <button
+                      onClick={() => updateQuantity(item.cartItemIdx, item.quantity + 1)}
+                      className={styles.quantityButton}
+                      aria-label="수량 증가"
+                      disabled={item.quantity >= stockQuantities[item.productIdx]}
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                  <div className={styles.cartItemTotal}>
+                    {(item.subtotal || item.price * item.quantity).toLocaleString()}원
+                  </div>
+                  <button
+                    onClick={() => removeFromCart(item.cartItemIdx)}
+                    className={styles.cartItemRemove}
+                    aria-label="상품 삭제"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.cartSummary}>
+            <h2 className={styles.summaryTitle}>주문 요약</h2>
+            <div className={styles.summaryRow}>
+              <span>상품 금액</span>
+              <span>{totalPrice.toLocaleString()}원</span>
+            </div>
+            <div className={styles.summaryRow}>
+              <span>배송비</span>
+              <span>무료</span>
+            </div>
+            <div className={styles.summaryTotal}>
+              <span>총 결제 금액</span>
+              <span>{totalPrice.toLocaleString()}원</span>
+            </div>
+            <Link href="/checkout" className={styles.checkoutButton}>
+              결제하기
+            </Link>
+            <Link href="/store" className={styles.continueShoppingButton}>
+              쇼핑 계속하기
+            </Link>
           </div>
         </div>
       </div>
-      
-      <div className="mt-6 flex justify-end">
-        <Link href="/store" className="px-6 py-3 mr-4 bg-gray-200 rounded hover:bg-gray-300">
-          쇼핑 계속하기
-        </Link>
-        <button
-          onClick={handleCheckout}
-          className="px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          주문하기
-        </button>
-      </div>
-    </div>
-  );
+    </>
+  )
 }
+

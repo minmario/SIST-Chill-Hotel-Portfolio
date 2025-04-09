@@ -62,7 +62,6 @@ export default function StorePage() {
               <h2 className="text-xl font-semibold mb-2">{product.itemName}</h2>
               <p className="text-gray-600 mb-2">{product.category}</p>
               <p className="text-lg font-bold">{product.price.toLocaleString()}원</p>
-              <p className="text-sm text-gray-500">재고: {product.stockQuantity}개</p>
             </div>
           </div>
         ))}

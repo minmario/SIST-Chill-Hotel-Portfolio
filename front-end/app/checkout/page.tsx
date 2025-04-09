@@ -9,24 +9,18 @@ import styles from "./checkout.module.css"
 
 export default function Checkout() {
   const router = useRouter()
+  const { items: cartItems, totalPrice, clearCart } = useCart()
   const [mounted, setMounted] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState("card")
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
+    name: "",
     phone: "",
+    email: "",
     address: "",
-    city: "",
-    postalCode: "",
-    country: "대한민국",
-    paymentMethod: "card",
-    cardNumber: "",
-    cardName: "",
-    cardExpiry: "",
-    cardCVC: "",
-    agreeTerms: false,
-    expiryMonth: "",
-    expiryYear: "",
+    addressDetail: "",
+    postcode: "",
+    memo: ""
   })
 
   // 클라이언트 사이드에서만 실행되도록 처리
@@ -35,7 +29,7 @@ export default function Checkout() {
   }, [])
 
   // 클라이언트 컴포넌트 로직
-  const { cartItems, getCartTotal, clearCart } = useCart()
+  const { getCartTotal } = useCart()
 
   // 서버 사이드 렌더링 중에는 기본 UI만 표시
   if (!mounted) {
@@ -47,45 +41,62 @@ export default function Checkout() {
     )
   }
 
-  const handleInputChange = (e) => {
-    const { name, value, type } = e.target
-    const checked = type === "checkbox" ? e.target.checked : false
+  if (cartItems.length === 0) {
+    router.push("/cart")
+    return null
+  }
 
-    setFormData((prev) => ({
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsProcessing(true)
 
-    if (!formData.agreeTerms) {
-      alert("주문 약관에 동의해주세요.")
-      return
+    try {
+      // 주문 생성 API 호출
+      const token = localStorage.getItem("token")
+      const orderData = {
+        items: cartItems.map(item => ({
+          productId: item.id,
+          quantity: item.quantity
+        })),
+        shippingInfo: {
+          ...formData,
+          paymentMethod
+        }
+      }
+
+      const response = await fetch("http://localhost:8080/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(orderData)
+      })
+
+      if (!response.ok) {
+        throw new Error("주문 처리 중 오류가 발생했습니다.")
+      }
+
+      const data = await response.json()
+      clearCart()
+      router.push(`/orders/${data.orderId}`)
+    } catch (error) {
+      alert("주문 처리 중 오류가 발생했습니다.")
+      setIsProcessing(false)
     }
-
-    // 주문 처리 로직
-    alert("주문이 성공적으로 완료되었습니다!")
-    clearCart()
-    router.push("/")
   }
 
-  const subtotal = getCartTotal()
+  const subtotal = totalPrice
   const discount = Math.round(subtotal * 0.02) // 2% 할인
   const total = subtotal - discount
-
-  if (cartItems.length === 0) {
-    return (
-      <div className="container py-20 text-center">
-        <h2 className="text-2xl font-bold mb-4">장바구니가 비어있습니다</h2>
-        <p className="mb-6">결제를 진행하기 전에 상품을 장바구니에 담아주세요.</p>
-        <Link href="/store" className="button button-primary">
-          쇼핑하러 가기
-        </Link>
-      </div>
-    )
-  }
 
   return (
     <>
@@ -102,178 +113,126 @@ export default function Checkout() {
             <div className={styles.checkoutForm}>
               <h2 className={styles.formTitle}>주문 정보</h2>
 
-              <form onSubmit={handleSubmit}>
-                <div className={styles.formSection}>
-                  <h3 className={styles.formSectionTitle}>배송 정보</h3>
-
-                  <div className={styles.formGrid}>
-                    <div className={styles.formGroup}>
-                      <label htmlFor="lastName" className={styles.formLabel}>
-                        성
-                      </label>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h2 className="text-xl font-semibold mb-4">배송 정보</h2>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">이름</label>
                       <input
                         type="text"
-                        id="lastName"
-                        name="lastName"
-                        className={styles.formInput}
-                        value={formData.lastName}
+                        name="name"
+                        value={formData.name}
                         onChange={handleInputChange}
                         required
+                        className="w-full p-2 border rounded"
                       />
                     </div>
-
-                    <div className={styles.formGroup}>
-                      <label htmlFor="firstName" className={styles.formLabel}>
-                        이름
-                      </label>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">전화번호</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full p-2 border rounded"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">이메일</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full p-2 border rounded"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">주소</label>
                       <input
                         type="text"
-                        id="firstName"
-                        name="firstName"
-                        className={styles.formInput}
-                        value={formData.firstName}
+                        name="address"
+                        value={formData.address}
                         onChange={handleInputChange}
                         required
+                        className="w-full p-2 border rounded mb-2"
+                      />
+                      <input
+                        type="text"
+                        name="addressDetail"
+                        value={formData.addressDetail}
+                        onChange={handleInputChange}
+                        placeholder="상세주소"
+                        className="w-full p-2 border rounded"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">우편번호</label>
+                      <input
+                        type="text"
+                        name="postcode"
+                        value={formData.postcode}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full p-2 border rounded"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">배송 메모</label>
+                      <textarea
+                        name="memo"
+                        value={formData.memo}
+                        onChange={handleInputChange}
+                        className="w-full p-2 border rounded"
+                        rows={3}
                       />
                     </div>
                   </div>
-
-                  <div className={styles.formGroup}>
-                    <label htmlFor="email" className={styles.formLabel}>
-                      이메일
+                </div>
+                
+                <div className="bg-white p-6 rounded-lg shadow">
+                  <h2 className="text-xl font-semibold mb-4">결제 수단</h2>
+                  
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="card"
+                        checked={paymentMethod === "card"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="mr-2"
+                      />
+                      신용카드
                     </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      className={styles.formInput}
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label htmlFor="phone" className={styles.formLabel}>
-                      연락처
+                    
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="transfer"
+                        checked={paymentMethod === "transfer"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="mr-2"
+                      />
+                      계좌이체
                     </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      className={styles.formInput}
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-
-                  <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4">
-                    <p className="text-blue-700 text-sm">
-                      <strong>안내:</strong> 배송지 정보는 주문 완료 후 안내 전화를 통해 확인됩니다.
-                    </p>
                   </div>
                 </div>
-
-                <div className={styles.formSection}>
-                  <h3 className={styles.formSectionTitle}>결제 정보</h3>
-
-                  <div className={styles.formGroup}>
-                    <label htmlFor="cardNumber" className={styles.formLabel}>
-                      카드 번호
-                    </label>
-                    <input
-                      type="text"
-                      id="cardNumber"
-                      name="cardNumber"
-                      className={styles.formInput}
-                      value={formData.cardNumber}
-                      onChange={handleInputChange}
-                      placeholder="0000-0000-0000-0000"
-                      required
-                    />
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label htmlFor="cardName" className={styles.formLabel}>
-                      카드 소유자 이름
-                    </label>
-                    <input
-                      type="text"
-                      id="cardName"
-                      name="cardName"
-                      className={styles.formInput}
-                      value={formData.cardName}
-                      onChange={handleInputChange}
-                      placeholder="카드에 표시된 이름"
-                      required
-                    />
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label className={styles.formLabel}>만료일</label>
-                    <div className={styles.formGrid}>
-                      <div>
-                        <select
-                          id="expiryMonth"
-                          name="expiryMonth"
-                          className={styles.formInput}
-                          value={formData.expiryMonth}
-                          onChange={handleInputChange}
-                          required
-                        >
-                          <option value="">월</option>
-                          {Array.from({ length: 12 }, (_, i) => {
-                            const month = (i + 1).toString().padStart(2, "0")
-                            return (
-                              <option key={month} value={month}>
-                                {month}
-                              </option>
-                            )
-                          })}
-                        </select>
-                      </div>
-                      <div>
-                        <select
-                          id="expiryYear"
-                          name="expiryYear"
-                          className={styles.formInput}
-                          value={formData.expiryYear}
-                          onChange={handleInputChange}
-                          required
-                        >
-                          <option value="">년</option>
-                          {Array.from({ length: 10 }, (_, i) => {
-                            const year = (new Date().getFullYear() + i).toString()
-                            return (
-                              <option key={year} value={year}>
-                                {year}
-                              </option>
-                            )
-                          })}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.formCheckboxContainer}>
-                  <input
-                    type="checkbox"
-                    id="agreeTerms"
-                    name="agreeTerms"
-                    className={styles.formCheckbox}
-                    checked={formData.agreeTerms}
-                    onChange={handleInputChange}
-                    required
-                  />
-                  <label htmlFor="agreeTerms" className="text-sm">
-                    주문 내용을 확인하였으며, 개인정보 수집 및 이용에 동의합니다.
-                  </label>
-                </div>
-
-                <button type="submit" className={`button button-primary ${styles.placeOrderButton}`}>
-                  결제하기
+                
+                <button
+                  type="submit"
+                  disabled={isProcessing}
+                  className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 disabled:bg-gray-400"
+                >
+                  {isProcessing ? "처리 중..." : "결제하기"}
                 </button>
               </form>
             </div>

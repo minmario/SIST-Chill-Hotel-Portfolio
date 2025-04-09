@@ -5,6 +5,8 @@ import Link from "next/link"
 import { Menu, X, ShoppingCart, User } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useCart } from '@/context/cart-context'
+import { useAuth } from "@/context/auth-context"
+import { useRouter } from "next/navigation"
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -13,6 +15,8 @@ const Header = () => {
   const { totalItems } = useCart()
   const [isClient, setIsClient] = useState(false)
   const pathname = usePathname()
+  const { logout } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
     setIsClient(true)
@@ -38,15 +42,8 @@ const Header = () => {
   }, [pathname])
 
   const handleLogout = () => {
-    try {
-      localStorage.removeItem("isLoggedIn")
-      localStorage.removeItem("userEmail")
-      localStorage.removeItem("userName")
-      setIsLoggedIn(false)
-      window.location.href = "/"
-    } catch (error) {
-      console.error("로그아웃 중 오류가 발생했습니다:", error)
-    }
+    logout()
+    router.push('/')
   }
 
   // 서버 사이드 렌더링 중에는 기본 헤더 반환

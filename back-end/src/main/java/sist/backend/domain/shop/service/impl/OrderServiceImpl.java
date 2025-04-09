@@ -26,8 +26,7 @@ import sist.backend.domain.shop.repository.jpa.GiftShopRepository;
 import sist.backend.domain.shop.repository.jpa.OrderItemRepository;
 import sist.backend.domain.shop.repository.jpa.OrderRepository;
 import sist.backend.domain.shop.repository.querydsl.OrderQueryRepository;
-import sist.backend.domain.shop.service.CartService;
-import sist.backend.domain.shop.service.OrderService;
+import sist.backend.domain.shop.service.interfaces.OrderService;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.repository.UserRepository;
 import sist.backend.global.exception.UnauthorizedException;
@@ -44,12 +43,14 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final OrderQueryRepository orderQueryRepository;
     private final OrderMapper orderMapper;
-    private final CartService cartService;
 
     @Override
     @Transactional
     public OrderResponseDTO createOrder(Long userIdx, OrderRequestDTO requestDto) {
         User user = getUserById(userIdx);
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("장바구니를 찾을 수 없습니다."));
+
         Order order = Order.builder()
                 .user(user)
                 .orderStatus(OrderStatus.PENDING)
@@ -57,6 +58,23 @@ public class OrderServiceImpl implements OrderService {
                 .build();
         
         Order savedOrder = orderRepository.save(order);
+        
+        // 장바구니 아이템을 주문 아이템으로 변환
+        List<OrderItem> orderItems = cart.getItems().stream()
+                .<OrderItem>map(cartItem -> OrderItem.builder()
+                        .order(savedOrder)
+                        .item(cartItem.getItem())
+                        .quantity(cartItem.getQuantity())
+                        .price(cartItem.getPrice())
+                        .build())
+                .collect(Collectors.toList());
+        
+        orderItemRepository.saveAll(orderItems);
+        
+        // 장바구니 비우기
+        cart.clearItems();
+        cartRepository.save(cart);
+        
         return orderMapper.toDto(savedOrder);
     }
 

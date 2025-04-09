@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sist.backend.domain.user.entity.User;
 import sist.backend.global.common.BaseTimeEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "orders")
@@ -40,6 +41,7 @@ public class Order extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_idx", nullable = false)
+    @JsonIgnore
     private User user;
 
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
@@ -54,6 +56,7 @@ public class Order extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonIgnore
     private List<OrderItem> orderItems = new ArrayList<>();
 
     public void updateStatus(OrderStatus status) {

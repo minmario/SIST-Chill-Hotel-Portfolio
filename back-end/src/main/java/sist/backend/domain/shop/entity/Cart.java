@@ -25,6 +25,7 @@ import sist.backend.domain.user.entity.User;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "carts")
@@ -42,10 +43,12 @@ public class Cart {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_idx", nullable = false)
+    @JsonIgnore
     private User user;
     
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonIgnore
     private List<CartItem> items = new ArrayList<>();
 
     @Column(name = "total_price", nullable = false, precision = 10, scale = 2)

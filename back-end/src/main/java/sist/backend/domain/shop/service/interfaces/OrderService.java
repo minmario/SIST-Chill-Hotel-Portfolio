@@ -1,4 +1,4 @@
-package sist.backend.domain.shop.service;
+package sist.backend.domain.shop.service.interfaces;
 
 import java.time.LocalDateTime;
 import java.util.List;

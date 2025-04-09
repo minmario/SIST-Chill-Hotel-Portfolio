@@ -18,6 +18,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -25,7 +26,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sist.backend.domain.shop.entity.Order;
+import sist.backend.domain.shop.entity.Cart;
 import sist.backend.global.common.BaseTimeEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "users")
@@ -66,10 +69,16 @@ public class User extends BaseTimeEntity implements UserDetails {
     
     @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Order> orders = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private Cart cart;
 
     @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<UserActivityLog> activityLogs = new ArrayList<>();
 
     @Override
