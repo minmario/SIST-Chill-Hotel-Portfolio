@@ -25,7 +25,7 @@ public class ReservationResponse {
     private int children;
     private ReservationStatus status;
     private int totalAmount;
-    private PaymentMethod paymentMethod;
+    private String paymentMethod;
     private String reservationNum;
     private String specialRequest;
 
@@ -34,15 +34,15 @@ public class ReservationResponse {
                 .reservationIdx(entity.getReservationIdx())
                 .user(entity.getUser())
                 .room(entity.getRoom())
-                .checkInDate(entity.getCheckInDate())
-                .checkOutDate(entity.getCheckOutDate())
-                .adults(entity.getAdults())
-                .children(entity.getChildren())
+                .checkInDate(entity.getCheckIn())
+                .checkOutDate(entity.getCheckOut())
+                .adults(entity.getAdultCount())
+                .children(entity.getChildCount())
                 .status(entity.getStatus())
-                .totalAmount(entity.getTotalAmount())
-                .paymentMethod(entity.getPaymentMethod())
+                .totalAmount(entity.getTotal())
                 .reservationNum(entity.getReservationNum())
-                .specialRequest(entity.getSpecialRequest())
+                .specialRequest(entity.getSpecialRequests())
+                .paymentMethod(entity.getCardNumber())
                 .build();
     }
 }

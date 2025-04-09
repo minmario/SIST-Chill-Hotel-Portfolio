@@ -49,6 +49,32 @@ export default function Home() {
   const [children, setChildren] = useState(0)
   const [roomCount, setRoomCount] = useState(1)
 
+  const totalPeople = adults + children
+  const maxPeople = roomCount * 4
+
+  const handleRoomChange = (delta: number) => {
+    const newRoomCount = roomCount + delta
+    if (newRoomCount < 1) return
+    const newMax = newRoomCount * 4
+    if (totalPeople > newMax) {
+      const adjusted = Math.max(1, newMax - children)
+      setAdults(adjusted)
+    }
+    setRoomCount(newRoomCount)
+  }
+
+  const handleAdultsChange = (delta: number) => {
+    const newAdults = adults + delta
+    if (newAdults < 1 || newAdults + children > maxPeople) return
+    setAdults(newAdults)
+  }
+
+  const handleChildrenChange = (delta: number) => {
+    const newChildren = children + delta
+    if (newChildren < 0 || adults + newChildren > maxPeople) return
+    setChildren(newChildren)
+  }
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1))
@@ -247,48 +273,39 @@ export default function Home() {
                 />
                 {checkOutDate && <div className={styles.formattedDate}>{formatDate(checkOutDate)}</div>}
               </div>
-              <div className={styles.bookingFormField}>
-                <label htmlFor="roomCount">객실 수</label>
-                <select
-                  id="roomCount"
-                  value={roomCount}
-                  onChange={(e) => setRoomCount(Number(e.target.value))}
-                  className={styles.bookingInput}
-                >
-                  <option value={1}>1개</option>
-                  <option value={2}>2개</option>
-                  <option value={3}>3개</option>
-                  <option value={4}>4개</option>
-                </select>
-              </div>
-              <div className={styles.bookingFormField}>
-                <label htmlFor="adults">성인</label>
-                <select
-                  id="adults"
-                  value={adults}
-                  onChange={(e) => setAdults(Number(e.target.value))}
-                  className={styles.bookingInput}
-                >
-                  <option value={1}>1명</option>
-                  <option value={2}>2명</option>
-                  <option value={3}>3명</option>
-                  <option value={4}>4명</option>
-                </select>
-              </div>
+              <div className="space-y-6 p-4 max-w-md mx-auto">
+                {/* 객실 수 */}
+                <div>
+                  <label className="block font-semibold mb-1">객실 수</label>
+                  <div className="flex items-center space-x-4">
+                    <button onClick={() => handleRoomChange(-1)} className="px-3 py-1 border rounded">-</button>
+                    <span>{roomCount}</span>
+                    <button onClick={() => handleRoomChange(1)} className="px-3 py-1 border rounded">+</button>
+                  </div>
+                </div>
 
-              <div className={styles.bookingFormField}>
-                <label htmlFor="children">어린이</label>
-                <select
-                  id="children"
-                  value={children}
-                  onChange={(e) => setChildren(Number(e.target.value))}
-                  className={styles.bookingInput}
-                >
-                  <option value={0}>0명</option>
-                  <option value={1}>1명</option>
-                  <option value={2}>2명</option>
-                  <option value={3}>3명</option>
-                </select>
+                {/* 성인 수 */}
+                <div>
+                  <label className="block font-semibold mb-1">성인</label>
+                  <div className="flex items-center space-x-4">
+                    <button onClick={() => handleAdultsChange(-1)} className="px-3 py-1 border rounded">-</button>
+                    <span>{adults}</span>
+                    <button onClick={() => handleAdultsChange(1)} className="px-3 py-1 border rounded">+</button>
+                  </div>
+                </div>
+
+                {/* 어린이 수 */}
+                <div>
+                  <label className="block font-semibold mb-1">어린이</label>
+                  <div className="flex items-center space-x-4">
+                    <button onClick={() => handleChildrenChange(-1)} className="px-3 py-1 border rounded">-</button>
+                    <span>{children}</span>
+                    <button onClick={() => handleChildrenChange(1)} className="px-3 py-1 border rounded">+</button>
+                  </div>
+                </div>
+
+                {/* 디버그 출력 */}
+                <p className="text-sm text-gray-500">총 인원: {totalPeople}명 / 최대 {maxPeople}명 (객실 {roomCount}개)</p>
               </div>
               <div className={styles.bookingFormButton}>
               <button onClick={handleSearch} className={styles.searchButton}>

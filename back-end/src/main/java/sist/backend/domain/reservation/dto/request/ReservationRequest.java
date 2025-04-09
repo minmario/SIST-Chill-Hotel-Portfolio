@@ -1,12 +1,6 @@
 package sist.backend.domain.reservation.dto.request;
 
 import lombok.*;
-import sist.backend.domain.payment.entity.PaymentMethod;
-import sist.backend.domain.reservation.entity.ReservationStatus;
-import sist.backend.domain.room.entity.Room;
-import sist.backend.domain.user.entity.User;
-
-import java.time.LocalDate;
 
 
 
@@ -17,16 +11,39 @@ import java.time.LocalDate;
 @Builder
 public class ReservationRequest {
 
-    private Long reservationIdx;
-    private User user;
-    private Room room;
-    private LocalDate checkInDate;
-    private LocalDate checkOutDate;
-    private int adults;
-    private int children;
-    private ReservationStatus status;
-    private int totalAmount;
-    private PaymentMethod paymentMethod;
-    private String reservationNum;
-    private String specialRequest;
+  // 예약 상태 (초기 생성 시에는 생략하거나 기본값 처리 예정)
+  private String status;
+
+  // 사용자 및 객실 정보
+  private Long userIdx;
+  private Long roomIdx;
+  private Long roomTypesIdx;
+
+  // 예약 정보
+  private String reservationNum;
+  private String checkIn;
+  private String checkOut;
+  private int roomCount;
+  private int adultCount;
+  private int childCount;
+  private String bedType;
+  private String specialRequests;
+
+  // 금액 정보
+  private int roomPrice;
+  private int adultBreakfastPrice;
+  private int childBreakfastPrice;
+  private int subtotal;
+  private int discount;
+  private int total;
+
+  // 고객 정보
+  private String firstName;
+  private String lastName;
+  private String email;
+  private String phone;
+
+  // 결제 정보
+  private String cardNumber;
+  private String cardExpiry;
 }

@@ -17,9 +17,9 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @PostMapping
-    public ResponseEntity<ReservationResponse> register(@RequestBody ReservationRequest request) {
-        ReservationResponse response = reservationService.createReservation(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Long> createReservation(@RequestBody ReservationRequest request) {
+        Long reservationId = reservationService.saveReservation(request);
+        return ResponseEntity.ok(reservationId);
     }
     @GetMapping("/check")
     public ResponseEntity<ReservationResponse> getReservation(

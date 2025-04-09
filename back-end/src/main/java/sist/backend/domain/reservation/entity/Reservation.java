@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sist.backend.domain.payment.entity.PaymentMethod;
 import sist.backend.domain.room.entity.Room;
+import sist.backend.domain.room.entity.RoomType;
 import sist.backend.domain.user.entity.User;
 import sist.backend.global.common.BaseTimeEntity;
 
@@ -35,6 +36,10 @@ public class Reservation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long reservationIdx;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_idx", nullable = false)
     private User user;
@@ -43,59 +48,91 @@ public class Reservation {
     @JoinColumn(name = "room_idx", nullable = false)
     private Room room;
 
-    @Column(nullable = false)
-    private LocalDate checkInDate;
-
-    @Column(nullable = false)
-    private LocalDate checkOutDate;
-
-    @Column(nullable = false)
-    private Integer adults;
-
-    @Column(nullable = false)
-    private Integer children;
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private ReservationStatus status;
-
-    @Column(nullable = false, precision = 10, scale = 2)
-    private int totalAmount;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_methods_idx")
-    private PaymentMethod paymentMethod;
+    @JoinColumn(name = "room_types_idx", nullable = false)
+    private RoomType roomType;
 
-    @Column(unique = true, nullable = false, length = 20)
+    @Column(name = "reservation_num", nullable = false, unique = true)
     private String reservationNum;
 
-    @Column(columnDefinition = "TEXT")
-    private String specialRequest;
+    @Column(name = "check_in", nullable = false)
+    private LocalDate checkIn;
+
+    @Column(name = "check_out", nullable = false)
+    private LocalDate checkOut;
+
+    @Column(name = "room_count", nullable = false)
+    private int roomCount;
+
+    @Column(name = "adult_count", nullable = false)
+    private int adultCount;
+
+    @Column(name = "child_count")
+    private int childCount;
+
+    @Column(name = "bed_type")
+    private String bedType;
+
+    @Column(name = "special_requests", columnDefinition = "TEXT")
+    private String specialRequests;
+
+    @Column(name = "room_price", nullable = false)
+    private int roomPrice;
+
+    @Column(name = "adult_breakfast_price")
+    private int adultBreakfastPrice;
+
+    @Column(name = "child_breakfast_price")
+    private int childBreakfastPrice;
+
+    @Column(name = "subtotal")
+    private int subtotal;
+
+    @Column(name = "discount")
+    private int discount;
+
+    @Column(name = "total")
+    private int total;
+
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
+
+    @Column(name = "email", nullable = false)
+    private String email;
+
+    @Column(name = "phone", nullable = false)
+    private String phone;
+
+    @Column(name = "card_number", nullable = false)
+    private String cardNumber;
+
+    @Column(name = "card_expiry", nullable = false)
+    private String cardExpiry;
+
 
     // 비즈니스 메서드
     public void updateStatus(ReservationStatus status) {
         this.status = status;
     }
 
-    public void updateSpecialRequest(String specialRequest) {
-        this.specialRequest = specialRequest;
-    }
-
-    public void updatePaymentMethod(PaymentMethod paymentMethod) {
-        this.paymentMethod = paymentMethod;
+    public void updateSpecialRequest(String specialRequests) {
+        this.specialRequests = specialRequests;
     }
 
     public int getDurationDays() {
-        return (int) ChronoUnit.DAYS.between(checkInDate, checkOutDate);
+        return (int) ChronoUnit.DAYS.between(checkIn, checkOut);
     }
 
     public boolean isUpcoming() {
-        return LocalDate.now().isBefore(checkInDate) && status == ReservationStatus.CONFIRMED;
+        return LocalDate.now().isBefore(checkIn) && status == ReservationStatus.CONFIRMED;
     }
 
     public boolean isActive() {
         LocalDate now = LocalDate.now();
-        return !now.isBefore(checkInDate) && !now.isAfter(checkOutDate)
+        return !now.isBefore(checkIn) && !now.isAfter(checkOut)
                 && status == ReservationStatus.CONFIRMED;
     }
 }
