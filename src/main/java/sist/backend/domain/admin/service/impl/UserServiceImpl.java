@@ -7,11 +7,11 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import sist.backend.domain.admin.dto.request.UserRegisterRequest;
-import sist.backend.domain.admin.entity.User;
-import sist.backend.domain.admin.entity.enums.UserRole;
-import sist.backend.domain.admin.entity.enums.UserStatus;
 import sist.backend.domain.admin.repository.UserRepository;
 import sist.backend.domain.admin.service.service.UserService;
+import sist.backend.domain.user.entity.User;
+import sist.backend.domain.user.entity.UserRole;
+import sist.backend.domain.user.entity.UserStatus;
 
 @Service
 @RequiredArgsConstructor

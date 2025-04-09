@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import sist.backend.domain.admin.entity.User;
+import sist.backend.domain.user.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsById(String id);
