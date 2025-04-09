@@ -5,10 +5,12 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { fetchProductById } from '@/lib/api';
+import { useCart } from '@/context/cart-context';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { addItem } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -48,7 +50,16 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = () => {
-    // 장바구니 추가 로직 (추후 구현)
+    if (!product) return;
+    
+    addItem({
+      id: product.itemIdx,
+      name: product.itemName,
+      price: product.price,
+      quantity: quantity,
+      image: product.imageUrl
+    });
+    
     alert(`${product.itemName} ${quantity}개를 장바구니에 추가했습니다.`);
   };
 

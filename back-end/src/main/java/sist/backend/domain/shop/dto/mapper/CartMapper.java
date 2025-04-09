@@ -12,34 +12,36 @@ import sist.backend.domain.shop.entity.Cart;
 import sist.backend.domain.shop.entity.CartItem;
 
 @Component
- public class CartMapper {
- 
-     public CartItemResponseDTO toCartItemDto(CartItem entity) {
-         BigDecimal subtotal = entity.getItem().getPrice().multiply(BigDecimal.valueOf(entity.getQuantity()));
-         
-         return CartItemResponseDTO.builder()
-                 .cartItemIdx(entity.getCartItemIdx())
-                 .itemIdx(entity.getItem().getItemIdx())
-                 .itemName(entity.getItem().getItemName())
-                 .price(entity.getItem().getPrice())
-                 .quantity(entity.getQuantity())
-                 .subtotal(subtotal)
-                 .build();
-     }
- 
-     public CartResponseDTO toCartDto(Cart entity) {
-         List<CartItemResponseDTO> items = entity.getCartItems().stream()
-                 .map(this::toCartItemDto)
-                 .collect(Collectors.toList());
-         
-         BigDecimal totalAmount = items.stream()
-                 .map(CartItemResponseDTO::getSubtotal)
-                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-         
-         return CartResponseDTO.builder()
-                 .cartIdx(entity.getCartIdx())
-                 .items(items)
-                 .totalAmount(totalAmount)
-                 .build();
-     }
- }
+public class CartMapper {
+    
+    public CartItemResponseDTO toCartItemDto(CartItem entity) {
+        CartItemResponseDTO dto = CartItemResponseDTO.builder()
+                .cartItemIdx(entity.getCartItemIdx())
+                .productIdx(entity.getItem().getItemIdx())
+                .productName(entity.getItem().getItemName())
+                .price(entity.getPrice())
+                .quantity(entity.getQuantity())
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .build();
+        
+        dto.calculateSubtotal();
+        return dto;
+    }
+    
+    public CartResponseDTO toDto(Cart entity) {
+        List<CartItemResponseDTO> items = entity.getItems().stream()
+                .map(this::toCartItemDto)
+                .collect(Collectors.toList());
+        
+        CartResponseDTO dto = CartResponseDTO.builder()
+                .cartIdx(entity.getCartIdx())
+                .items(items)
+                .createdAt(entity.getCreatedAt())
+                .updatedAt(entity.getUpdatedAt())
+                .build();
+        
+        dto.calculateTotalAmount();
+        return dto;
+    }
+}

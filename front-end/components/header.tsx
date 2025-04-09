@@ -4,12 +4,13 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Menu, X, ShoppingCart, User } from "lucide-react"
 import { usePathname } from "next/navigation"
+import { useCart } from '@/context/cart-context'
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [cartItems, setCartItems] = useState([])
+  const { totalItems } = useCart()
   const [isClient, setIsClient] = useState(false)
   const pathname = usePathname()
 
@@ -24,15 +25,6 @@ const Header = () => {
       console.error("로그인 상태를 확인하는 중 오류가 발생했습니다:", error)
     }
 
-    // 장바구니 아이템 가져오기
-    try {
-      const storedCartItems = JSON.parse(localStorage.getItem("cartItems") || "[]")
-      setCartItems(storedCartItems)
-    } catch (error) {
-      console.error("장바구니 데이터를 불러오는 중 오류가 발생했습니다:", error)
-      setCartItems([])
-    }
-
     const handleScroll = () => {
       if (window.scrollY > 10) {
         setIsScrolled(true)
@@ -44,8 +36,6 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [pathname])
-
-  const totalItems = Array.isArray(cartItems) ? cartItems.reduce((total, item) => total + (item.quantity || 0), 0) : 0
 
   const handleLogout = () => {
     try {

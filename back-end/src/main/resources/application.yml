@@ -2,4 +2,12 @@ spring:
   profiles:
     active: dev
     include: secret
+  main:
+    allow-bean-definition-overriding: true
+  security:
+    jwt:
+      secret: your-secret-key-here-must-be-at-least-256-bits-long
+      expiration: 86400000 # 24 hours
+      header: Authorization
+      prefix: Bearer
      

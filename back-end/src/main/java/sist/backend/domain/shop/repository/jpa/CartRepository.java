@@ -12,6 +12,6 @@ import sist.backend.domain.user.entity.User;
 
 @Repository
  public interface CartRepository extends JpaRepository<Cart, Long> {
-     List<CartItem> findByUser(User user);
+     Optional<Cart> findByUser(User user);
      Optional<Cart> findByUserUserIdx(Long userIdx);
  }

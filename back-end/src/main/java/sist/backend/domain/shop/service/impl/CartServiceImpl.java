@@ -1,6 +1,9 @@
 package sist.backend.domain.shop.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import sist.backend.domain.shop.dto.mapper.CartMapper;
 import sist.backend.domain.shop.dto.request.CartItemRequestDTO;
+import sist.backend.domain.shop.dto.response.CartItemResponseDTO;
 import sist.backend.domain.shop.dto.response.CartResponseDTO;
 import sist.backend.domain.shop.entity.Cart;
 import sist.backend.domain.shop.entity.CartItem;
@@ -16,13 +20,14 @@ import sist.backend.domain.shop.exception.custom.ResourceNotFoundException;
 import sist.backend.domain.shop.repository.jpa.CartItemRepository;
 import sist.backend.domain.shop.repository.jpa.CartRepository;
 import sist.backend.domain.shop.repository.jpa.GiftShopRepository;
-import sist.backend.domain.shop.service.interfaces.CartService;
+import sist.backend.domain.shop.service.CartService;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.repository.UserRepository;
+import sist.backend.global.exception.NotFoundException;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
@@ -33,103 +38,98 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartResponseDTO getCart(Long userIdx) {
-        Cart cart = getOrCreateCart(userIdx);
-        return cartMapper.toCartDto(cart);
+        User user = userRepository.findById(userIdx)
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
+        
+        Cart cart = cartRepository.findByUser(user)
+                .orElseGet(() -> cartRepository.save(Cart.builder()
+                        .user(user)
+                        .build()));
+        
+        return CartResponseDTO.fromEntity(cart);
     }
 
     @Override
-    @Transactional
     public CartResponseDTO addItemToCart(Long userIdx, CartItemRequestDTO requestDto) {
-        Cart cart = getOrCreateCart(userIdx);
-        GiftShop item = giftShopRepository.findById(requestDto.getItemIdx())
-                .orElseThrow(() -> new ResourceNotFoundException("상품을 찾을 수 없습니다: " + requestDto.getItemIdx()));
+        User user = userRepository.findById(userIdx)
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
         
-        // 이미 장바구니에 있는 상품인지 확인
-        Optional<CartItem> existingCartItem = cartItemRepository.findByCartCartIdxAndItemItemIdx(
-                cart.getCartIdx(), item.getItemIdx());
-        
-        if (existingCartItem.isPresent()) {
-            // 이미 있는 상품이면 수량 업데이트
-            CartItem cartItem = existingCartItem.get();
-            cartItem = CartItem.builder()
-                    .cartItemIdx(cartItem.getCartItemIdx())
-                    .cart(cart)
-                    .item(item)
-                    .quantity(cartItem.getQuantity() + requestDto.getQuantity())
-                    .build();
-            cartItemRepository.save(cartItem);
+        GiftShop product = giftShopRepository.findById(requestDto.getProductIdx())
+                .orElseThrow(() -> new NotFoundException("상품을 찾을 수 없습니다."));
+
+        Cart cart = cartRepository.findByUser(user)
+                .orElseGet(() -> cartRepository.save(Cart.builder()
+                        .user(user)
+                        .build()));
+
+        Optional<CartItem> existingItem = cart.getItems().stream()
+                .filter(item -> item.getItem().equals(product))
+                .findFirst();
+
+        if (existingItem.isPresent()) {
+            CartItem item = existingItem.get();
+            item.setQuantity(item.getQuantity() + requestDto.getQuantity());
         } else {
-            // 새 상품이면 추가
-            CartItem cartItem = CartItem.builder()
+            CartItem newItem = CartItem.builder()
                     .cart(cart)
-                    .item(item)
+                    .item(product)
                     .quantity(requestDto.getQuantity())
                     .build();
-            cart.addCartItem(cartItem);
-            cartItemRepository.save(cartItem);
+            cart.addItem(newItem);
         }
-        
-        return cartMapper.toCartDto(cart);
+
+        cart.calculateTotalPrice();
+        return CartResponseDTO.fromEntity(cart);
     }
 
     @Override
-    @Transactional
     public CartResponseDTO updateCartItem(Long userIdx, Long cartItemIdx, CartItemRequestDTO requestDto) {
-        Cart cart = getOrCreateCart(userIdx);
+        User user = userRepository.findById(userIdx)
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
         
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new NotFoundException("장바구니를 찾을 수 없습니다."));
+
         CartItem cartItem = cartItemRepository.findById(cartItemIdx)
-                .orElseThrow(() -> new ResourceNotFoundException("장바구니 항목을 찾을 수 없습니다: " + cartItemIdx));
-        
-        if (!cartItem.getCart().getCartIdx().equals(cart.getCartIdx())) {
-            throw new IllegalArgumentException("해당 사용자의 장바구니 항목이 아닙니다");
+                .orElseThrow(() -> new NotFoundException("장바구니 항목을 찾을 수 없습니다."));
+
+        if (!cart.getItems().contains(cartItem)) {
+            throw new NotFoundException("장바구니에 해당 항목이 없습니다.");
         }
+
+        cartItem.setQuantity(requestDto.getQuantity());
+        cart.calculateTotalPrice();
         
-        // 수량 업데이트
-        cartItem = CartItem.builder()
-                .cartItemIdx(cartItem.getCartItemIdx())
-                .cart(cart)
-                .item(cartItem.getItem())
-                .quantity(requestDto.getQuantity())
-                .build();
-        
-        cartItemRepository.save(cartItem);
-        return cartMapper.toCartDto(cart);
+        return CartResponseDTO.fromEntity(cart);
     }
 
     @Override
-    @Transactional
     public void removeItemFromCart(Long userIdx, Long cartItemIdx) {
-        Cart cart = getOrCreateCart(userIdx);
+        User user = userRepository.findById(userIdx)
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
         
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new NotFoundException("장바구니를 찾을 수 없습니다."));
+
         CartItem cartItem = cartItemRepository.findById(cartItemIdx)
-                .orElseThrow(() -> new ResourceNotFoundException("장바구니 항목을 찾을 수 없습니다: " + cartItemIdx));
-        
-        if (!cartItem.getCart().getCartIdx().equals(cart.getCartIdx())) {
-            throw new IllegalArgumentException("해당 사용자의 장바구니 항목이 아닙니다");
+                .orElseThrow(() -> new NotFoundException("장바구니 항목을 찾을 수 없습니다."));
+
+        if (!cart.getItems().contains(cartItem)) {
+            throw new NotFoundException("장바구니에 해당 항목이 없습니다.");
         }
-        
+
+        cart.removeItem(cartItem);
         cartItemRepository.delete(cartItem);
     }
 
     @Override
-    @Transactional
     public void clearCart(Long userIdx) {
-        Cart cart = getOrCreateCart(userIdx);
-        cart.getCartItems().clear();
-        cartRepository.save(cart);
-    }
-    
-    // 사용자의 장바구니를 가져오거나 없으면 새로 생성
-    private Cart getOrCreateCart(Long userIdx) {
         User user = userRepository.findById(userIdx)
-                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userIdx));
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
         
-        return cartRepository.findByUserUserIdx(userIdx)
-                .orElseGet(() -> {
-                    Cart newCart = Cart.builder()
-                            .user(user)
-                            .build();
-                    return cartRepository.save(newCart);
-                });
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new NotFoundException("장바구니를 찾을 수 없습니다."));
+
+        cart.clearItems();
     }
 }

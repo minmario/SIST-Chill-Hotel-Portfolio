@@ -19,6 +19,7 @@ public class OrderResponseDTO {
     private Long userIdx;
     private BigDecimal totalAmount;
     private OrderStatus orderStatus;
-    private LocalDateTime orderDate;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private List<OrderItemResponseDTO> orderItems;
 }

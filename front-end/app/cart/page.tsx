@@ -4,43 +4,75 @@ import { useCart } from '@/context/cart-context';
 import { CartItem } from '@/components/Cart/CartItem';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function CartPage() {
   const { items, totalItems, totalPrice, clearCart } = useCart();
-  // JWT 관련 상태
-  // const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const router = useRouter();
   
   useEffect(() => {
-    /* JWT 관련 코드 - 나중에 활성화
     const token = localStorage.getItem('token');
     if (token) {
       // 토큰 유효성 검사
-      fetch('/api/auth/verify', {
+      fetch('http://localhost:8080/api/auth/verify', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('인증 실패');
+        }
+        return res.json();
+      })
       .then(data => {
-        setIsLoggedIn(!!data.user);
+        setIsLoggedIn(true);
+      })
+      .catch(() => {
+        localStorage.removeItem('token');
+        setIsLoggedIn(false);
       });
     }
-    */
   }, []);
 
   const handleCheckout = () => {
-    /* JWT 관련 코드 - 나중에 활성화
     if (!isLoggedIn) {
-      // 로그인 페이지로 리다이렉트
       alert('결제를 진행하려면 로그인이 필요합니다.');
       router.push('/login?redirect=/cart');
       return;
     }
-    */
     
-    // 결제 페이지로 이동
-    // window.location.href = '/checkout';
-    alert('결제 페이지로 이동합니다.');
+    // 주문 생성 API 호출
+    const token = localStorage.getItem('token');
+    const orderData = {
+      items: items.map(item => ({
+        productId: item.id,
+        quantity: item.quantity
+      }))
+    };
+
+    fetch('http://localhost:8080/api/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(orderData)
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error('주문 생성 실패');
+      }
+      return res.json();
+    })
+    .then(data => {
+      clearCart();
+      router.push(`/orders/${data.orderId}`);
+    })
+    .catch(error => {
+      alert('주문 처리 중 오류가 발생했습니다: ' + error.message);
+    });
   };
 
   if (totalItems === 0) {
@@ -49,7 +81,7 @@ export default function CartPage() {
         <h1 className="text-2xl font-bold mb-6">장바구니</h1>
         <div className="text-center py-10">
           <p className="mb-4">장바구니가 비어있습니다.</p>
-          <Link href="/products" className="text-blue-500 hover:underline">
+          <Link href="/store" className="text-blue-500 hover:underline">
             쇼핑 계속하기
           </Link>
         </div>
@@ -96,7 +128,7 @@ export default function CartPage() {
       </div>
       
       <div className="mt-6 flex justify-end">
-        <Link href="/products" className="px-6 py-3 mr-4 bg-gray-200 rounded hover:bg-gray-300">
+        <Link href="/store" className="px-6 py-3 mr-4 bg-gray-200 rounded hover:bg-gray-300">
           쇼핑 계속하기
         </Link>
         <button

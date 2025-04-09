@@ -2,8 +2,9 @@ package sist.backend.domain.shop.service.impl;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,14 +24,13 @@ import sist.backend.domain.shop.exception.custom.ResourceNotFoundException;
 import sist.backend.domain.shop.repository.jpa.CartRepository;
 import sist.backend.domain.shop.repository.jpa.GiftShopRepository;
 import sist.backend.domain.shop.repository.jpa.OrderItemRepository;
+import sist.backend.domain.shop.repository.jpa.OrderRepository;
 import sist.backend.domain.shop.repository.querydsl.OrderQueryRepository;
-import sist.backend.domain.shop.service.interfaces.CartService;
-import sist.backend.domain.shop.service.interfaces.OrderService;
+import sist.backend.domain.shop.service.CartService;
+import sist.backend.domain.shop.service.OrderService;
 import sist.backend.domain.user.entity.User;
-import sist.backend.domain.user.repository.OrderRepository;
 import sist.backend.domain.user.repository.UserRepository;
-
-
+import sist.backend.global.exception.UnauthorizedException;
 
 @Service
 @RequiredArgsConstructor
@@ -49,76 +49,38 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponseDTO createOrder(Long userIdx, OrderRequestDTO requestDto) {
-        User user = userRepository.findById(userIdx)
-                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userIdx));
-        
+        User user = getUserById(userIdx);
         Order order = Order.builder()
                 .user(user)
-                .totalAmount(BigDecimal.ZERO) // 초기값, 나중에 계산
                 .orderStatus(OrderStatus.PENDING)
                 .orderDate(LocalDateTime.now())
                 .build();
         
-        // 장바구니에서 주문하는 경우
-        if (requestDto.getFromCart() != null && requestDto.getFromCart()) {
-            Cart cart = cartRepository.findByUserUserIdx(userIdx)
-                    .orElseThrow(() -> new ResourceNotFoundException("장바구니를 찾을 수 없습니다"));
-            
-            BigDecimal totalAmount = BigDecimal.ZERO;
-            
-            for (CartItem cartItem : cart.getCartItems()) {
-                OrderItem orderItem = OrderItem.builder()
-                        .order(order)
-                        .item(cartItem.getItem())
-                        .quantity(cartItem.getQuantity())
-                        .price(cartItem.getItem().getPrice())
-                        .build();
-                
-                order.addOrderItem(orderItem);
-                totalAmount = totalAmount.add(cartItem.getItem().getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
-            }
-            
-            order.setTotalAmount(totalAmount);
-            
-            // 장바구니 비우기
-            cartService.clearCart(userIdx);
-        } 
-        // 개별 상품 직접 주문하는 경우
-        else if (requestDto.getDirectOrderItem() != null) {
-            CartItemRequestDTO directOrderItem = requestDto.getDirectOrderItem();
-            GiftShop item = giftShopRepository.findById(directOrderItem.getItemIdx())
-                    .orElseThrow(() -> new ResourceNotFoundException("상품을 찾을 수 없습니다: " + directOrderItem.getItemIdx()));
-            
-            OrderItem orderItem = OrderItem.builder()
-                    .order(order)
-                    .item(item)
-                    .quantity(directOrderItem.getQuantity())
-                    .price(item.getPrice())
-                    .build();
-            
-            order.addOrderItem(orderItem);
-            
-            BigDecimal totalAmount = item.getPrice().multiply(BigDecimal.valueOf(directOrderItem.getQuantity()));
-            order.setTotalAmount(totalAmount);
-        } else {
-            throw new IllegalArgumentException("장바구니 또는 직접 주문 정보가 필요합니다");
-        }
-        
         Order savedOrder = orderRepository.save(order);
-        return orderMapper.toOrderDto(savedOrder);
+        return orderMapper.toDto(savedOrder);
     }
 
     @Override
     public OrderResponseDTO getOrderById(Long orderIdx) {
         Order order = orderRepository.findById(orderIdx)
-                .orElseThrow(() -> new ResourceNotFoundException("주문을 찾을 수 없습니다: " + orderIdx));
-        return orderMapper.toOrderDto(order);
+                .orElseThrow(() -> new ResourceNotFoundException("주문을 찾을 수 없습니다."));
+        return orderMapper.toDto(order);
     }
 
     @Override
     public List<OrderResponseDTO> getOrdersByUser(Long userIdx) {
-        List<Order> orders = orderQueryRepository.findOrdersWithDetailsByUserIdx(userIdx);
+        List<Order> orders = orderRepository.findByUserUserIdx(userIdx);
         return orderMapper.toOrderDtoList(orders);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponseDTO updateOrderStatus(Long orderIdx, OrderStatus status) {
+        Order order = orderRepository.findById(orderIdx)
+                .orElseThrow(() -> new ResourceNotFoundException("주문을 찾을 수 없습니다."));
+        
+        order.updateStatus(status);
+        return orderMapper.toDto(order);
     }
 
     @Override
@@ -134,27 +96,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Transactional
-    public OrderResponseDTO updateOrderStatus(Long orderIdx, OrderStatus status) {
-        Order order = orderRepository.findById(orderIdx)
-                .orElseThrow(() -> new ResourceNotFoundException("주문을 찾을 수 없습니다: " + orderIdx));
-        
-        order = Order.builder()
-                .orderIdx(order.getOrderIdx())
-                .user(order.getUser())
-                .totalAmount(order.getTotalAmount())
-                .orderStatus(status)
-                .orderDate(order.getOrderDate())
-                .orderItems(order.getOrderItems())
-                .build();
-        
-        Order updatedOrder = orderRepository.save(order);
-        return orderMapper.toOrderDto(updatedOrder);
-    }
-
-    @Override
     public List<OrderResponseDTO> getTopSellingItems(LocalDateTime start, LocalDateTime end, int limit) {
         List<Order> orders = orderQueryRepository.findTopSellingItems(start, end, limit);
         return orderMapper.toOrderDtoList(orders);
+    }
+
+    private User getUserById(Long userIdx) {
+        return userRepository.findById(userIdx)
+                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
     }
 }

@@ -35,30 +35,40 @@ public class Order extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_idx")
     private Long orderIdx;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_idx", nullable = false)
     private User user;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "order_status", nullable = false)
     private OrderStatus orderStatus;
 
-    @Column(nullable = false)
+    @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
 
-    @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    // 주문 항목 추가 메서드
+    public void updateStatus(OrderStatus status) {
+        this.orderStatus = status;
+    }
+
     public void addOrderItem(OrderItem orderItem) {
         orderItems.add(orderItem);
         orderItem.setOrder(this);
+    }
+
+    public void calculateTotalAmount() {
+        this.totalAmount = orderItems.stream()
+                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     // totalAmount 설정 메서드 추가
