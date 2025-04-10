@@ -9,7 +9,7 @@ import styles from "./login.module.css"
 export default function Login() {
   const router = useRouter()
   const [loginData, setLoginData] = useState({
-    email: "",
+    userId: "",
     password: "",
   })
   const [isClient, setIsClient] = useState(false)
@@ -23,24 +23,36 @@ export default function Login() {
     setLoginData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!isClient) return
 
     try {
-      // 로그인 처리 (실제로는 API 호출 등이 필요)
-      console.log("로그인 정보:", loginData)
+      const response = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: loginData.userId,
+          pwd: loginData.password,
+        }),
+      })
 
-      // 세션 정보 저장 (실제로는 토큰 등을 저장)
-      localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("userEmail", loginData.email)
-      localStorage.setItem("userName", "Brown") // 테스트용 사용자 이름
+      if (!response.ok) {
+        throw new Error("아이디 또는 비밀번호가 올바르지 않습니다.")
+      }
 
-      // 메인 페이지로 이동
-      router.push("/")
+      const data = await response.json()
+      const { message: token, role } = data
+
+      localStorage.setItem("accessToken", token)
+      localStorage.setItem("userId", loginData.userId)
+      localStorage.setItem("userRole", role)
+
+      router.push("/") // ✅ 로그인 성공 후 이동 경로 필요 시 변경
     } catch (error) {
-      console.error("로그인 중 오류가 발생했습니다:", error)
+      console.error("로그인 중 오류:", error)
       alert("로그인에 실패했습니다. 다시 시도해주세요.")
     }
   }
@@ -61,15 +73,15 @@ export default function Login() {
 
             <form onSubmit={handleLogin}>
               <div className="mb-4">
-                <label htmlFor="email" className="block mb-2 font-medium">
-                  이메일
+                <label htmlFor="userId" className="block mb-2 font-medium">
+                  아이디
                 </label>
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
+                  type="text"
+                  id="userId"
+                  name="userId"
                   className="w-full p-3 border border-gray-300 rounded"
-                  value={loginData.email}
+                  value={loginData.userId}
                   onChange={handleInputChange}
                   required
                 />
@@ -113,4 +125,3 @@ export default function Login() {
     </>
   )
 }
-
