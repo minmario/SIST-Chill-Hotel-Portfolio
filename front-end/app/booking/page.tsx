@@ -2,15 +2,15 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Users, Calendar, Home, ChevronDown, X } from "lucide-react"
 import styles from "../rooms/rooms.module.css"
+import { useSearchParams } from 'next/navigation'
 
-// 객실 데이터
-const rooms = [
+/*const rooms = [
   {
     id: "chill-comfort",
     name: "Chill Comfort",
@@ -127,13 +127,16 @@ const packages = [
     },
   },
 ]
+  */
 
 export default function Booking() {
   const router = useRouter()
+  const [rooms, setRooms] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState("rooms") // 'rooms' or 'packages'
   const [sortOption, setSortOption] = useState("price-asc")
   const [selectedRoom, setSelectedRoom] = useState<any>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  
 
   const [searchParams, setSearchParams] = useState({
     checkIn: "",
@@ -142,7 +145,44 @@ export default function Booking() {
     adults: "2",
     children: "0",
   })
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setSearchParams({
+      checkIn: params.get("checkInDate") || "",
+      checkOut: params.get("checkOutDate") || "",
+      rooms: params.get("roomCount") || "1",
+      adults: params.get("adults") || "1",
+      children: params.get("children") || "0",
 
+    })
+    
+  }, [])
+
+  useEffect(() => {
+    const fetchAvailableRooms = async () => {
+      if (!searchParams.checkIn || !searchParams.checkOut || !searchParams.adults) return
+      
+      try {
+        const guestCount = parseInt(searchParams.adults.replace(/[^0-9]/g, ""), 10);
+        const res = await fetch(
+          `/api/room-types/available?checkInDate=${searchParams.checkIn}&checkOutDate=${searchParams.checkOut}&roomCount=${searchParams.rooms}&adults=${searchParams.adults}&children=${searchParams.children}`
+        )
+        const data = await res.json()
+        console.log("객실 API 응답:", data);
+        if (Array.isArray(data)) {
+          setRooms(data)
+          console.log("가져온 객실 데이터:", data)
+        } else {
+          console.warn("객실 API 응답이 배열이 아닙니다:", data)
+          setRooms([])
+        }
+      } catch (err) {
+        console.error("객실 조회 실패:", err)
+      }
+    }
+  
+    fetchAvailableRooms()
+  }, [searchParams.checkIn, searchParams.checkOut, searchParams.adults])
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     // 검색 로직 구현
@@ -164,7 +204,7 @@ export default function Booking() {
     return 0
   })
 
-  const sortedPackages = [...packages].sort((a, b) => {
+  const sortedPackages = [...rooms].sort((a, b) => {
     if (sortOption === "price-asc") return a.price - b.price
     if (sortOption === "price-desc") return b.price - a.price
     return 0
@@ -179,14 +219,23 @@ export default function Booking() {
     setModalOpen(false)
   }
 
-  const handleBookNow = (room: any) => {
-    // 예약 정보를 로컬 스토리지에 저장
-    localStorage.setItem("selectedRoom", JSON.stringify(room))
-    localStorage.setItem("bookingParams", JSON.stringify(searchParams))
-
-    // 다음 단계로 이동
-    router.push("/booking/info")
-  }
+  const handleBookNow = (roomType: any) => {
+    const roomIdx = roomType.availableRoomIdxList?.[0];
+  
+    if (!roomIdx) {
+      alert("해당 객실 타입에는 예약 가능한 방이 없습니다.");
+      return;
+    }
+  
+    const selected = {
+      ...roomType,
+      roomIdx, // 자동으로 예약 가능한 첫 번째 방 할당
+    };
+  
+    localStorage.setItem("selectedRoom", JSON.stringify(selected));
+    localStorage.setItem("bookingParams", JSON.stringify(searchParams));
+    router.push("/booking/info");
+  };
 
   return (
     <>
@@ -330,109 +379,60 @@ export default function Booking() {
             </select>
           </div>
 
-          <div className={styles.roomList}>
-            {activeTab === "rooms"
-              ? sortedRooms.map((room) => (
-                  <div key={room.id} className={styles.roomListItem}>
-                    <div className={styles.roomListImageContainer} onClick={() => openModal(room)}>
-                      <Image
-                        src={room.image || "/placeholder.svg"}
-                        alt={room.name}
-                        fill
-                        style={{ objectFit: "cover" }}
-                      />
-                    </div>
+          <div className="container py-10">
+      <h1 className="text-2xl font-bold mb-6">예약 가능한 객실</h1>
 
-                    <div className={styles.roomListInfo}>
-                      <h3 className={styles.roomListName}>{room.name}</h3>
-                      <p className={styles.roomListDescription}>{room.description}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {sortedRooms.map((room) => (
+          <div key={room.roomTypesIdx} className="border rounded-lg overflow-hidden shadow-md">
+            <div className="relative w-full h-60">
+              <Link href={`/rooms/${room.roomTypesIdx}`} className="relative w-full h-60 block">
+                <Image
+                  src={room.roomImage || "/placeholder.svg"}
+                  alt={room.roomName}
+                  fill
+                  className="object-cover"
+                />
+              </Link>
+            </div>
 
-                      <div className={styles.roomListDetails}>
-                        <div className={styles.roomListDetail}>
-                          <Home size={16} className={styles.roomListDetailIcon} />
-                          <span>{room.details.size}</span>
-                        </div>
-                        <div className={styles.roomListDetail}>
-                          <Calendar size={16} className={styles.roomListDetailIcon} />
-                          <span>{room.details.bedType}</span>
-                        </div>
-                        <div className={styles.roomListDetail}>
-                          <Users size={16} className={styles.roomListDetailIcon} />
-                          <span>최대 {room.details.maxOccupancy}인</span>
-                        </div>
-                      </div>
+            <div className="p-4 space-y-2">
+              <h2 className="text-lg font-semibold">{room.roomName}</h2>
+              <p className="text-sm text-gray-600">{room.description}</p>
 
-                      <div className={styles.roomListActions}>
-                        <Link href={`/rooms/${room.id}`} className={styles.roomListViewMore}>
-                          자세히 보기
-                        </Link>
+              <div className="flex items-center gap-4 text-sm text-gray-700">
+                <div className="flex items-center gap-1">
+                  <Home size={16} /> {room.size}㎡
+                </div>
+                <div className="flex items-center gap-1">
+                  <Users size={16} /> 최대 {room.maxPeople}명
+                </div>
+              </div>
 
-                        <div className={styles.roomListPriceContainer}>
-                          <div className={styles.roomListMemberPrice}>회원 특가</div>
-                          <div className={styles.roomListPrice}>₩{room.price.toLocaleString()}</div>
-                          <button
-                            className={`button button-primary ${styles.roomListBookButton}`}
-                            onClick={() => handleBookNow(room)}
-                          >
-                            예약하기
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              : sortedPackages.map((pkg) => (
-                  <div key={pkg.id} className={styles.roomListItem}>
-                    <div className={styles.roomListImageContainer} onClick={() => openModal(pkg)}>
-                      <Image src={pkg.image || "/placeholder.svg"} alt={pkg.name} fill style={{ objectFit: "cover" }} />
-                    </div>
+              <div className="mt-4 flex justify-between items-center">
+                <div>
+                  <div className="text-sm text-gray-500">평일가 기준</div>
+                  <div className="text-lg font-bold text-blue-600">₩{room.weekPrice.toLocaleString()}</div>
+                </div>
 
-                    <div className={styles.roomListInfo}>
-                      <h3 className={styles.roomListName}>{pkg.name}</h3>
-                      <p className={styles.roomListDescription}>{pkg.description}</p>
-
-                      <div className={styles.roomListDetails}>
-                        <div className={styles.roomListDetail}>
-                          <Home size={16} className={styles.roomListDetailIcon} />
-                          <span>{pkg.roomType}</span>
-                        </div>
-                        <div className={styles.roomListDetail}>
-                          <Calendar size={16} className={styles.roomListDetailIcon} />
-                          <span>{pkg.details.bedType}</span>
-                        </div>
-                        <div className={styles.roomListDetail}>
-                          <Users size={16} className={styles.roomListDetailIcon} />
-                          <span>최대 {pkg.details.maxOccupancy}인</span>
-                        </div>
-                      </div>
-
-                      <div className={styles.roomListActions}>
-                        <Link
-                          href="#"
-                          className={styles.roomListViewMore}
-                          onClick={(e) => {
-                            e.preventDefault()
-                            openModal(pkg)
-                          }}
-                        >
-                          자세히 보기
-                        </Link>
-
-                        <div className={styles.roomListPriceContainer}>
-                          <div className={styles.roomListMemberPrice}>회원 특가</div>
-                          <div className={styles.roomListPrice}>₩{pkg.price.toLocaleString()}</div>
-                          <button
-                            className={`button button-primary ${styles.roomListBookButton}`}
-                            onClick={() => handleBookNow(pkg)}
-                          >
-                            예약하기
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                <button
+                  onClick={() => handleBookNow(room)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  예약하기
+                </button>
+              </div>
+            </div>
           </div>
+        ))}
+      </div>
+
+      {/* 패키지 영역 */}
+      <div className="mt-20">
+        <h2 className="text-2xl font-bold mb-6">패키지 상품 (준비 중)</h2>
+        <div className="text-gray-500 text-sm">곧 다양한 혜택의 패키지 상품이 추가될 예정입니다. 기대해주세요!</div>
+      </div>
+    </div>
         </div>
       </section>
 

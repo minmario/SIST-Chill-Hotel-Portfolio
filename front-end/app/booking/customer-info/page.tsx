@@ -8,10 +8,38 @@ import { Check, X } from "lucide-react"
 import styles from "../../rooms/rooms.module.css"
 
 export default function CustomerInfo() {
+  type RoomType = {
+    roomTypesIdx: number;
+    roomName: string;
+    grade: string;
+    size: number;
+    viewType: string;
+    maxPeople: number;
+    description: string;
+    weekPrice: number;
+    weekendPrice: number;
+    peakWeekPrice: number;
+    peakWeekendPrice: number;
+    totalCount: number;
+    availableCount: number;
+    roomImage: string;
+    availableRooms: {
+      roomIdx: number;
+      roomNum: string;
+      floor: number;
+    }[];
+  };
+
   const router = useRouter()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userEmail, setUserEmail] = useState("")
   const [termsModalOpen, setTermsModalOpen] = useState(false)
+  const [bookingInfo, setBookingInfo] = useState<any>(null)
+  const [mounted, setMounted] = useState(false) // SSR 오류 방지용
+  const [selectedRoomIdx, setSelectedRoomIdx] = useState<number | null>(null);
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+  const [selectedRoomType, setSelectedRoomType] = useState<RoomType | null>(null);
+
 
   const [formData, setFormData] = useState({
     lastName: "",
@@ -27,8 +55,11 @@ export default function CustomerInfo() {
 
   // 로그인 상태 확인
   useEffect(() => {
+    if (typeof window === "undefined") return
+
     const loggedIn = localStorage.getItem("isLoggedIn") === "true"
     const email = localStorage.getItem("userEmail") || ""
+    const booking = localStorage.getItem("bookingInfo")
 
     setIsLoggedIn(loggedIn)
     setUserEmail(email)
@@ -44,7 +75,19 @@ export default function CustomerInfo() {
         phone: "010-1234-5678",
       }))
     }
+    if (booking) {
+      setBookingInfo(JSON.parse(booking))
+    }
+    setMounted(true) // 컴포넌트가 마운트 되었음을 표시
   }, [])
+
+
+  
+
+  const handleSelectRoomType = (roomType: RoomType) => {
+    setSelectedRoomType(roomType);
+    setSelectedRoomIdx(roomType.availableRooms[0]?.roomIdx || null);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -64,33 +107,56 @@ export default function CustomerInfo() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!formData.agreeTerms) {
       alert("개인정보 수집 및 이용에 동의해주세요.")
       return
     }
-
+  
     // 예약 정보에 고객 정보 추가
-    const bookingInfo = JSON.parse(localStorage.getItem("bookingInfo") || "{}")
     const customerInfo = {
       lastName: formData.lastName,
       firstName: formData.firstName,
       email: `${formData.emailId}@${formData.emailDomain}`,
       phone: formData.phone,
-      payment: {
-        cardNumber: formData.cardNumber,
-        cardExpiry: formData.cardExpiry,
-      },
+      cardNumber: formData.cardNumber,
+      cardExpiry: formData.cardExpiry,
     }
-
-    bookingInfo.customer = customerInfo
-    localStorage.setItem("bookingInfo", JSON.stringify(bookingInfo))
-
-    // 예약 완료 페이지로 이동
-    router.push("/booking/complete")
+  
+    const raw = localStorage.getItem("bookingInfo")
+    if (!raw) {
+      alert("예약 정보가 없습니다.")
+      return
+    }
+  
+    const baseBooking = JSON.parse(raw)
+    const bookingInfo = {
+      ...baseBooking,
+      ...customerInfo, // 필드를 합쳐 넣을 수도 있고
+      roomIdx: selectedRoomIdx, 
+    }
+  
+    try {
+      const res = await fetch("/api/reservations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bookingInfo),
+      })
+  
+      if (!res.ok) throw new Error("예약 실패")
+  
+      const result = await res.json()
+      console.log("✅ 예약 완료:", result)
+      router.push("/booking/complete")
+    } catch (err) {
+      console.error("예약 중 오류:", err)
+      alert("예약 처리 중 오류가 발생했습니다.")
+    }
   }
+  const safe = (value: any) => (typeof value === "number" ? value.toLocaleString() : "-")
 
   return (
     <>
@@ -143,23 +209,8 @@ export default function CustomerInfo() {
 
                 <div className={styles.formGrid}>
                   <div className={styles.formGroup}>
-                    <label htmlFor="lastName" className={styles.formLabel}>
-                      성
-                    </label>
-                    <input
-                      type="text"
-                      id="lastName"
-                      name="lastName"
-                      className={styles.formInput}
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-
-                  <div className={styles.formGroup}>
                     <label htmlFor="firstName" className={styles.formLabel}>
-                      이름
+                      성
                     </label>
                     <input
                       type="text"
@@ -167,6 +218,21 @@ export default function CustomerInfo() {
                       name="firstName"
                       className={styles.formInput}
                       value={formData.firstName}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label htmlFor="lastName" className={styles.formLabel}>
+                      이름
+                    </label>
+                    <input
+                      type="text"
+                      id="lastName"
+                      name="lastName"
+                      className={styles.formInput}
+                      value={formData.lastName}
                       onChange={handleInputChange}
                       required
                     />
@@ -309,52 +375,68 @@ export default function CustomerInfo() {
                   </span>
                 </label>
               </div>
-
               <button type="submit" className={`button button-primary ${styles.placeOrderButton}`}>
                 예약 완료
               </button>
+
             </form>
 
-            <div className={styles.orderSummary}>
-              <h2 className={styles.orderSummaryTitle}>예약 요약</h2>
-
-              {/* 예약 정보 요약 (실제로는 localStorage에서 가져온 데이터 사용) */}
-              <div className={styles.orderItems}>
-                <div className={styles.orderItem}>
-                  <div className={styles.orderItemDetails}>
-                    <div className={styles.orderItemName}>Chill Comfort</div>
-                    <div className={styles.orderItemMeta}>킹 베드, 시티 뷰</div>
+            <div className={styles.customerInfoGrid}>
+            {/* 예약 요약 */}
+            {bookingInfo && (
+              <aside className="border rounded p-5 bg-white shadow-sm"  style={{ flex: 1, height: "50%"}}>
+                <h2 className="text-lg font-bold mb-4">예약 요약</h2>
+                <ul className="space-y-4">
+                  <li className="flex justify-between">
+                    <div>
+                      <div className="font-medium">{bookingInfo.room?.roomName}</div>
+                      <div className="text-sm text-gray-500">{bookingInfo.options?.bedType} 베드, {bookingInfo.room?.viewType}</div>
+                    </div>
+                    <div className="font-medium">₩{safe(bookingInfo.room?.weekPrice)}</div>
+                  </li>
+                  {bookingInfo.options?.adultBreakfast > 0 && (
+                    <li className="flex justify-between">
+                      <div>
+                        <div className="font-medium">성인 조식</div>
+                        <div className="text-sm text-gray-500">{bookingInfo.options.adultBreakfast}명</div>
+                      </div>
+                      <div className="font-medium">₩{safe(bookingInfo.pricing?.adultBreakfastPrice)}</div>
+                    </li>
+                  )}
+                  {bookingInfo.options?.childBreakfast > 0 && (
+                    <li className="flex justify-between">
+                      <div>
+                        <div className="font-medium">어린이 조식</div>
+                        <div className="text-sm text-gray-500">{bookingInfo.options.childBreakfast}명</div>
+                      </div>
+                      <div className="font-medium">₩{safe(bookingInfo.pricing?.childBreakfastPrice)}</div>
+                    </li>
+                  )}
+                </ul>
+                <div className="border-t mt-6 pt-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">소계</span>
+                    <span>₩{safe(bookingInfo.pricing?.subtotal)}</span>
                   </div>
-                  <div className={styles.orderItemPrice}>₩250,000</div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">회원 등급 할인 (2%)</span>
+                    <span className="text-red-500">-₩{safe(bookingInfo.pricing?.discount)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-base border-t pt-2">
+                    <span>총 결제 금액</span>
+                    <span>₩{safe(bookingInfo.pricing?.total)}</span>
+                  </div>
                 </div>
 
-                <div className={styles.orderItem}>
-                  <div className={styles.orderItemDetails}>
-                    <div className={styles.orderItemName}>성인 조식</div>
-                    <div className={styles.orderItemMeta}>2명</div>
-                  </div>
-                  <div className={styles.orderItemPrice}>₩70,000</div>
-                </div>
-              </div>
-
-              <div className={styles.orderSummaryRow}>
-                <span className={styles.orderSummaryLabel}>소계</span>
-                <span className={styles.orderSummaryValue}>₩320,000</span>
-              </div>
-
-              <div className={styles.orderSummaryRow}>
-                <span className={styles.orderSummaryLabel}>회원 등급 할인 (2%)</span>
-                <span className={styles.orderSummaryDiscount}>-₩6,400</span>
-              </div>
-
-              <div className={styles.orderTotal}>
-                <span className={styles.orderTotalLabel}>총 결제 금액</span>
-                <span className={styles.orderTotalValue}>₩313,600</span>
-              </div>
-            </div>
+              </aside>
+              
+            )}
+            
           </div>
         </div>
-      </section>
+       </div> 
+        
+    </section>
 
       {termsModalOpen && (
         <div className={styles.termsModal} onClick={() => setTermsModalOpen(false)}>

@@ -53,6 +53,7 @@ export default function BookingInfo() {
 
   const calculateTotal = () => {
     let total = selectedRoom.price
+    const basePrice = selectedRoom?.weekPrice ?? selectedRoom?.price ?? 0
 
     // 조식 추가 비용
     const adultBreakfastPrice = 35000 * adultBreakfast
@@ -61,15 +62,15 @@ export default function BookingInfo() {
     total += adultBreakfastPrice + childBreakfastPrice
 
     // 회원 할인 (2%)
-    const discount = Math.round(total * 0.02)
+    const discount = Math.round(basePrice * 0.02)
 
     return {
-      roomPrice: selectedRoom.price,
+      roomPrice: basePrice,
       adultBreakfastPrice,
       childBreakfastPrice,
-      subtotal: total,
+      subtotal: basePrice + adultBreakfastPrice + childBreakfastPrice,
       discount,
-      total: total - discount,
+      total: basePrice - discount,
     }
   }
 
@@ -77,6 +78,8 @@ export default function BookingInfo() {
     // 예약 정보 저장
     const bookingInfo = {
       room: selectedRoom,
+      roomIdx: selectedRoom.roomIdx, // ✅ 추가: 백엔드로 보낼 roomIdx
+      roomTypesIdx: selectedRoom.roomTypesIdx, // 백엔드에서 필요하다면 이것도
       params: bookingParams,
       options: {
         bedType,
@@ -86,7 +89,6 @@ export default function BookingInfo() {
       },
       pricing: calculateTotal(),
     }
-
     localStorage.setItem("bookingInfo", JSON.stringify(bookingInfo))
 
     if (loginOption === "member") {
@@ -161,38 +163,31 @@ export default function BookingInfo() {
                   </div>
                 </div>
 
-                <div className={styles.bedTypeOptions}>
-                  <h3 className={styles.bedTypeTitle}>침대 타입</h3>
-                  <div className={styles.bedTypeRadioGroup}>
-                    {selectedRoom.details.bedType.toLowerCase().includes("킹") && (
-                      <label className={styles.bedTypeRadio}>
-                        <input
-                          type="radio"
-                          name="bedType"
-                          value="king"
-                          checked={bedType === "king"}
-                          onChange={() => setBedType("king")}
-                          className={styles.bedTypeRadioInput}
-                        />
-                        킹 베드
-                      </label>
-                    )}
-
-                    {selectedRoom.details.bedType.toLowerCase().includes("트윈") && (
-                      <label className={styles.bedTypeRadio}>
-                        <input
-                          type="radio"
-                          name="bedType"
-                          value="twin"
-                          checked={bedType === "twin"}
-                          onChange={() => setBedType("twin")}
-                          className={styles.bedTypeRadioInput}
-                        />
-                        트윈 베드
-                      </label>
-                    )}
-                  </div>
-                </div>
+                <div>
+            <h3 className="font-semibold mb-2">침대 타입 선택</h3>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="bedType"
+                  value="킹"
+                  checked={bedType === "킹"}
+                  onChange={(e) => setBedType(e.target.value)}
+                />
+                킹 베드
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="radio"
+                  name="bedType"
+                  value="트윈"
+                  checked={bedType === "트윈"}
+                  onChange={(e) => setBedType(e.target.value)}
+                />
+                트윈 베드
+              </label>
+            </div>
+          </div>
 
                 <div className={styles.breakfastOptions}>
                   <h3 className={styles.breakfastTitle}>조식 추가</h3>

@@ -8,6 +8,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,6 +31,8 @@ import sist.backend.domain.shop.entity.Order;
 import sist.backend.domain.shop.entity.Cart;
 import sist.backend.global.common.BaseTimeEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import sist.backend.global.common.BaseTimeEntity;
+import sist.backend.infrastructure.logging.UserActivityLog;
 
 @Entity
 @Table(name = "users")

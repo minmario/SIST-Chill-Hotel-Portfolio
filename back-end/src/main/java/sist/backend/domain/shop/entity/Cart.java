@@ -1,33 +1,53 @@
 package sist.backend.domain.shop.entity;
 
+<<<<<<< HEAD
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+=======
+import java.util.ArrayList;
+import java.util.List;
+import jakarta.persistence.CascadeType;
+>>>>>>> vldhtmxk
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+<<<<<<< HEAD
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+=======
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+>>>>>>> vldhtmxk
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+<<<<<<< HEAD
 import sist.backend.domain.user.entity.*;
 
 @Entity
 @Table(name = "carts")
+=======
+import sist.backend.domain.user.entity.User;
+import sist.backend.global.common.BaseTimeEntity;
+
+@Entity
+@Table(name = "cart")
+>>>>>>> vldhtmxk
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+<<<<<<< HEAD
 public class Cart {
 
     @Id
@@ -77,5 +97,24 @@ public class Cart {
     public void clearItems() {
         this.items.clear();
         this.totalPrice = BigDecimal.ZERO;
+=======
+public class Cart extends BaseTimeEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long cartIdx;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_idx", nullable = false)
+    private User user;
+
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CartItem> cartItems = new ArrayList<>();
+
+    // 장바구니 항목 추가 메서드
+    public void addCartItem(CartItem cartItem) {
+        cartItems.add(cartItem);
+        cartItem.setCart(this);
+>>>>>>> vldhtmxk
     }
 }

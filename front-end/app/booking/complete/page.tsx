@@ -71,7 +71,7 @@ export default function BookingComplete() {
 
             <div className={styles.bookingCompleteRow}>
               <span className={styles.bookingCompleteLabel}>객실</span>
-              <span className={styles.bookingCompleteValue}>{bookingInfo.room.name}</span>
+              <span className={styles.bookingCompleteValue}>{bookingInfo.room.roomName}</span>
             </div>
 
             <div className={styles.bookingCompleteRow}>
@@ -94,7 +94,9 @@ export default function BookingComplete() {
 
             <div className={styles.bookingCompleteRow}>
               <span className={styles.bookingCompleteLabel}>결제 금액</span>
-              <span className={styles.bookingCompleteValue}>₩{bookingInfo.pricing.total.toLocaleString()}</span>
+              <span className={styles.bookingCompleteValue}>
+                ₩{typeof bookingInfo.pricing?.total === "number" ? bookingInfo.pricing.total.toLocaleString() : "-"}
+              </span>
             </div>
 
             <div className={styles.bookingCompleteRow}>

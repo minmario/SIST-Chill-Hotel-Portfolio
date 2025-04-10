@@ -5,6 +5,11 @@ import Link from "next/link"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import styles from "./page.module.css"
+import { useRouter } from "next/navigation"
+
+
+
+
 
 const slides = [
   {
@@ -34,12 +39,41 @@ const slides = [
 ]
 
 export default function Home() {
+  const router = useRouter()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [checkInDate, setCheckInDate] = useState("")
   const [checkOutDate, setCheckOutDate] = useState("")
-  const [guestCount, setGuestCount] = useState("성인 2명")
   const [currentDiningSlide, setCurrentDiningSlide] = useState(0)
   const [currentStoreSlide, setCurrentStoreSlide] = useState(0)
+  const [adults, setAdults] = useState(2)
+  const [children, setChildren] = useState(0)
+  const [roomCount, setRoomCount] = useState(1)
+
+  const totalPeople = adults + children
+  const maxPeople = roomCount * 4
+
+  const handleRoomChange = (delta: number) => {
+    const newRoomCount = roomCount + delta
+    if (newRoomCount < 1) return
+    const newMax = newRoomCount * 4
+    if (totalPeople > newMax) {
+      const adjusted = Math.max(1, newMax - children)
+      setAdults(adjusted)
+    }
+    setRoomCount(newRoomCount)
+  }
+
+  const handleAdultsChange = (delta: number) => {
+    const newAdults = adults + delta
+    if (newAdults < 1 || newAdults + children > maxPeople) return
+    setAdults(newAdults)
+  }
+
+  const handleChildrenChange = (delta: number) => {
+    const newChildren = children + delta
+    if (newChildren < 0 || adults + newChildren > maxPeople) return
+    setChildren(newChildren)
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -72,7 +106,7 @@ export default function Home() {
     setCurrentStoreSlide((prev) => (prev === 0 ? storeItems.length - 1 : prev - 1))
   }
 
-  const formatDate = (date) => {
+  const formatDate = (date: string | number | Date) => {
     const d = new Date(date)
     const day = d.getDate().toString().padStart(2, "0")
     const month = (d.getMonth() + 1).toString().padStart(2, "0")
@@ -80,7 +114,9 @@ export default function Home() {
     const dayOfWeek = ["일", "월", "화", "수", "목", "금", "토"][d.getDay()]
     return `${year}.${month}.${day} (${dayOfWeek})`
   }
-
+  const handleSearch = () => {
+    router.push(`/booking?checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&roomCount=${roomCount}&adults=${adults}&children=${children}`)
+  }
   // 객실 정보
   const rooms = [
     {
@@ -237,24 +273,44 @@ export default function Home() {
                 />
                 {checkOutDate && <div className={styles.formattedDate}>{formatDate(checkOutDate)}</div>}
               </div>
-              <div className={styles.bookingFormField}>
-                <label htmlFor="guests">인원</label>
-                <select
-                  id="guests"
-                  value={guestCount}
-                  onChange={(e) => setGuestCount(e.target.value)}
-                  className={styles.bookingInput}
-                >
-                  <option value="성인 1명">성인 1명</option>
-                  <option value="성인 2명">성인 2명</option>
-                  <option value="성인 3명">성인 3명</option>
-                  <option value="성인 4명">성인 4명</option>
-                </select>
+              <div className="space-y-6 p-4 max-w-md mx-auto">
+                {/* 객실 수 */}
+                <div>
+                  <label className="block font-semibold mb-1">객실 수</label>
+                  <div className="flex items-center space-x-4">
+                    <button onClick={() => handleRoomChange(-1)} className="px-3 py-1 border rounded">-</button>
+                    <span>{roomCount}</span>
+                    <button onClick={() => handleRoomChange(1)} className="px-3 py-1 border rounded">+</button>
+                  </div>
+                </div>
+
+                {/* 성인 수 */}
+                <div>
+                  <label className="block font-semibold mb-1">성인</label>
+                  <div className="flex items-center space-x-4">
+                    <button onClick={() => handleAdultsChange(-1)} className="px-3 py-1 border rounded">-</button>
+                    <span>{adults}</span>
+                    <button onClick={() => handleAdultsChange(1)} className="px-3 py-1 border rounded">+</button>
+                  </div>
+                </div>
+
+                {/* 어린이 수 */}
+                <div>
+                  <label className="block font-semibold mb-1">어린이</label>
+                  <div className="flex items-center space-x-4">
+                    <button onClick={() => handleChildrenChange(-1)} className="px-3 py-1 border rounded">-</button>
+                    <span>{children}</span>
+                    <button onClick={() => handleChildrenChange(1)} className="px-3 py-1 border rounded">+</button>
+                  </div>
+                </div>
+
+                {/* 디버그 출력 */}
+                <p className="text-sm text-gray-500">총 인원: {totalPeople}명 / 최대 {maxPeople}명 (객실 {roomCount}개)</p>
               </div>
               <div className={styles.bookingFormButton}>
-                <Link href="/booking" className={styles.searchButton}>
-                  객실 검색
-                </Link>
+              <button onClick={handleSearch} className={styles.searchButton}>
+                객실 검색
+              </button>
               </div>
             </div>
           </div>
