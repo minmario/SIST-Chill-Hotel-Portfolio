@@ -33,40 +33,6 @@ export default function Login() {
     if (!isClient) return
 
     try {
-<<<<<<< HEAD
-      // 하드코딩된 사용자 검증 (테스트용)
-      if (loginData.email === 'user@example.com' && loginData.password === 'password123') {
-        // 더미 JWT 토큰 생성 (실제 서비스에서는 서버에서 제공되어야 함)
-        const dummyToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3QgVXNlciIsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjoxNjE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-        
-        // 로그인 상태 설정
-        login(dummyToken);
-        
-        // 메인 페이지로 이동
-        router.push("/");
-        return;
-      }
-      
-      // 하드코딩된 사용자로 로그인하지 않을 경우, 백엔드 API 호출 시도
-      const response = await axios.post("/api/auth/login", {
-        email: loginData.email,
-        password: loginData.password,
-      });
-
-      // 토큰 저장
-      const { token } = response.data;
-      login(token);
-
-      // 메인 페이지로 이동
-      router.push("/");
-    } catch (error: any) {
-      console.error("로그인 중 오류가 발생했습니다:", error);
-      if (error.response?.status === 401) {
-        setError("이메일 또는 비밀번호가 올바르지 않습니다.");
-      } else {
-        setError("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
-      }
-=======
       const response = await fetch("http://localhost:8080/api/auth/login", {
         method: "POST",
         headers: {
@@ -93,7 +59,6 @@ export default function Login() {
     } catch (error) {
       console.error("로그인 중 오류:", error)
       alert("로그인에 실패했습니다. 다시 시도해주세요.")
->>>>>>> minmario
     }
   };
 

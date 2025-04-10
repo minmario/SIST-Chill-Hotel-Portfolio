@@ -9,14 +9,14 @@ import sist.backend.domain.auth.service.service.UserAuthService;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.entity.UserRole;
 import sist.backend.domain.user.entity.UserStatus;
-import sist.backend.domain.admin.repository.UserRepository;
+import sist.backend.domain.admin.repository.AdminUserRepository;
 import sist.backend.global.jwt.JwtProvider;
 
 @Service
 @RequiredArgsConstructor
 public class UserAuthServiceImpl implements UserAuthService {
 
-    private final UserRepository userRepository;
+    private final AdminUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 

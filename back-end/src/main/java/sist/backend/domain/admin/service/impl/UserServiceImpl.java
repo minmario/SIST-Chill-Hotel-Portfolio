@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import sist.backend.domain.admin.dto.request.UserRegisterRequest;
 import sist.backend.domain.admin.dto.response.UserDailyChangeResponse;
 import sist.backend.domain.admin.dto.response.UserResponse;
-import sist.backend.domain.admin.repository.UserRepository;
+import sist.backend.domain.admin.repository.AdminUserRepository;
 import sist.backend.domain.admin.service.service.UserService;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.entity.UserRole;
@@ -23,7 +23,7 @@ import sist.backend.domain.admin.dto.response.TotalUserDailyChangeResponse;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository;
+    private final AdminUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override

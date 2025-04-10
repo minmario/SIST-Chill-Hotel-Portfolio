@@ -9,7 +9,7 @@ import sist.backend.domain.admin.dto.request.UserRegisterRequest;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.entity.UserRole;
 import sist.backend.domain.user.entity.UserStatus;
-import sist.backend.domain.admin.repository.UserRepository;
+import sist.backend.domain.admin.repository.AdminUserRepository;
 
 import java.time.LocalDateTime;
 
@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AdminRegisterController {
 
-    private final UserRepository userRepository;
+    private final AdminUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     /** STAFF 회원가입 API */

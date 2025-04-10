@@ -34,7 +34,6 @@ import sist.backend.domain.shop.entity.Cart;
 import sist.backend.global.common.BaseTimeEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import sist.backend.global.common.BaseTimeEntity;
-import sist.backend.infrastructure.logging.UserActivityLog;
 
 @Entity
 @Table(name = "users")

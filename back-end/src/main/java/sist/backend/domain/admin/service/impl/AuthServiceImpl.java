@@ -6,7 +6,7 @@ import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.entity.UserRole;
 import sist.backend.domain.user.entity.UserStatus;
 import sist.backend.global.jwt.JwtProvider;
-import sist.backend.domain.admin.repository.UserRepository;
+import sist.backend.domain.admin.repository.AdminUserRepository;
 import sist.backend.domain.admin.service.service.AuthService;
 import lombok.RequiredArgsConstructor;
 
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private final UserRepository userRepository;
+    private final AdminUserRepository userRepository;
     private final PasswordEncoder passwordEncoder; // ✅ 추가
     private final JwtProvider jwtProvider;
 
