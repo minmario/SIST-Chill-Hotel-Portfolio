@@ -12,8 +12,9 @@ import AdminHeader from "@/components/admin-header"
 
 // 관리자 권한 체크 함수를 수정합니다.
 const isAdmin = (userId: string) => {
-  // 모든 사용자에게 관리자 권한 부여
-  return true
+  // 로그인을 관리자와 스태프로 제한합니다.
+  const role = localStorage.getItem("userRole")
+  return role === "ADMIN" || role === "STAFF"
 }
 
 export default function AdminLayout({
