@@ -30,7 +30,7 @@ public class UserActivityLogServiceImpl implements UserActivityLogService {
     public void logActivity(Long userIdx, ActivityType activityType, String activityDetails, String ipAddress) {
         User user = userRepository.findById(userIdx)
                 .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userIdx));
-        
+
         UserActivityLog log = UserActivityLog.builder()
                 .user(user)
                 .activityType(activityType)
@@ -38,7 +38,7 @@ public class UserActivityLogServiceImpl implements UserActivityLogService {
                 .ipAddress(ipAddress)
                 .createdAt(LocalDateTime.now())
                 .build();
-        
+
         userActivityLogRepository.save(log);
     }
 
@@ -67,7 +67,6 @@ public class UserActivityLogServiceImpl implements UserActivityLogService {
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
-    
     private UserActivityLogResponseDTO toDto(UserActivityLog log) {
         return UserActivityLogResponseDTO.builder()
                 .logIdx(log.getLogIdx())

@@ -3,10 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/SIST-Chill-Hotel.iml" filepath="$PROJECT_DIR$/.idea/SIST-Chill-Hotel.iml" />
-<<<<<<< HEAD
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/back-end.main.iml" filepath="$PROJECT_DIR$/.idea/modules/back-end.main.iml" />
-=======
->>>>>>> vldhtmxk
+
     </modules>
   </component>
 </project>

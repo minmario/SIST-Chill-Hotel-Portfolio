@@ -24,11 +24,7 @@ import sist.backend.global.common.BaseTimeEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-<<<<<<< HEAD
-public class RoomType extends BaseTimeEntity {
-=======
 public class RoomType  {
->>>>>>> vldhtmxk
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,14 +43,7 @@ public class RoomType  {
     private String viewType;
 
     @Column(nullable = false)
-<<<<<<< HEAD
-    private Integer maxAdult;
-
-    @Column(nullable = false)
-    private Integer maxChildren;
-=======
     private Integer maxPeople;
->>>>>>> vldhtmxk
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
@@ -74,13 +63,9 @@ public class RoomType  {
     @Column(nullable = false)
     private Integer totalCount;
 
-<<<<<<< HEAD
-    @Builder.Default
-=======
     @Column(nullable = false, length = 100)
     private String roomImage;
 
->>>>>>> vldhtmxk
     @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL)
     private List<Room> rooms = new ArrayList<>();
 
@@ -93,14 +78,8 @@ public class RoomType  {
         this.peakWeekendPrice = peakWeekendPrice;
     }
 
-<<<<<<< HEAD
-    public void updateCapacity(Integer maxAdult, Integer maxChildren) {
-        this.maxAdult = maxAdult;
-        this.maxChildren = maxChildren;
-=======
     public void updateCapacity(Integer maxPeople) {
         this.maxPeople = maxPeople;
->>>>>>> vldhtmxk
     }
 
     public void updateDescription(String description) {
@@ -111,10 +90,7 @@ public class RoomType  {
         rooms.add(room);
         room.setRoomType(this);
     }
-<<<<<<< HEAD
-=======
     public void updateRoomImage(String roomImage) {
         this.roomImage = roomImage;
     }
->>>>>>> vldhtmxk
 }
