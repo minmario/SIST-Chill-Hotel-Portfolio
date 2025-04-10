@@ -37,7 +37,7 @@ public class JwtProvider {
     Date accessTokenExpiresIn = new Date(now + 1000L * seconds);
 
     // JwtBuilder 생성.
-    JwtBuilder jwtBuilder = Jwts.builder().subject("SIST").expiration(accessTokenExpiresIn);
+    JwtBuilder jwtBuilder = Jwts.builder().setSubject("SIST").setExpiration(accessTokenExpiresIn);
 
     // Set방식은 중복된 값이 저장되지 않는다. (제거됨.),
     Set<String> keys = map.keySet(); // 반복자를 처리하기 위해 Set구조화.

@@ -1,11 +1,8 @@
 package sist.backend.domain.shop.entity;
 
 import java.math.BigDecimal;
-<<<<<<< HEAD
 import java.time.LocalDateTime;
 
-=======
->>>>>>> graz1e
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

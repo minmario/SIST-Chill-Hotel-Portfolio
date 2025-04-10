@@ -77,8 +77,6 @@ public class User extends BaseTimeEntity implements UserDetails {
     
     @Column(length = 50)
     private String lastName;
-    
-    @Builder.Default
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

@@ -22,7 +22,6 @@ configurations {
 repositories {
     mavenCentral()
 }
-<<<<<<< HEAD
 //dk
 dependencies {
 
@@ -31,30 +30,18 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
-=======
-
-dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
->>>>>>> graz1e
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
     runtimeOnly 'com.mysql:mysql-connector-j'
-<<<<<<< HEAD
     testRuntimeOnly 'com.h2database:h2'
     implementation("jakarta.validation:jakarta.validation-api:3.0.2")
     implementation("org.hibernate.validator:hibernate-validator:8.0.1.Final")
-=======
-    implementation("jakarta.validation:jakarta.validation-api:3.0.2")
->>>>>>> graz1e
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-<<<<<<< HEAD
         // 테스트에서도 롬복 사용할 경우
     testCompileOnly 'org.projectlombok:lombok:1.18.30'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
@@ -63,12 +50,6 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
-=======
-
-    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
->>>>>>> graz1e
 
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
@@ -79,11 +60,8 @@ dependencies {
 def querydslDir = "$buildDir/generated/querydsl"
 
 tasks.withType(JavaCompile) {
-<<<<<<< HEAD
     options.generatedSourceOutputDirectory.set(file(querydslDir))
-=======
     options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
->>>>>>> graz1e
 }
 
 clean {
@@ -92,8 +70,4 @@ clean {
 
 tasks.named('test') {
     useJUnitPlatform()
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> graz1e
