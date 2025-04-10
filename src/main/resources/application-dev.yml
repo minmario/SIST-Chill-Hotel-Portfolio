@@ -1,8 +1,0 @@
-server:
-    port: 8080
-spring:
-  datasource: 
-        driver-class-name: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://ted19horse.mysql.database.azure.com:3306/chill
-        username: sist
-        password: 1111
