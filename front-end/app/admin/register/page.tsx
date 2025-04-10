@@ -36,15 +36,26 @@ export default function RegisterPage() {
     }
   
     try {
+<<<<<<< HEAD
       const response = await fetch("http://localhost:8080/api/users/register-staff", {
+=======
+      // API로 백엔드로 직접 보내는 부분
+      const response = await fetch("http://localhost:8080/api/admin/register", {
+>>>>>>> minmario
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+<<<<<<< HEAD
           userId: formData.userId,
           email: formData.email,
           password: formData.password,
+=======
+          id: formData.userId,          // 백엔드가 요구하는 필드명 기준
+          email: formData.email,
+          pwd: formData.password,
+>>>>>>> minmario
           name: formData.name,
           phone: formData.phone,
         }),
@@ -164,7 +175,11 @@ export default function RegisterPage() {
 
             {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-500">{error}</div>}
 
+<<<<<<< HEAD
             <Button type="submit" className="w-full bg-black hover:bg-gray-800">
+=======
+            <Button type="submit" className="w-full bg-black text-white hover:bg-gray-800">
+>>>>>>> minmario
               가입하기
             </Button>
 

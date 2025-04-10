@@ -11,7 +11,7 @@ import { useAuth } from "@/context/auth-context"
 export default function Login() {
   const router = useRouter()
   const [loginData, setLoginData] = useState({
-    email: "",
+    userId: "",
     password: "",
   })
   const [isClient, setIsClient] = useState(false)
@@ -30,10 +30,10 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!isClient) return
 
     try {
+<<<<<<< HEAD
       // 하드코딩된 사용자 검증 (테스트용)
       if (loginData.email === 'user@example.com' && loginData.password === 'password123') {
         // 더미 JWT 토큰 생성 (실제 서비스에서는 서버에서 제공되어야 함)
@@ -66,6 +66,34 @@ export default function Login() {
       } else {
         setError("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
       }
+=======
+      const response = await fetch("http://localhost:8080/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: loginData.userId,
+          pwd: loginData.password,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error("아이디 또는 비밀번호가 올바르지 않습니다.")
+      }
+
+      const data = await response.json()
+      const { message: token, role } = data
+
+      localStorage.setItem("accessToken", token)
+      localStorage.setItem("userId", loginData.userId)
+      localStorage.setItem("userRole", role)
+
+      router.push("/") // ✅ 로그인 성공 후 이동 경로 필요 시 변경
+    } catch (error) {
+      console.error("로그인 중 오류:", error)
+      alert("로그인에 실패했습니다. 다시 시도해주세요.")
+>>>>>>> minmario
     }
   };
 
@@ -85,15 +113,15 @@ export default function Login() {
 
             <form onSubmit={handleLogin}>
               <div className="mb-4">
-                <label htmlFor="email" className="block mb-2 font-medium">
-                  이메일
+                <label htmlFor="userId" className="block mb-2 font-medium">
+                  아이디
                 </label>
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
+                  type="text"
+                  id="userId"
+                  name="userId"
                   className="w-full p-3 border border-gray-300 rounded"
-                  value={loginData.email}
+                  value={loginData.userId}
                   onChange={handleInputChange}
                   required
                 />
@@ -143,4 +171,3 @@ export default function Login() {
     </>
   )
 }
-

@@ -7,13 +7,13 @@ import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/lib/auth"
 import AdminSidebar from "@/components/admin-sidebar"
 import AdminHeader from "@/components/admin-header"
-import "@/styles/admin-global.css";
 
 
 // 관리자 권한 체크 함수를 수정합니다.
 const isAdmin = (userId: string) => {
-  // 모든 사용자에게 관리자 권한 부여
-  return true
+  // 로그인을 관리자와 스태프로 제한합니다.
+  const role = localStorage.getItem("userRole")
+  return role === "ADMIN" || role === "STAFF"
 }
 
 export default function AdminLayout({
@@ -63,15 +63,16 @@ export default function AdminLayout({
 
   return (
     <div className="flex min-h-screen">
-    <div className="w-64 flex-shrink-0 sticky top-0 h-screen">
+    <aside className="w-64 sticky top-0 self-start min-h-screen bg-gray-900 text-white">
       <AdminSidebar />
-    </div>
-    <div className="flex-1 bg-gray-100 min-h-screen">
+    </aside>
+ 
+    <section className="flex-1 bg-gray-100 min-h-screen">
       {/* ✅ 여기 추가 */}
-      <AdminHeader />
+      <AdminHeader/>
 
       <main className="p-8">{children}</main>
-    </div>
+    </section>
   </div>
   )
 }

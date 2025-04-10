@@ -4,41 +4,114 @@ import { Users, UserCog, Hotel, Calendar, CreditCard, TrendingUp, ArrowUpRight, 
 import { useEffect, useState } from "react"
 
 export default function AdminDashboard() {
-  // 대시보드 통계 데이터 (실제로는 API에서 가져와야 함)
+  // 대시보드 통계 데이터 (가져오기 위한 변수들)
   const [totalUsers, setTotalUsers] = useState<number | null>(null)
-
+  const [recentUsers, setRecentUsers] = useState<RecentUser[]>([])
+  const [staffCount, setStaffCount] = useState<number | null>(null)
+  const [newUserStats, setNewUserStats] = useState<{ today: number; changeRate: string } | null>(null)
+  const [totalUserChange, setTotalUserChange] = useState<TotalUserChange | null>(null)
   // API 호출: 총 회원 수
   useEffect(() => {
-    fetch('http://localhost:8080/admin/count')
+    fetch('http://localhost:8080/api/user/count')
       .then((res) => res.json())
       .then((data) => setTotalUsers(data))
       .catch((err) => console.error('회원 수 불러오기 실패:', err))
   }, [])
+  //API 호출: 최근 스태프 수
+  useEffect(() => {
+    fetch("http://localhost:8080/api/user/staff-count")
+      .then((res) => res.json())
+      .then((data) => setStaffCount(data))
+      .catch((err) => console.error("스태프 수 불러오기 실패:", err))
+  }, [])
+  //API 호출: 최근회원 수
+
+  type RecentUser = {
+    name: string
+    email: string
+    createdAt: string // ← 백엔드에서 LocalDateTime 형태로 오니까 string 처리
+  }
   
+  useEffect(() => {
+    fetch("http://localhost:8080/api/user/recent")
+      .then((res) => res.json())
+      .then((data) => setRecentUsers(data))
+      .catch((err) => console.error("최근 가입자 불러오기 실패:", err))
+  }, [])
+  //API 호출: 신규회원 변화량(하루 기준) 
+  useEffect(() => {
+    fetch("http://localhost:8080/api/user/daily-change")
+      .then((res) => res.json())
+      .then((data) => {
+        setNewUserStats({ today: data.today, changeRate: data.changeRate })
+      })
+      .catch((err) => console.error("신규 가입자 변화량 불러오기 실패:", err))
+  }, [])
+  //API 호출: 총회원 변화량(하루 기준)
+  type TotalUserChange = {
+    todayTotal: number
+    yesterdayTotal: number
+    changeRate: string
+  }
+  useEffect(() => {
+    fetch("http://localhost:8080/api/user/daily-total-change")
+      .then((res) => res.json())
+      .then((data) => setTotalUserChange(data))
+      .catch((err) => console.error("누적 회원 변화율 불러오기 실패:", err))
+  }, [])
+  //API 호출: 스태프회원 변화량(하루 기준)
+  const [staffDailyChange, setStaffDailyChange] = useState<{ today: number, changeRate: string, trend: "up" | "down" | "neutral" }>({
+    today: 0,
+    changeRate: "0%",
+    trend: "neutral",
+  })
+  
+  useEffect(() => {
+    fetch("http://localhost:8080/api/user/daily-staff-change")
+      .then((res) => res.json())
+      .then((data) => {
+        const rate = parseFloat(data.changeRate.replace("%", ""))
+        setStaffDailyChange({
+          today: data.today,
+          changeRate: data.changeRate,
+          trend: rate > 0 ? "up" : rate < 0 ? "down" : "neutral"
+        })
+      })
+      .catch((err) => console.error("신규 스태프 변화율 불러오기 실패:", err))
+  }, [])
+
   const stats = [
     {
-      title: "총 회원수",
-      value: totalUsers !== null ? totalUsers.toLocaleString() : '로딩 중...',
-      change: "+12%",
-      trend: "up",
-      icon: Users,
-      color: "bg-blue-500",
+      title: "전체 회원 누적 변화",
+  value: totalUserChange ? `${totalUserChange.todayTotal.toLocaleString()}명` : "로딩 중...",
+  change: totalUserChange?.changeRate || "0%",
+  trend: totalUserChange
+    ? totalUserChange.changeRate.startsWith("-")
+      ? "down"
+      : totalUserChange.changeRate === "0%" ? "neutral" : "up"
+    : "neutral",
+  icon: Users,
+  color: "bg-cyan-500",
     },
     {
       title: "신규 회원",
-      value: "56",
-      change: "+8%",
-      trend: "up",
-      icon: Users,
-      color: "bg-green-500",
+  value: newUserStats ? `${newUserStats.today.toLocaleString()}` : "로딩 중...",
+  change: newUserStats ? newUserStats.changeRate : "로딩 중...",
+  trend: newUserStats
+    ? newUserStats.changeRate.includes("-")
+      ? "down"
+      : "up"
+    : "neutral",
+  icon: Users,
+  color: "bg-green-500",
     },
     {
-      title: "총 스태프",
-      value: "32",
-      change: "0%",
-      trend: "neutral",
+      title: "신규 스태프",
+      value: staffDailyChange.today.toLocaleString(),
+      change: staffDailyChange.changeRate,
+      trend: staffDailyChange.trend,
       icon: UserCog,
-      color: "bg-purple-500",
+      color: "bg-emerald-500",
     },
     {
       title: "객실 예약률",
@@ -111,32 +184,28 @@ export default function AdminDashboard() {
             <CardTitle>최근 가입 회원</CardTitle>
             <CardDescription>지난 7일간 가입한 회원 목록</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {/* 실제로는 API에서 데이터를 가져와야 함 */}
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+            <CardContent>
+              <div className="space-y-4">
+                {recentUsers.length > 0 ? (
+                recentUsers.map((user, index) => (
+                <div
+                    key={index}
+                    className="flex justify-between items-center p-3 bg-gray-50 rounded-md"
+                >
                 <div>
-                  <div className="font-medium">김철수</div>
-                  <div className="text-sm text-gray-500">kimcs@example.com</div>
+                    <div className="font-medium">{user.name}</div>
+                    <div className="text-sm text-gray-500">{user.email}</div>
                 </div>
-                <div className="text-sm text-gray-500">2023-06-15</div>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-                <div>
-                  <div className="font-medium">이영희</div>
-                  <div className="text-sm text-gray-500">leeyh@example.com</div>
+                <div className="text-sm text-gray-500">
+                  {new Date(user.createdAt).toLocaleDateString("ko-KR")}
                 </div>
-                <div className="text-sm text-gray-500">2023-06-14</div>
               </div>
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-                <div>
-                  <div className="font-medium">박지민</div>
-                  <div className="text-sm text-gray-500">parkjm@example.com</div>
-                </div>
-                <div className="text-sm text-gray-500">2023-06-13</div>
-              </div>
-            </div>
-          </CardContent>
+      ))
+    ) : (
+          <div className="text-sm text-gray-400">최근 가입한 회원이 없습니다.</div>
+    )}
+  </div>
+</CardContent>
         </Card>
 
         <Card>

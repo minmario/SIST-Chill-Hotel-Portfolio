@@ -1,6 +1,5 @@
 package sist.backend.domain.user.entity;
 
-<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -9,9 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-=======
->>>>>>> graz1e
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.CascadeType;
@@ -30,6 +28,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import sist.backend.domain.shop.entity.Order;
 import sist.backend.domain.shop.entity.Cart;
 import sist.backend.global.common.BaseTimeEntity;
@@ -40,7 +39,8 @@ import sist.backend.infrastructure.logging.UserActivityLog;
 @Entity
 @Table(name = "users")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class User extends BaseTimeEntity implements UserDetails {
@@ -79,6 +79,10 @@ public class User extends BaseTimeEntity implements UserDetails {
     private String lastName;
     
     @Builder.Default
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Order> orders = new ArrayList<>();
