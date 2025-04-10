@@ -3,6 +3,7 @@ package sist.backend.domain.admin.service.impl;
 import sist.backend.domain.admin.dto.request.LoginRequest;
 import sist.backend.domain.admin.dto.response.LoginResponse;
 import sist.backend.domain.user.entity.User;
+import sist.backend.domain.user.entity.UserRole;
 import sist.backend.domain.user.entity.UserStatus;
 import sist.backend.global.jwt.JwtProvider;
 import sist.backend.domain.admin.repository.UserRepository;
@@ -32,6 +33,9 @@ public class AuthServiceImpl implements AuthService {
 
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new RuntimeException("비활성화된 계정입니다.");
+        }
+        if (user.getRole() != UserRole.STAFF && user.getRole() != UserRole.ADMIN) {
+            throw new IllegalArgumentException("허용되지 않은 사용자입니다.");
         }
 
         String token = jwtProvider.generateToken(user.getId(), user.getRole().name());

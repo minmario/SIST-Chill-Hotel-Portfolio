@@ -1,6 +1,7 @@
 package sist.backend.domain.user.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.CascadeType;
@@ -18,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import sist.backend.domain.shop.entity.Order;
 import sist.backend.global.common.BaseTimeEntity;
 import sist.backend.infrastructure.logging.UserActivityLog;
@@ -25,7 +27,8 @@ import sist.backend.infrastructure.logging.UserActivityLog;
 @Entity
 @Table(name = "users")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class User extends BaseTimeEntity {
@@ -56,8 +59,8 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private UserRole role;
 
-    @Column(nullable = false)
-    private LocalDate joindate;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Order> orders = new ArrayList<>();
