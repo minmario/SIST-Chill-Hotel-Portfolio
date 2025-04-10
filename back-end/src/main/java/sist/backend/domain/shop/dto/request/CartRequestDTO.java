@@ -2,22 +2,21 @@ package sist.backend.domain.shop.dto.request;
 
 import java.math.BigDecimal;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CartItemRequestDTO {
-    private Long productIdx;
-    private Integer quantity;
-    private BigDecimal price;
+public class CartRequestDTO {
+    @NotNull
+    private Long userIdx;
     
-    // getItemIdx() 메서드 추가 - productIdx와 매핑
-    public Long getItemIdx() {
-        return this.productIdx;
-    }
+    private BigDecimal totalPrice;
 }

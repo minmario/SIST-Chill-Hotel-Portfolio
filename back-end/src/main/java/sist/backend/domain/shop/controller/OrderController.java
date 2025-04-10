@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import sist.backend.domain.shop.dto.request.OrderRequestDTO;
-import sist.backend.domain.shop.dto.response.OrderResponseDTO;
-import sist.backend.domain.shop.entity.OrderStatus;
-import sist.backend.domain.shop.service.interfaces.OrderService;
+import sist.backend.domain.shop.dto.request.*;
+import sist.backend.domain.shop.dto.response.*;
+import sist.backend.domain.shop.entity.*;
+import sist.backend.domain.shop.service.interfaces.*;
 
 @RestController
 @RequestMapping("/api/v1/orders")

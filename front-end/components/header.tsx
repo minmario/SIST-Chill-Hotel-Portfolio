@@ -11,23 +11,14 @@ import { useRouter } from "next/navigation"
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const { totalItems } = useCart()
   const [isClient, setIsClient] = useState(false)
   const pathname = usePathname()
-  const { logout } = useAuth()
+  const { logout, isLoggedIn } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     setIsClient(true)
-
-    // 로그인 상태 확인
-    try {
-      const loggedIn = localStorage.getItem("isLoggedIn") === "true"
-      setIsLoggedIn(loggedIn)
-    } catch (error) {
-      console.error("로그인 상태를 확인하는 중 오류가 발생했습니다:", error)
-    }
 
     const handleScroll = () => {
       if (window.scrollY > 10) {
@@ -247,36 +238,38 @@ const Header = () => {
                 기프트샵
               </Link>
 
-              {isLoggedIn ? (
-                <>
+              <div className="mt-8">
+                {isLoggedIn ? (
+                  <>
+                    <Link
+                      href="/mypage"
+                      className="block py-2 mb-2 w-full text-center border border-gray-300 rounded"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      마이페이지
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout()
+                        setIsMenuOpen(false)
+                      }}
+                      className="block py-2 w-full text-center text-white rounded"
+                      style={{ backgroundColor: "#2dd4bf" }}
+                    >
+                      로그아웃
+                    </button>
+                  </>
+                ) : (
                   <Link
-                    href="/mypage"
-                    className="text-lg py-2 border-b border-gray-100"
+                    href="/login"
+                    className="block py-2 w-full text-center text-white rounded"
+                    style={{ backgroundColor: "#2dd4bf" }}
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    마이페이지
+                    로그인
                   </Link>
-                  <button
-                    onClick={() => {
-                      handleLogout()
-                      setIsMenuOpen(false)
-                    }}
-                    className="inline-flex items-center justify-center rounded-md font-medium py-2 px-4 text-white mt-4"
-                    style={{ backgroundColor: "#2dd4bf" }}
-                  >
-                    로그아웃
-                  </button>
-                </>
-              ) : (
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center rounded-md font-medium py-2 px-4 text-white mt-4"
-                  style={{ backgroundColor: "#2dd4bf" }}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  로그인
-                </Link>
-              )}
+                )}
+              </div>
             </nav>
           </div>
         )}

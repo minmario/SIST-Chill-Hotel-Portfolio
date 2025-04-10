@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import jakarta.persistence.PrePersist;
 
 @Entity
 @Table(name = "user_activity_log")
@@ -28,6 +29,7 @@ public class UserActivityLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "log_idx")
     private Long logIdx;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -35,15 +37,22 @@ public class UserActivityLog {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "activity_type", nullable = false)
     private ActivityType activityType;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "activity_details", columnDefinition = "TEXT")
     private String activityDetails;
 
-    @Column(length = 45)
+    @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = java.time.LocalDateTime.now();
+        }
+    }
 }

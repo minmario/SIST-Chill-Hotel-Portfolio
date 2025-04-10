@@ -1,6 +1,5 @@
 package sist.backend.domain.user.entity;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -39,6 +38,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class User extends BaseTimeEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_idx")
     private Long userIdx;
 
     @Column(unique = true, nullable = false, length = 100)
@@ -63,9 +63,12 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
-
-    @Column(nullable = false)
-    private LocalDate joindate;
+    
+    @Column(length = 20)
+    private String firstName;
+    
+    @Column(length = 50)
+    private String lastName;
     
     @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

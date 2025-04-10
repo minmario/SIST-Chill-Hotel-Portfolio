@@ -3,8 +3,7 @@ package sist.backend.domain.shop.repository.querydsl;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import sist.backend.domain.shop.entity.Order;
-import sist.backend.domain.shop.entity.OrderStatus;
+import sist.backend.domain.shop.entity.*;
 
 public interface OrderQueryRepository {
     List<Order> findOrdersWithDetailsByUserIdx(Long userIdx);

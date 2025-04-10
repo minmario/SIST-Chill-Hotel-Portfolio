@@ -31,6 +31,10 @@ export async function fetchProducts(): Promise<Product[]> {
 
 // 단일 상품 상세 조회
 export async function fetchProductById(productIdx: number): Promise<Product> {
+  if (!productIdx || isNaN(productIdx)) {
+    throw new Error('유효하지 않은 상품 ID입니다.');
+  }
+  
   try {
     const response = await fetch(`${API_BASE_URL}/gift-shop/${productIdx}`);
     if (!response.ok) {

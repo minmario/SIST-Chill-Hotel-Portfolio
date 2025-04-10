@@ -5,10 +5,10 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import sist.backend.domain.shop.entity.CartItem;
+import sist.backend.domain.shop.entity.*;
 
 @Repository
- public interface CartItemRepository extends JpaRepository<CartItem, Long> {
-     Optional<CartItem> findByCartCartIdxAndItemItemIdx(Long cartIdx, Long itemIdx);
-     void deleteByCartCartIdxAndItemItemIdx(Long cartIdx, Long itemIdx);
- }
+public interface CartItemRepository extends JpaRepository<CartItem, Long> {
+    Optional<CartItem> findByCartAndItem(Cart cart, GiftShop item);
+    void deleteByCartCartIdx(Long cartIdx);
+}

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
-import sist.backend.domain.shop.entity.GiftShop;
+import sist.backend.domain.shop.entity.*;
 import sist.backend.domain.shop.entity.QGiftShop;
 
 @Repository

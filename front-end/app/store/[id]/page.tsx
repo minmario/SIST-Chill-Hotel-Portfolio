@@ -14,7 +14,7 @@ interface Product {
   description: string;
   category: string;
   stockQuantity: number;
-  imageUrl: string;
+  imageUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -77,8 +77,8 @@ export default function ProductDetailPage() {
     if (!product) return;
     
     addItem({
-      id: product.itemIdx,
-      name: product.itemName,
+      productIdx: product.itemIdx,
+      productName: product.itemName,
       price: product.price,
       quantity: quantity,
       image: product.imageUrl

@@ -6,46 +6,80 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import sist.backend.domain.shop.dto.response.CartItemResponseDTO;
-import sist.backend.domain.shop.dto.response.CartResponseDTO;
-import sist.backend.domain.shop.entity.Cart;
-import sist.backend.domain.shop.entity.CartItem;
+import lombok.RequiredArgsConstructor;
+import sist.backend.domain.shop.dto.request.*;
+import sist.backend.domain.shop.dto.response.*;
+import sist.backend.domain.shop.entity.*;
 
 @Component
+@RequiredArgsConstructor
 public class CartMapper {
-    
-    public CartItemResponseDTO toCartItemDto(CartItem entity) {
-        CartItemResponseDTO dto = CartItemResponseDTO.builder()
-                .cartItemIdx(entity.getCartItemIdx())
-                .productIdx(entity.getItem().getItemIdx())
-                .productName(entity.getItem().getItemName())
-                .price(entity.getPrice())
-                .quantity(entity.getQuantity())
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
-                .build();
+
+    /**
+     * Cart 엔티티를 CartResponseDTO로 변환합니다.
+     */
+    public CartResponseDTO toDto(Cart cart) {
+        if (cart == null) {
+            return null;
+        }
         
-        dto.calculateSubtotal();
-        return dto;
-    }
-    
-    public CartItemResponseDTO toCartItemResponseDTO(CartItem entity) {
-        return toCartItemDto(entity);
-    }
-    
-    public CartResponseDTO toDto(Cart entity) {
-        List<CartItemResponseDTO> items = entity.getItems().stream()
-                .map(this::toCartItemDto)
+        List<CartItemResponseDTO> itemDtos = cart.getItems().stream()
+                .map(this::toCartItemResponseDTO)
                 .collect(Collectors.toList());
         
         CartResponseDTO dto = CartResponseDTO.builder()
-                .cartIdx(entity.getCartIdx())
-                .items(items)
-                .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
+                .cartIdx(cart.getCartIdx())
+                .userIdx(cart.getUser().getUserIdx())
+                .totalPrice(cart.getTotalPrice())
+                .items(itemDtos)
+                .createdAt(cart.getCreatedAt())
+                .updatedAt(cart.getUpdatedAt())
                 .build();
         
-        dto.calculateTotalAmount();
+        // totalPrice가 null이거나 계산이 필요한 경우에만 계산
+        if (cart.getTotalPrice() == null || BigDecimal.ZERO.equals(cart.getTotalPrice())) {
+            dto.calculateTotalAmount();
+        }
+        
         return dto;
+    }
+    
+    /**
+     * CartItem 엔티티를 CartItemResponseDTO로 변환합니다.
+     */
+    public CartItemResponseDTO toCartItemResponseDTO(CartItem cartItem) {
+        if (cartItem == null) {
+            return null;
+        }
+        
+        GiftShop item = cartItem.getItem();
+        BigDecimal price = cartItem.getPrice() != null ? cartItem.getPrice() : item.getPrice();
+        
+        return CartItemResponseDTO.builder()
+                .cartItemIdx(cartItem.getCartItemIdx())
+                .productIdx(item.getItemIdx())
+                .productName(item.getItemName())
+                .price(price)
+                .quantity(cartItem.getQuantity())
+                .subtotal(cartItem.calculateSubtotal())
+                .build();
+    }
+
+    /**
+     * CartItemRequestDTO를 CartItem 엔티티로 변환합니다.
+     */
+    public CartItem toCartItemEntity(CartItemRequestDTO dto, Cart cart, GiftShop item) {
+        if (dto == null) {
+            return null;
+        }
+        
+        BigDecimal price = dto.getPrice() != null ? dto.getPrice() : item.getPrice();
+        
+        return CartItem.builder()
+                .cart(cart)
+                .item(item)
+                .quantity(dto.getQuantity())
+                .price(price)
+                .build();
     }
 }

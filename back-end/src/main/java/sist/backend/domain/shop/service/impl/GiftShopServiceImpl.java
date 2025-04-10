@@ -7,15 +7,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import sist.backend.domain.shop.dto.mapper.GiftShopMapper;
-import sist.backend.domain.shop.dto.request.GiftShopRequestDTO;
-import sist.backend.domain.shop.dto.response.GiftShopResponseDTO;
-import sist.backend.domain.shop.entity.GiftShop;
-import sist.backend.domain.shop.exception.custom.ResourceNotFoundException;
-import sist.backend.domain.shop.repository.jpa.GiftShopRepository;
-import sist.backend.domain.shop.repository.querydsl.GiftShopQueryRepository;
-import sist.backend.domain.shop.service.interfaces.GiftShopService;
+import lombok.extern.slf4j.Slf4j;
+import sist.backend.domain.shop.dto.mapper.*;
+import sist.backend.domain.shop.dto.request.*;
+import sist.backend.domain.shop.dto.response.*;
+import sist.backend.domain.shop.entity.*;
+import sist.backend.domain.shop.exception.custom.*;
+import sist.backend.domain.shop.repository.jpa.*;
+import sist.backend.domain.shop.repository.querydsl.*;
+import sist.backend.domain.shop.service.interfaces.*;
+import sist.backend.global.exception.NotFoundException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -41,26 +44,34 @@ public class GiftShopServiceImpl implements GiftShopService {
     }
 
     @Override
-    public List<GiftShopResponseDTO> getAllItems() {
+    public List<GiftShopResponseDTO> getAllProducts() {
         List<GiftShop> giftShops = giftShopRepository.findAll();
         return giftShopMapper.toDtoList(giftShops);
     }
 
     @Override
-    public List<GiftShopResponseDTO> getItemsByCategory(String category) {
+    public GiftShopResponseDTO getProductById(Long itemIdx) {
+        GiftShop giftShop = giftShopRepository.findById(itemIdx)
+                .orElseThrow(() -> new NotFoundException("상품을 찾을 수 없습니다: " + itemIdx));
+                
+        return giftShopMapper.toDto(giftShop);
+    }
+
+    @Override
+    public List<GiftShopResponseDTO> getProductsByCategory(String category) {
         List<GiftShop> giftShops = giftShopRepository.findByCategory(category);
+        return giftShopMapper.toDtoList(giftShops);
+    }
+
+    @Override
+    public List<GiftShopResponseDTO> searchProducts(String keyword) {
+        List<GiftShop> giftShops = giftShopRepository.findByItemNameContaining(keyword);
         return giftShopMapper.toDtoList(giftShops);
     }
 
     @Override
     public List<GiftShopResponseDTO> getItemsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
         List<GiftShop> giftShops = giftShopQueryRepository.findByPriceRange(minPrice, maxPrice);
-        return giftShopMapper.toDtoList(giftShops);
-    }
-
-    @Override
-    public List<GiftShopResponseDTO> getItemsByKeyword(String keyword) {
-        List<GiftShop> giftShops = giftShopRepository.findByItemNameContaining(keyword);
         return giftShopMapper.toDtoList(giftShops);
     }
 

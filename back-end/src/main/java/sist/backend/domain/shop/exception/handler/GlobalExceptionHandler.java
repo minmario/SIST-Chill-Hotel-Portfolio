@@ -10,7 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import sist.backend.domain.shop.exception.custom.ResourceNotFoundException;
+import sist.backend.domain.shop.exception.custom.*;
 
 @RestControllerAdvice
  public class GlobalExceptionHandler {

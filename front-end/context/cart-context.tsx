@@ -33,14 +33,15 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
   
   // 초기 로드 및 로그인 상태 체크
   useEffect(() => {
+    // 시작할 때는 로컬 데이터 먼저 로드
+    const guestCart = localStorage.getItem('guestCart');
+    if (guestCart) {
+      setItems(JSON.parse(guestCart));
+    }
+    
+    // 로그인 상태라면 서버 데이터 로드 시도
     if (isLoggedIn) {
       fetchUserCart();
-    } else {
-      // 비회원 장바구니 로드
-      const guestCart = localStorage.getItem('guestCart');
-      if (guestCart) {
-        setItems(JSON.parse(guestCart));
-      }
     }
   }, [isLoggedIn]);
 
@@ -50,19 +51,22 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
       const token = localStorage.getItem('token');
       if (!token) {
         console.error('토큰이 없습니다. 로그인이 필요합니다.');
-        setItems([]);
-        return;
+        return; // 로컬 데이터 유지
       }
 
       // 토큰 디코딩하여 만료 시간 확인
-      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-      const expirationTime = tokenPayload.exp * 1000; // JWT exp는 초 단위
-      
-      if (Date.now() >= expirationTime) {
-        console.error('토큰이 만료되었습니다. 다시 로그인이 필요합니다.');
-        localStorage.removeItem('token');
-        setItems([]);
-        return;
+      try {
+        const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+        const expirationTime = tokenPayload.exp * 1000; // JWT exp는 초 단위
+        
+        if (Date.now() >= expirationTime) {
+          console.error('토큰이 만료되었습니다. 다시 로그인이 필요합니다.');
+          localStorage.removeItem('token');
+          return; // 로컬 데이터 유지
+        }
+      } catch (decodeError) {
+        console.error('토큰 디코딩 오류:', decodeError);
+        // 토큰 디코딩 실패 시 계속 진행
       }
 
       console.log('장바구니 데이터 요청 중...');
@@ -73,24 +77,60 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
       });
       console.log('장바구니 데이터 응답:', response.data);
       
-      // 응답이 배열 형태로 반환
-      setItems(response.data || []);
+      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+        // 응답이 배열 형태로 반환되었고 데이터가 있는 경우에만 설정
+        setItems(response.data);
+        // 서버 데이터를 로컬에도 동기화
+        localStorage.setItem('guestCart', JSON.stringify(response.data));
+      } 
+      // 서버 데이터가 비어있더라도 로컬 데이터는 유지
     } catch (error) {
       console.error('장바구니 데이터를 불러오는데 실패했습니다:', error);
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         // 인증 실패 시 토큰 제거
         localStorage.removeItem('token');
       }
-      setItems([]);
+      // API 호출 실패 시 로컬 데이터 유지
+      console.log('로컬 장바구니 데이터를 사용합니다.');
     }
   };
 
   // 상품 추가
   const addItem = async (item: Omit<CartItem, 'cartItemIdx' | 'subtotal'>) => {
+    // 유효하지 않은 productIdx 체크
+    if (!item.productIdx || isNaN(item.productIdx)) {
+      console.error('유효하지 않은 상품 ID입니다:', item);
+      return;
+    }
+    
+    // 임시 cartItemIdx 생성 (서버에서 덮어씀)
+    const tempCartItemIdx = Date.now();
+    const subtotal = item.price * item.quantity;
+    const newItem = { ...item, cartItemIdx: tempCartItemIdx, subtotal };
+    
+    // 로컬 장바구니 업데이트
+    setItems(prevItems => {
+      const existingItem = prevItems.find(i => i.productIdx === item.productIdx);
+      if (existingItem) {
+        // 이미 존재하는 상품이면 수량만 업데이트
+        const updatedItems = prevItems.map(i =>
+          i.productIdx === item.productIdx ? { ...i, quantity: i.quantity + item.quantity, subtotal: i.price * (i.quantity + item.quantity) } : i
+        );
+        localStorage.setItem('guestCart', JSON.stringify(updatedItems));
+        return updatedItems;
+      }
+      
+      // 새 상품이면 추가
+      const newItems = [...prevItems, newItem];
+      localStorage.setItem('guestCart', JSON.stringify(newItems));
+      return newItems;
+    });
+    
+    // 로그인 상태이면 서버에도 추가 시도
     if (isLoggedIn) {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.post('http://localhost:8080/api/v1/cart/items', {
+        await axios.post('http://localhost:8080/api/v1/cart/items', {
           productIdx: item.productIdx,
           quantity: item.quantity
         }, {
@@ -100,65 +140,58 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
           }
         });
         
-        // 응답이 단일 항목이므로 현재 장바구니를 다시 로드
-        await fetchUserCart();
+        // 서버에 추가 후 최신 데이터 가져오기 시도
+        fetchUserCart();
       } catch (error) {
         console.error('장바구니 추가 실패:', error);
         if (axios.isAxiosError(error) && error.response) {
           console.error('에러 상세:', error.response.data);
         }
+        // 서버 추가 실패 시 로컬 데이터는 이미 업데이트되었으므로 무시
       }
-    } else {
-      // 비회원 장바구니 처리
-      setItems(prevItems => {
-        const existingItem = prevItems.find(i => i.productIdx === item.productIdx);
-        if (existingItem) {
-          const updatedItems = prevItems.map(i =>
-            i.productIdx === item.productIdx ? { ...i, quantity: i.quantity + item.quantity, subtotal: i.price * (i.quantity + item.quantity) } : i
-          );
-          localStorage.setItem('guestCart', JSON.stringify(updatedItems));
-          return updatedItems;
-        }
-        // 임시 cartItemIdx 생성 (로컬 전용)
-        const tempCartItemIdx = Date.now();
-        const subtotal = item.price * item.quantity;
-        const newItem = { ...item, cartItemIdx: tempCartItemIdx, subtotal };
-        const newItems = [...prevItems, newItem];
-        localStorage.setItem('guestCart', JSON.stringify(newItems));
-        return newItems;
-      });
     }
   };
 
   // 상품 수량 수정
   const updateQuantity = async (id: number, quantity: number) => {
+    // 먼저 로컬 데이터 업데이트
+    setItems(prevItems => {
+      const updatedItems = prevItems.map(item =>
+        item.cartItemIdx === id ? { ...item, quantity, subtotal: item.price * quantity } : item
+      );
+      localStorage.setItem('guestCart', JSON.stringify(updatedItems));
+      return updatedItems;
+    });
+    
+    // 로그인 상태이면 서버에도 업데이트 시도
     if (isLoggedIn) {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.put(`http://localhost:8080/api/v1/cart/items/${id}`, {
+        await axios.put(`http://localhost:8080/api/v1/cart/items/${id}`, {
           quantity: quantity
         }, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        // 단일 항목 업데이트 후 전체 장바구니 다시 로드
-        await fetchUserCart();
+        // 성공 시 최신 데이터 가져오기 시도
+        fetchUserCart();
       } catch (error) {
         console.error('장바구니 수정 실패:', error);
+        // 서버 업데이트 실패 시 로컬 데이터는 이미 업데이트되었으므로 무시
       }
-    } else {
-      setItems(prevItems => {
-        const updatedItems = prevItems.map(item =>
-          item.cartItemIdx === id ? { ...item, quantity, subtotal: item.price * quantity } : item
-        );
-        localStorage.setItem('guestCart', JSON.stringify(updatedItems));
-        return updatedItems;
-      });
     }
   };
 
   // 상품 제거
   const removeItem = async (id: number) => {
+    // 먼저 로컬 데이터 업데이트
+    setItems(prevItems => {
+      const updatedItems = prevItems.filter(item => item.cartItemIdx !== id);
+      localStorage.setItem('guestCart', JSON.stringify(updatedItems));
+      return updatedItems;
+    });
+    
+    // 로그인 상태이면 서버에서도 제거 시도
     if (isLoggedIn) {
       try {
         const token = localStorage.getItem('token');
@@ -166,37 +199,32 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        // 항목 삭제 후 전체 장바구니 다시 로드
-        await fetchUserCart();
+        // 성공 시 최신 데이터 가져오기 시도
+        fetchUserCart();
       } catch (error) {
         console.error('장바구니 삭제 실패:', error);
+        // 서버 삭제 실패 시 로컬 데이터는 이미 업데이트되었으므로 무시
       }
-    } else {
-      setItems(prevItems => {
-        const updatedItems = prevItems.filter(item => item.cartItemIdx !== id);
-        localStorage.setItem('guestCart', JSON.stringify(updatedItems));
-        return updatedItems;
-      });
     }
   };
 
   // 장바구니 비우기
   const clearCart = async () => {
+    // 로컬 데이터 비우기
+    setItems([]);
+    localStorage.removeItem('guestCart');
+    
+    // 로그인 상태이면 서버에서도 비우기 시도
     if (isLoggedIn) {
       try {
         const token = localStorage.getItem('token');
         await axios.delete('http://localhost:8080/api/v1/cart', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
-        // 장바구니 비운 후 빈 배열로 설정
-        setItems([]);
       } catch (error) {
         console.error('장바구니 비우기 실패:', error);
+        // 서버 삭제 실패 시 무시
       }
-    } else {
-      setItems([]);
-      localStorage.removeItem('guestCart');
     }
   };
 

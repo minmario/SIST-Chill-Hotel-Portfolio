@@ -11,20 +11,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import sist.backend.domain.shop.dto.mapper.CartMapper;
-import sist.backend.domain.shop.dto.request.CartItemRequestDTO;
-import sist.backend.domain.shop.dto.response.CartItemResponseDTO;
-import sist.backend.domain.shop.dto.response.CartResponseDTO;
-import sist.backend.domain.shop.entity.Cart;
-import sist.backend.domain.shop.entity.CartItem;
-import sist.backend.domain.shop.entity.GiftShop;
-import sist.backend.domain.shop.repository.jpa.CartItemRepository;
-import sist.backend.domain.shop.repository.jpa.CartRepository;
-import sist.backend.domain.shop.repository.jpa.GiftShopRepository;
-import sist.backend.domain.shop.service.interfaces.CartService;
+import sist.backend.domain.shop.dto.mapper.*;
+import sist.backend.domain.shop.dto.request.*;
+import sist.backend.domain.shop.dto.response.*;
+import sist.backend.domain.shop.entity.*;
+import sist.backend.domain.shop.repository.jpa.*;
+import sist.backend.domain.shop.service.interfaces.*;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.repository.UserRepository;
-import sist.backend.global.exception.NotFoundException;
+import sist.backend.global.exception.*;
 
 @Slf4j
 @Service
@@ -46,6 +41,7 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUser(user)
                 .orElseGet(() -> cartRepository.save(Cart.builder()
                         .user(user)
+                        .totalPrice(BigDecimal.ZERO)
                         .build()));
         
         return cartMapper.toDto(cart);
@@ -65,6 +61,7 @@ public class CartServiceImpl implements CartService {
                     log.info("장바구니를 찾을 수 없어 새로 생성합니다: userIdx={}", user.getUserIdx());
                     return cartRepository.save(Cart.builder()
                             .user(user)
+                            .totalPrice(BigDecimal.ZERO)
                             .build());
                 });
         
@@ -86,6 +83,7 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUser(user)
                 .orElseGet(() -> cartRepository.save(Cart.builder()
                         .user(user)
+                        .totalPrice(BigDecimal.ZERO)
                         .build()));
 
         Optional<CartItem> existingItem = cart.getItems().stream()
@@ -95,16 +93,24 @@ public class CartServiceImpl implements CartService {
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
             item.setQuantity(item.getQuantity() + requestDto.getQuantity());
+            if (requestDto.getPrice() != null) {
+                item.setPrice(requestDto.getPrice());
+            } else if (item.getPrice() == null) {
+                item.setPrice(product.getPrice());
+            }
         } else {
             CartItem newItem = CartItem.builder()
                     .cart(cart)
                     .item(product)
                     .quantity(requestDto.getQuantity())
+                    .price(requestDto.getPrice() != null ? requestDto.getPrice() : product.getPrice())
                     .build();
             cart.addItem(newItem);
+            cartItemRepository.save(newItem);
         }
 
         cart.calculateTotalPrice();
+        cartRepository.save(cart);
         return cartMapper.toDto(cart);
     }
 
@@ -119,6 +125,7 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUser(user)
                 .orElseGet(() -> cartRepository.save(Cart.builder()
                         .user(user)
+                        .totalPrice(BigDecimal.ZERO)
                         .build()));
 
         Optional<CartItem> existingItem = cart.getItems().stream()
@@ -129,16 +136,24 @@ public class CartServiceImpl implements CartService {
         if (existingItem.isPresent()) {
             cartItem = existingItem.get();
             cartItem.setQuantity(cartItem.getQuantity() + requestDto.getQuantity());
+            if (requestDto.getPrice() != null) {
+                cartItem.setPrice(requestDto.getPrice());
+            } else if (cartItem.getPrice() == null) {
+                cartItem.setPrice(product.getPrice());
+            }
         } else {
             cartItem = CartItem.builder()
                     .cart(cart)
                     .item(product)
                     .quantity(requestDto.getQuantity())
+                    .price(requestDto.getPrice() != null ? requestDto.getPrice() : product.getPrice())
                     .build();
             cart.addItem(cartItem);
+            cartItemRepository.save(cartItem);
         }
 
         cart.calculateTotalPrice();
+        cartRepository.save(cart);
         return cartMapper.toCartItemResponseDTO(cartItem);
     }
 
@@ -158,7 +173,10 @@ public class CartServiceImpl implements CartService {
         }
 
         cartItem.setQuantity(requestDto.getQuantity());
+        cartItemRepository.save(cartItem);
+        
         cart.calculateTotalPrice();
+        cartRepository.save(cart);
         
         return cartMapper.toDto(cart);
     }
@@ -179,7 +197,10 @@ public class CartServiceImpl implements CartService {
         }
 
         cartItem.setQuantity(requestDto.getQuantity());
+        cartItemRepository.save(cartItem);
+        
         cart.calculateTotalPrice();
+        cartRepository.save(cart);
         
         return cartMapper.toCartItemResponseDTO(cartItem);
     }
@@ -201,6 +222,9 @@ public class CartServiceImpl implements CartService {
 
         cart.removeItem(cartItem);
         cartItemRepository.delete(cartItem);
+        
+        cart.calculateTotalPrice();
+        cartRepository.save(cart);
     }
 
     @Override
@@ -220,6 +244,9 @@ public class CartServiceImpl implements CartService {
 
         cart.removeItem(cartItem);
         cartItemRepository.delete(cartItem);
+        
+        cart.calculateTotalPrice();
+        cartRepository.save(cart);
     }
 
     @Override
@@ -230,7 +257,11 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new NotFoundException("장바구니를 찾을 수 없습니다."));
 
+        List<CartItem> items = new ArrayList<>(cart.getItems());
         cart.clearItems();
+        cartItemRepository.deleteAll(items);
+        
+        cartRepository.save(cart);
     }
 
     @Override
@@ -241,6 +272,10 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new NotFoundException("장바구니를 찾을 수 없습니다."));
 
+        List<CartItem> items = new ArrayList<>(cart.getItems());
         cart.clearItems();
+        cartItemRepository.deleteAll(items);
+        
+        cartRepository.save(cart);
     }
 }

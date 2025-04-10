@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import sist.backend.domain.shop.entity.OrderStatus;
+import sist.backend.domain.shop.entity.*;
 
 @Data
 @Builder

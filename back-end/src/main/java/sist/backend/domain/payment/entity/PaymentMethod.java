@@ -28,22 +28,23 @@ public class PaymentMethod extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "payment_method_idx")
     private Long paymentMethodIdx;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_idx", nullable = false)
     private User user;
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "card_type", nullable = false, length = 50)
     private String cardType;
 
-    @Column(nullable = false, length = 4)
+    @Column(name = "last_four_digits", nullable = false, length = 4)
     private String lastFourDigits;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "owner_name", nullable = false, length = 100)
     private String ownerName;
 
-    @Column(nullable = false)
+    @Column(name = "expire_date", nullable = false)
     private LocalDate expireDate;
 
     @Column(nullable = false)

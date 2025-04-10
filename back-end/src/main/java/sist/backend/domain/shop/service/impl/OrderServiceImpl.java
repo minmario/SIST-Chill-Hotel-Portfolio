@@ -10,26 +10,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
-import sist.backend.domain.shop.dto.mapper.OrderMapper;
-import sist.backend.domain.shop.dto.request.CartItemRequestDTO;
-import sist.backend.domain.shop.dto.request.OrderRequestDTO;
-import sist.backend.domain.shop.dto.response.OrderResponseDTO;
-import sist.backend.domain.shop.entity.Cart;
-import sist.backend.domain.shop.entity.CartItem;
-import sist.backend.domain.shop.entity.GiftShop;
-import sist.backend.domain.shop.entity.Order;
-import sist.backend.domain.shop.entity.OrderItem;
-import sist.backend.domain.shop.entity.OrderStatus;
+import sist.backend.domain.shop.dto.mapper.*;
+import sist.backend.domain.shop.dto.request.*;
+import sist.backend.domain.shop.dto.response.*;
+import sist.backend.domain.shop.entity.*;
 import sist.backend.domain.shop.exception.custom.ResourceNotFoundException;
-import sist.backend.domain.shop.repository.jpa.CartRepository;
-import sist.backend.domain.shop.repository.jpa.GiftShopRepository;
-import sist.backend.domain.shop.repository.jpa.OrderItemRepository;
-import sist.backend.domain.shop.repository.jpa.OrderRepository;
-import sist.backend.domain.shop.repository.querydsl.OrderQueryRepository;
-import sist.backend.domain.shop.service.interfaces.OrderService;
-import sist.backend.domain.user.entity.User;
-import sist.backend.domain.user.repository.UserRepository;
-import sist.backend.global.exception.UnauthorizedException;
+import sist.backend.domain.shop.repository.jpa.*;
+import sist.backend.domain.shop.repository.querydsl.*;
+import sist.backend.domain.shop.service.interfaces.*;
+import sist.backend.domain.user.entity.*;
+import sist.backend.domain.user.repository.*;
 
 @Service
 @RequiredArgsConstructor

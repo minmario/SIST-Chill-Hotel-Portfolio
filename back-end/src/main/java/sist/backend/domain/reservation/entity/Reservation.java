@@ -34,6 +34,7 @@ public class Reservation extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "reservation_idx")
     private Long reservationIdx;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -44,10 +45,10 @@ public class Reservation extends BaseTimeEntity {
     @JoinColumn(name = "room_idx", nullable = false)
     private Room room;
 
-    @Column(nullable = false)
+    @Column(name = "check_in_date", nullable = false)
     private LocalDate checkInDate;
 
-    @Column(nullable = false)
+    @Column(name = "check_out_date", nullable = false)
     private LocalDate checkOutDate;
 
     @Column(nullable = false)
@@ -57,17 +58,17 @@ public class Reservation extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "payment_methods_idx")
+    @JoinColumn(name = "payment_method_idx")
     private PaymentMethod paymentMethod;
 
-    @Column(unique = true, nullable = false, length = 20)
+    @Column(name = "reservation_num", unique = true, nullable = false, length = 20)
     private String reservationNum;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "special_request", columnDefinition = "TEXT")
     private String specialRequest;
 
     // 비즈니스 메서드

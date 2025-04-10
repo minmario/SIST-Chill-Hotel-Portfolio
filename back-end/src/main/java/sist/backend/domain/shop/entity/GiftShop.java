@@ -1,6 +1,8 @@
 package sist.backend.domain.shop.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,7 +14,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import sist.backend.global.common.BaseTimeEntity;
 
 @Entity
 @Table(name = "gift_shop")
@@ -20,13 +21,14 @@ import sist.backend.global.common.BaseTimeEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class GiftShop extends BaseTimeEntity {
+public class GiftShop {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "item_idx")
     private Long itemIdx;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "item_name", nullable = false, length = 100)
     private String itemName;
 
     @Column(columnDefinition = "TEXT")
@@ -35,9 +37,15 @@ public class GiftShop extends BaseTimeEntity {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    @Column(nullable = false)
+    @Column(name = "stock_quantity", nullable = false)
     private Integer stockQuantity;
 
     @Column(length = 50)
     private String category;
+    
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

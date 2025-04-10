@@ -7,25 +7,20 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import sist.backend.domain.user.entity.User;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import sist.backend.domain.user.entity.*;
 
 @Entity
 @Table(name = "carts")
@@ -33,7 +28,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@EntityListeners(AuditingEntityListener.class)
 public class Cart {
 
     @Id
@@ -41,54 +35,47 @@ public class Cart {
     @Column(name = "cart_idx")
     private Long cartIdx;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_idx", nullable = false)
-    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_idx")
     private User user;
-    
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+
+    @Column(name = "total_price", precision = 10, scale = 2)
+    private BigDecimal totalPrice;
+
     @Builder.Default
-    @JsonIgnore
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 
-    @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
-    @Builder.Default
-    private BigDecimal totalPrice = BigDecimal.ZERO;
-
-    @CreatedDate
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @LastModifiedDate
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    public Cart(User user) {
-        this.user = user;
-        this.items = new ArrayList<>();
-        this.totalPrice = BigDecimal.ZERO;
-    }
 
     // 장바구니 항목 추가 메서드
     public void addItem(CartItem cartItem) {
-        items.add(cartItem);
+        this.items.add(cartItem);
         cartItem.setCart(this);
         calculateTotalPrice();
     }
 
+    // 장바구니 항목 제거 메서드
     public void removeItem(CartItem cartItem) {
-        items.remove(cartItem);
+        this.items.remove(cartItem);
         cartItem.setCart(null);
         calculateTotalPrice();
     }
 
+    // 총 가격 계산 메서드
     public void calculateTotalPrice() {
-        this.totalPrice = items.stream()
+        this.totalPrice = this.items.stream()
             .map(CartItem::calculateSubtotal)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    // 장바구니 비우기 메서드
     public void clearItems() {
-        items.clear();
-        calculateTotalPrice();
+        this.items.clear();
+        this.totalPrice = BigDecimal.ZERO;
     }
 }

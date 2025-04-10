@@ -37,14 +37,25 @@ export default function Cart() {
     try {
       const quantities: StockQuantities = {}
       for (const item of cartItems) {
-        const product = await fetchProductById(item.productIdx)
-        quantities[item.productIdx] = product.stockQuantity
+        if (!item.productIdx) {
+          console.warn('상품 ID가 유효하지 않습니다:', item);
+          continue; // 유효하지 않은 productIdx는 건너뛰기
+        }
+        
+        try {
+          const product = await fetchProductById(item.productIdx);
+          quantities[item.productIdx] = product.stockQuantity;
+        } catch (productError) {
+          console.warn(`상품 정보 로드 실패 (ID: ${item.productIdx}):`, productError);
+          // 개별 상품 로드 실패 시 계속 진행
+          quantities[item.productIdx] = 0; // 기본값 설정
+        }
       }
-      setStockQuantities(quantities)
-      setLoading(false)
+      setStockQuantities(quantities);
+      setLoading(false);
     } catch (error) {
-      console.error('재고 정보를 불러오는데 실패했습니다:', error)
-      setLoading(false)
+      console.error('재고 정보를 불러오는데 실패했습니다:', error);
+      setLoading(false);
     }
   }
 
@@ -111,7 +122,9 @@ export default function Cart() {
                     <div className={styles.cartItemDetails}>
                       <h3 className={styles.cartItemName}>{item.productName}</h3>
                       <p className={styles.cartItemCategory}>상품</p>
-                      <p className="text-sm text-gray-500">재고: {stockQuantities[item.productIdx]}개</p>
+                      <p className="text-sm text-gray-500">
+                        재고: {stockQuantities[item.productIdx] !== undefined ? stockQuantities[item.productIdx] : '확인 중'}개
+                      </p>
                     </div>
                   </div>
                   <div className={styles.cartItemPrice}>{item.price.toLocaleString()}원</div>
@@ -134,7 +147,7 @@ export default function Cart() {
                       onClick={() => updateQuantity(item.cartItemIdx, item.quantity + 1)}
                       className={styles.quantityButton}
                       aria-label="수량 증가"
-                      disabled={item.quantity >= stockQuantities[item.productIdx]}
+                      disabled={!stockQuantities[item.productIdx] || item.quantity >= stockQuantities[item.productIdx]}
                     >
                       <Plus size={16} />
                     </button>

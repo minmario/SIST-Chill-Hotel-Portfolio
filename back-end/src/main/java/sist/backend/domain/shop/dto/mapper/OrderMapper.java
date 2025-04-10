@@ -6,10 +6,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import sist.backend.domain.shop.dto.response.OrderItemResponseDTO;
-import sist.backend.domain.shop.dto.response.OrderResponseDTO;
-import sist.backend.domain.shop.entity.Order;
-import sist.backend.domain.shop.entity.OrderItem;
+import sist.backend.domain.shop.dto.response.*;
+import sist.backend.domain.shop.entity.*;
 
 @Component
 public class OrderMapper {
