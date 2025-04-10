@@ -1,11 +1,11 @@
-package sist.backend.domain.auth.dto.service.impl;
+package sist.backend.domain.auth.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import sist.backend.domain.auth.dto.request.UserLoginRequest;
 import sist.backend.domain.auth.dto.response.UserLoginResponse;
-import sist.backend.domain.auth.dto.service.service.UserAuthService;
+import sist.backend.domain.auth.service.service.UserAuthService;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.entity.UserRole;
 import sist.backend.domain.user.entity.UserStatus;

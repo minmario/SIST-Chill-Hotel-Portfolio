@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 @Component
@@ -21,6 +20,7 @@ public class JwtProvider {
     public JwtProvider(@Value("${custom.jwt.secretKey}") String secretKey) {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
+    // 역할에 따라서 다른 토큰을 발급할 수 있도록 수정
 
     public String generateToken(String userId, String role) {
         return Jwts.builder()

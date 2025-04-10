@@ -1,4 +1,4 @@
-package sist.backend.domain.auth.dto.service.service;
+package sist.backend.domain.auth.service.service;
 
 import sist.backend.domain.auth.dto.request.UserLoginRequest;
 import sist.backend.domain.auth.dto.response.UserLoginResponse;
