@@ -1,4 +1,4 @@
-package sist.backend.domain.dining_reservation.controller.config;
+package sist.backend.domain.dining_reservation.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

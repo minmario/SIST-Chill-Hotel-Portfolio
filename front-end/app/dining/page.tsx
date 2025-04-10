@@ -15,7 +15,7 @@ export default function DiningPage() {
       image: "/placeholder.svg?height=400&width=600",
       location: "호텔 1층",
       seats: "150석",
-      hours: "아침 06:30-10:30, 점심 12:00-14:30, 저녁 18:00-22:00",
+      hours: "점심 12:00-14:30, 저녁 18:00-22:00",
     },
     {
       id: 2,

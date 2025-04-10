@@ -4,6 +4,6 @@ spring:
     include: secret
 
   # 도커 제외
-  docker:
-    compose:
-      enabled: false
+  # docker:
+  # compose:
+  # enabled: false

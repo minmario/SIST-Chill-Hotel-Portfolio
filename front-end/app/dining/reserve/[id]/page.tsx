@@ -13,8 +13,8 @@ const restaurantList = [
     location: "호텔 1층",
     image: "/placeholder.svg?height=400&width=600",
     hours: {
-      lunch: "아침 06:30-10:30, 점심 12:00-14:30",
-      dinner: "저녁 18:00-22:00",
+      lunch: "12:00-14:30",
+      dinner: "18:00-22:00",
     },
     seats: 150,
     price: {
@@ -22,7 +22,6 @@ const restaurantList = [
       child: 55000,
     },
   },
-  // ... 아리아, 사쿠라 등 추가 가능
   {
     id: 2,
     name: "아리아",
@@ -74,6 +73,9 @@ export default function DiningReservePage() {
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
   const [request, setRequest] = useState("")
+
+  // 이용약관 동의 여부
+  const [agreeTerms, setAgreeTerms] = useState(false)
 
   const next = () => setStep((s) => s + 1)
   const back = () => setStep((s) => s - 1)
@@ -131,6 +133,27 @@ export default function DiningReservePage() {
       <Link href="/dining" className="inline-block mb-4 text-sm text-gray-500 hover:text-gray-700">
         ← 다이닝 목록으로 돌아가기
       </Link>
+
+      {/* 예약 단계 표시 */}
+      <div className="flex items-center justify-left mb-8">
+        <div
+          className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? "bg-[#2dd4bf] text-white" : "bg-gray-200 text-gray-600"}`}
+        >
+          1
+        </div>
+        <div className={`h-1 w-16 ${step >= 2 ? "bg-[#2dd4bf]" : "bg-gray-200"}`}></div>
+        <div
+          className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? "bg-[#2dd4bf] text-white" : "bg-gray-200 text-gray-600"}`}
+        >
+          2
+        </div>
+        <div className={`h-1 w-16 ${step >= 3 ? "bg-[#2dd4bf]" : "bg-gray-200"}`}></div>
+        <div
+          className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? "bg-[#2dd4bf] text-white" : "bg-gray-200 text-gray-600"}`}
+        >
+          3
+        </div>
+      </div>
 
       <div className="grid md:grid-cols-3 gap-8">
         {/* 예약 폼 */}
@@ -191,27 +214,61 @@ export default function DiningReservePage() {
 
       {step === 3 && (
         <div className="space-y-6 max-w-xl">
-          <div>
-            <h2 className="font-semibold mb-2">예약 정보</h2>
-            <ul className="text-sm text-gray-700 space-y-1">
-              <li><strong>날짜:</strong> {formatDate(date)}</li>
-              <li><strong>식사 시간:</strong> {mealTime === "lunch" ? "점심" : "저녁"}</li>
-              <li><strong>시간:</strong> {time}</li>
-              <li><strong>인원:</strong> 성인 {adults}명, 어린이 {children}명</li>
-            </ul>
+          <h2 className="text-xl font-semibold mb-6">예약 확인</h2>
+          <p className="text-gray-600 mb-4">예약 정보를 확인해주세요.</p>
+          <div className="mb-6">
+            <h3 className="font-medium mb-2">예약 정보</h3>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="grid grid-cols-2 gap-2">
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li><strong>날짜: </strong> {formatDate(date)}</li>
+                  <li><strong>식사 시간: </strong> {mealTime === "lunch" ? "점심" : "저녁"}</li>
+                  <li><strong>시간: </strong> {time}</li>
+                  <li><strong>인원: </strong> 성인 {adults}명, 어린이 {children}명</li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <div>
+
+          <div className="mb-6">
             <h2 className="font-semibold mb-2">예약자 정보</h2>
-            <ul className="text-sm text-gray-700 space-y-1">
-              <li><strong>이름:</strong> {lastName} {firstName}</li>
-              <li><strong>연락처:</strong> {phone}</li>
-              <li><strong>이메일:</strong> {email}</li>
-              {request && <li><strong>요청사항:</strong> {request}</li>}
-            </ul>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="grid grid-cols-2 gap-2">
+                  <ul className="text-sm text-gray-700 space-y-1">
+                    <li><strong>이름:</strong> {lastName} {firstName}</li>
+                    <li><strong>연락처:</strong> {phone}</li>
+                    <li><strong>이메일:</strong> {email}</li>
+                    {request && <li><strong>요청사항:</strong> {request}</li>}
+                  </ul>
+                </div>
+              </div>
           </div>
+          
+          <div className="mb-6">
+                <h3 className="font-semibold mb-2">이용약관</h3>
+                <div className="bg-gray-50 p-4 rounded-lg mb-4 h-40 overflow-y-auto text-sm">
+                  <ol className="list-decimal pl-4 space-y-2">
+                    <li>예약 취소 및 변경은 예약 시간으로부터 24시간 전까지 가능합니다.</li>
+                    <li>24시간 이내 취소 또는 노쇼(No-show)의 경우, 위약금이 발생할 수 있습니다.</li>
+                    <li>예약 시간보다 15분 이상 늦을 경우, 예약이 취소될 수 있습니다.</li>
+                    <li>레스토랑 사정에 따라 예약이 변경되거나 취소될 수 있으며, 이 경우 사전에 안내해 드립니다.</li>
+                    <li>특별한 요청사항은 가능한 한 반영해 드리나, 보장되지 않을 수 있습니다.</li>
+                    <li>개인정보는 예약 및 서비스 제공 목적으로만 사용되며, 예약 완료 후 3개월간 보관됩니다.</li>
+                  </ol>
+                </div>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    className="mr-2"
+                  />
+                  이용약관에 동의합니다.
+                </label>
+              </div>
           <div className="flex gap-2">
             <button onClick={back} className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium px-5 py-2 rounded-md transition-colors">이전</button>
-            <button onClick={handleSubmit} className="bg-teal-500 text-white px-4 py-2 rounded">예약 완료</button>
+            <button onClick={handleSubmit} className="bg-teal-500 text-white px-4 py-2 rounded" disabled={!agreeTerms}>예약 완료</button>
           </div>
         </div>
       )}
@@ -220,13 +277,17 @@ export default function DiningReservePage() {
         {/* 호텔 정보 카드 */}
         <div className="bg-white rounded-lg shadow p-4">
           <Image src={restaurant.image} alt={restaurant.name} width={600} height={400} className="rounded mb-4" />
-          <h2 className="text-lg font-semibold mb-2">호텔 정보</h2>
+          <h2 className="text-lg font-semibold mb-2">{restaurant.name}</h2>
           <ul className="text-sm text-gray-700 space-y-1">
             <li><strong>위치:</strong> {restaurant.location}</li>
             <li><strong>영업시간:</strong> 점심 {restaurant.hours.lunch}, 저녁 {restaurant.hours.dinner}</li>
             <li><strong>좌석 수:</strong> {restaurant.seats}석</li>
             <li><strong>가격:</strong> 성인 {restaurant.price.adult.toLocaleString()}원 / 어린이 {restaurant.price.child.toLocaleString()}원</li>
           </ul>
+          <div className="mt-4 pt-4 border-t border-gray-200 text-sm text-gray-500">
+              <p>* 예약 확정 후 변경 및 취소는 예약 시간 24시간 전까지 가능합니다.</p>
+              <p>* 특별 이벤트 및 프로모션은 별도 공지됩니다.</p>
+          </div>
         </div>
       </div>
     </div>

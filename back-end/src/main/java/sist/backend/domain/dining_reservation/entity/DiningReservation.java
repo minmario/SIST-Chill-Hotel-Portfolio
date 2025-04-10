@@ -3,6 +3,7 @@ package sist.backend.domain.dining_reservation.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 @Table(name = "dining_reservation")
 @Getter
 @Setter
-@NoArgsConstructor
+// @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class DiningReservation {
@@ -54,9 +55,12 @@ public class DiningReservation {
     @Size(max = 300)
     private String request;
 
+    @Builder.Default
     @Column(length = 20)
     private String status = "PENDING";
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Builder.Default
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 }
