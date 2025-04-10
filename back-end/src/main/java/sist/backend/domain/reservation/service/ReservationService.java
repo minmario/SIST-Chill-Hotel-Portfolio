@@ -36,8 +36,8 @@ public class ReservationService {
     
     public Long saveReservation(ReservationRequest request) {
         User user = null;
-        
-        if (request.getUserIdx() != null  && request.getUserIdx() > 0) {
+
+        if (request.getUserIdx() != null  && request.getUserIdx() != 0) {
                 user = userRepository.findByUserIdx(request.getUserIdx())
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
             }
