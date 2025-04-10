@@ -27,16 +27,20 @@ public class ReservationService {
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
     private final RoomTypeRepository roomTypeRepository;
+
     public ReservationResponse getReservation(Long userIdx, String reservationNum) {
         Reservation entity = reservationRepository.findByUser_UserIdxAndReservationNum(userIdx, reservationNum)
                 .orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다."));
         return ReservationResponse.fromEntity(entity);
     }
+    
     public Long saveReservation(ReservationRequest request) {
-
-        User user = userRepository.findByUserIdx(request.getUserIdx())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
+        User user = null;
+        
+        if (request.getUserIdx() != null  && request.getUserIdx() > 0) {
+                user = userRepository.findByUserIdx(request.getUserIdx())
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            }
         Room room = roomRepository.findById(request.getRoomIdx())
                 .orElseThrow(() -> new IllegalArgumentException("객실을 찾을 수 없습니다."));
 

@@ -1,6 +1,7 @@
 package sist.backend.domain.room.dto.response;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,8 +28,9 @@ public class RoomTypeResponse {
     private BigDecimal peakWeekendPrice;
     private Integer totalCount;
     private Integer availableCount; 
+    private List<Long> availableRoomIdxList;
 
-    public static RoomTypeResponse fromEntity(RoomType roomType) {
+    public static RoomTypeResponse fromEntity(RoomType roomType, List<Long> availableRoomIdxList) {
         return RoomTypeResponse.builder()
                 .roomTypesIdx(roomType.getRoomTypesIdx())
                 .roomName(roomType.getRoomName())
@@ -44,6 +46,7 @@ public class RoomTypeResponse {
                 .peakWeekendPrice(roomType.getPeakWeekendPrice())
                 .totalCount(roomType.getTotalCount())
                 .availableCount(0) 
+                .availableRoomIdxList(availableRoomIdxList)
                 .build();
     }
 }

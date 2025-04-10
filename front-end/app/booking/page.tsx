@@ -138,7 +138,6 @@ export default function Booking() {
   const [modalOpen, setModalOpen] = useState(false)
   
 
-
   const [searchParams, setSearchParams] = useState({
     checkIn: "",
     checkOut: "",
@@ -220,14 +219,23 @@ export default function Booking() {
     setModalOpen(false)
   }
 
-  const handleBookNow = (room: any) => {
-    // 예약 정보를 로컬 스토리지에 저장
-    localStorage.setItem("selectedRoom", JSON.stringify(room))
-    localStorage.setItem("bookingParams", JSON.stringify(searchParams))
-
-    // 다음 단계로 이동
-    router.push("/booking/info")
-  }
+  const handleBookNow = (roomType: any) => {
+    const roomIdx = roomType.availableRoomIdxList?.[0];
+  
+    if (!roomIdx) {
+      alert("해당 객실 타입에는 예약 가능한 방이 없습니다.");
+      return;
+    }
+  
+    const selected = {
+      ...roomType,
+      roomIdx, // 자동으로 예약 가능한 첫 번째 방 할당
+    };
+  
+    localStorage.setItem("selectedRoom", JSON.stringify(selected));
+    localStorage.setItem("bookingParams", JSON.stringify(searchParams));
+    router.push("/booking/info");
+  };
 
   return (
     <>

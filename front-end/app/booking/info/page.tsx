@@ -78,6 +78,8 @@ export default function BookingInfo() {
     // 예약 정보 저장
     const bookingInfo = {
       room: selectedRoom,
+      roomIdx: selectedRoom.roomIdx, // ✅ 추가: 백엔드로 보낼 roomIdx
+      roomTypesIdx: selectedRoom.roomTypesIdx, // 백엔드에서 필요하다면 이것도
       params: bookingParams,
       options: {
         bedType,
@@ -87,7 +89,6 @@ export default function BookingInfo() {
       },
       pricing: calculateTotal(),
     }
-
     localStorage.setItem("bookingInfo", JSON.stringify(bookingInfo))
 
     if (loginOption === "member") {

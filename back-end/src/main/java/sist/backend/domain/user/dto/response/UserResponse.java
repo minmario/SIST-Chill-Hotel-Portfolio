@@ -7,6 +7,7 @@ import sist.backend.domain.user.entity.UserRole;
 import sist.backend.domain.user.entity.UserStatus;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Builder
@@ -16,9 +17,10 @@ public class UserResponse {
     private String name;
     private String email;
     private String phone;
-    private LocalDate joindate;
     private UserStatus status;
     private UserRole role;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public static UserResponse from(User user) {
         return UserResponse.builder()
@@ -27,9 +29,10 @@ public class UserResponse {
                 .name(user.getName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
-                .joindate(user.getJoindate())
                 .status(user.getStatus())
                 .role(user.getRole())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
                 .build();
     }
 }

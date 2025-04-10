@@ -56,9 +56,6 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private UserRole role;
 
-    @Column(nullable = false)
-    private LocalDate joindate;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Order> orders = new ArrayList<>();
 

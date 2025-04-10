@@ -8,13 +8,37 @@ import { Check, X } from "lucide-react"
 import styles from "../../rooms/rooms.module.css"
 
 export default function CustomerInfo() {
+  type RoomType = {
+    roomTypesIdx: number;
+    roomName: string;
+    grade: string;
+    size: number;
+    viewType: string;
+    maxPeople: number;
+    description: string;
+    weekPrice: number;
+    weekendPrice: number;
+    peakWeekPrice: number;
+    peakWeekendPrice: number;
+    totalCount: number;
+    availableCount: number;
+    roomImage: string;
+    availableRooms: {
+      roomIdx: number;
+      roomNum: string;
+      floor: number;
+    }[];
+  };
+
   const router = useRouter()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userEmail, setUserEmail] = useState("")
   const [termsModalOpen, setTermsModalOpen] = useState(false)
   const [bookingInfo, setBookingInfo] = useState<any>(null)
   const [mounted, setMounted] = useState(false) // SSR 오류 방지용
-
+  const [selectedRoomIdx, setSelectedRoomIdx] = useState<number | null>(null);
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
+  const [selectedRoomType, setSelectedRoomType] = useState<RoomType | null>(null);
 
 
   const [formData, setFormData] = useState({
@@ -58,6 +82,12 @@ export default function CustomerInfo() {
   }, [])
 
 
+  
+
+  const handleSelectRoomType = (roomType: RoomType) => {
+    setSelectedRoomType(roomType);
+    setSelectedRoomIdx(roomType.availableRooms[0]?.roomIdx || null);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -77,30 +107,54 @@ export default function CustomerInfo() {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.agreeTerms) {
       alert("개인정보 수집 및 이용에 동의해주세요.")
       return
     }
-
+  
     // 예약 정보에 고객 정보 추가
     const customerInfo = {
       lastName: formData.lastName,
       firstName: formData.firstName,
       email: `${formData.emailId}@${formData.emailDomain}`,
       phone: formData.phone,
-      payment: {
-        cardNumber: formData.cardNumber,
-        cardExpiry: formData.cardExpiry,
-      },
+      cardNumber: formData.cardNumber,
+      cardExpiry: formData.cardExpiry,
     }
-
-    const updatedBooking = { ...bookingInfo, customer: customerInfo }
-    localStorage.setItem("bookingInfo", JSON.stringify(updatedBooking))
-    router.push("/booking/complete")
-    
-    if (!mounted) return null // 클라이언트 렌더링 될 때까지 기다림
+  
+    const raw = localStorage.getItem("bookingInfo")
+    if (!raw) {
+      alert("예약 정보가 없습니다.")
+      return
+    }
+  
+    const baseBooking = JSON.parse(raw)
+    const bookingInfo = {
+      ...baseBooking,
+      ...customerInfo, // 필드를 합쳐 넣을 수도 있고
+      roomIdx: selectedRoomIdx, 
+    }
+  
+    try {
+      const res = await fetch("/api/reservations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bookingInfo),
+      })
+  
+      if (!res.ok) throw new Error("예약 실패")
+  
+      const result = await res.json()
+      console.log("✅ 예약 완료:", result)
+      router.push("/booking/complete")
+    } catch (err) {
+      console.error("예약 중 오류:", err)
+      alert("예약 처리 중 오류가 발생했습니다.")
+    }
   }
   const safe = (value: any) => (typeof value === "number" ? value.toLocaleString() : "-")
 

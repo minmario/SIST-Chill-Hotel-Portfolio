@@ -41,7 +41,7 @@ public class Reservation {
     private ReservationStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_idx", nullable = false)
+    @JoinColumn(name = "user_idx", nullable = true)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -64,16 +64,16 @@ public class Reservation {
     @Column(name = "room_count", nullable = false)
     private int roomCount;
 
-    @Column(name = "adult_count", nullable = false)
+    @Column(name = "adults", nullable = false)
     private int adultCount;
 
-    @Column(name = "child_count")
+    @Column(name = "children", nullable = false)
     private int childCount;
 
     @Column(name = "bed_type")
     private String bedType;
 
-    @Column(name = "special_requests", columnDefinition = "TEXT")
+    @Column(name = "special_request", columnDefinition = "TEXT")
     private String specialRequests;
 
     @Column(name = "room_price", nullable = false)

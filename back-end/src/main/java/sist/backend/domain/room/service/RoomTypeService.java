@@ -34,21 +34,23 @@ public class RoomTypeService {
             throw new IllegalArgumentException("객실 수에 비해 인원이 너무 많습니다.");
         }
 
-        List<RoomType> allRoomTypes = roomTypeRepository.findAll();
+        List<RoomType> allRoomTypes = roomTypeRepository.findAvailableRoomTypes(checkIn,checkOut);
 
         return allRoomTypes.stream()
             .filter(rt -> rt.getMaxPeople() >= Math.ceil((double) totalPeople / roomCount))
-            .map((RoomType rt) -> {
-                long availableCount = rt.getRooms().stream()
+            .map(rt -> {
+                // 예약 가능한 room만 필터링하고 roomIdx 추출
+                List<Long> availableRoomIds = rt.getRooms().stream()
                     .filter(room -> {
                         List<Reservation> overlapping = reservationRepository.findOverlappingReservations(
                                 room, checkIn, checkOut
                         );
                         return overlapping.isEmpty();
                     })
-                    .count();
+                    .map(room -> room.getRoomIdx())
+                    .collect(Collectors.toList());
 
-                    return RoomTypeResponse.builder()
+                return RoomTypeResponse.builder()
                     .roomTypesIdx(rt.getRoomTypesIdx())
                     .roomName(rt.getRoomName())
                     .grade(rt.getGrade())
@@ -61,11 +63,10 @@ public class RoomTypeService {
                     .peakWeekPrice(rt.getPeakWeekPrice())
                     .peakWeekendPrice(rt.getPeakWeekendPrice())
                     .totalCount(rt.getTotalCount())
-                    .availableCount((int) availableCount)
+                    .availableCount(availableRoomIds.size()) 
                     .roomImage(rt.getRoomImage())
+                    .availableRoomIdxList(availableRoomIds) 
                     .build();
-
-                     
             })
             .filter(resp -> resp.getAvailableCount() >= roomCount)
             .collect(Collectors.toList());
