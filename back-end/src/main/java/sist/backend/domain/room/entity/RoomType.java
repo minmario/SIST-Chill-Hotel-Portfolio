@@ -24,7 +24,11 @@ import sist.backend.global.common.BaseTimeEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+<<<<<<< HEAD
 public class RoomType  {
+=======
+public class RoomType extends BaseTimeEntity {
+>>>>>>> graz1e
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,7 +47,14 @@ public class RoomType  {
     private String viewType;
 
     @Column(nullable = false)
+<<<<<<< HEAD
     private Integer maxPeople;
+=======
+    private Integer maxAdult;
+
+    @Column(nullable = false)
+    private Integer maxChildren;
+>>>>>>> graz1e
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;

@@ -15,7 +15,11 @@ export default function DiningPage() {
       image: "/placeholder.svg?height=400&width=600",
       location: "호텔 1층",
       seats: "150석",
+<<<<<<< HEAD
       hours: "아침 06:30-10:30, 점심 12:00-14:30, 저녁 18:00-22:00",
+=======
+      hours: "점심 12:00-14:30, 저녁 18:00-22:00",
+>>>>>>> graz1e
     },
     {
       id: 2,
@@ -130,7 +134,11 @@ export default function DiningPage() {
 
               <div className="flex gap-2">
                 <Link
+<<<<<<< HEAD
                   href={`/dining/reserve?restaurant=${restaurant.id}`}
+=======
+                  href={`/dining/reserve/${restaurant.id}`}
+>>>>>>> graz1e
                   className="flex-1 py-2 text-center rounded-md font-medium text-white"
                   style={{ backgroundColor: "#2dd4bf" }}
                 >

@@ -135,24 +135,41 @@ export default function Service() {
     }))
   }
 
-  const handleInquirySubmit = (e: React.FormEvent) => {
+  const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // 문의 제출 로직
-    console.log("문의 제출:", inquiryForm)
-    // 폼 초기화
-    setInquiryForm({
-      category: "",
-      lastName: "",
-      firstName: "",
-      email: "",
-      phone: "",
-      title: "",
-      content: "",
-      agreePrivacy: false,
-    })
-    // 성공 메시지
-    alert("문의가 성공적으로 접수되었습니다. 빠른 시일 내에 답변 드리겠습니다.")
+  
+    try {
+      const response = await fetch("/api/qna", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: inquiryForm.category,
+          title: inquiryForm.title,
+          content: inquiryForm.content,
+          email: inquiryForm.email,
+        }),
+      })
+  
+      if (!response.ok) throw new Error("서버 오류")
+  
+      alert("문의가 성공적으로 접수되었습니다.")
+      // 폼 초기화
+      setInquiryForm({
+        category: "",
+        lastName: "",
+        firstName: "",
+        email: "",
+        phone: "",
+        title: "",
+        content: "",
+        agreePrivacy: false,
+      })
+    } catch (error) {
+      console.error("문의 실패:", error)
+      alert("문의 접수에 실패했습니다.")
+    }
   }
+  
 
   const renderTabContent = () => {
     switch (activeTab) {

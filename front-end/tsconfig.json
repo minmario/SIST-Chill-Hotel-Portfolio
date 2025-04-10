@@ -2,7 +2,11 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
+<<<<<<< HEAD
     "target": "es2017",
+=======
+    "target": "ES6",
+>>>>>>> graz1e
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,

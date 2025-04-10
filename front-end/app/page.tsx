@@ -5,11 +5,14 @@ import Link from "next/link"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import styles from "./page.module.css"
+<<<<<<< HEAD
 import { useRouter } from "next/navigation"
 
 
 
 
+=======
+>>>>>>> graz1e
 
 const slides = [
   {
@@ -39,6 +42,7 @@ const slides = [
 ]
 
 export default function Home() {
+<<<<<<< HEAD
   const router = useRouter()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [checkInDate, setCheckInDate] = useState("")
@@ -74,6 +78,14 @@ export default function Home() {
     if (newChildren < 0 || adults + newChildren > maxPeople) return
     setChildren(newChildren)
   }
+=======
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [checkInDate, setCheckInDate] = useState("")
+  const [checkOutDate, setCheckOutDate] = useState("")
+  const [guestCount, setGuestCount] = useState("성인 2명")
+  const [currentDiningSlide, setCurrentDiningSlide] = useState(0)
+  const [currentStoreSlide, setCurrentStoreSlide] = useState(0)
+>>>>>>> graz1e
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -114,9 +126,13 @@ export default function Home() {
     const dayOfWeek = ["일", "월", "화", "수", "목", "금", "토"][d.getDay()]
     return `${year}.${month}.${day} (${dayOfWeek})`
   }
+<<<<<<< HEAD
   const handleSearch = () => {
     router.push(`/booking?checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&roomCount=${roomCount}&adults=${adults}&children=${children}`)
   }
+=======
+
+>>>>>>> graz1e
   // 객실 정보
   const rooms = [
     {
@@ -273,6 +289,7 @@ export default function Home() {
                 />
                 {checkOutDate && <div className={styles.formattedDate}>{formatDate(checkOutDate)}</div>}
               </div>
+<<<<<<< HEAD
               <div className="space-y-6 p-4 max-w-md mx-auto">
                 {/* 객실 수 */}
                 <div>
@@ -311,6 +328,26 @@ export default function Home() {
               <button onClick={handleSearch} className={styles.searchButton}>
                 객실 검색
               </button>
+=======
+              <div className={styles.bookingFormField}>
+                <label htmlFor="guests">인원</label>
+                <select
+                  id="guests"
+                  value={guestCount}
+                  onChange={(e) => setGuestCount(e.target.value)}
+                  className={styles.bookingInput}
+                >
+                  <option value="성인 1명">성인 1명</option>
+                  <option value="성인 2명">성인 2명</option>
+                  <option value="성인 3명">성인 3명</option>
+                  <option value="성인 4명">성인 4명</option>
+                </select>
+              </div>
+              <div className={styles.bookingFormButton}>
+                <Link href="/booking" className={styles.searchButton}>
+                  객실 검색
+                </Link>
+>>>>>>> graz1e
               </div>
             </div>
           </div>

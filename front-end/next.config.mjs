@@ -1,3 +1,14 @@
+<<<<<<< HEAD
+=======
+let userConfig = undefined
+try {
+  userConfig = await import('./v0-user-next.config')
+} catch (e) {
+  // ignore error
+}
+
+/** @type {import('next').NextConfig} */
+>>>>>>> graz1e
 const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
@@ -20,6 +31,7 @@ const nextConfig = {
         source: '/api/:path*',
         destination: 'http://localhost:8080/api/:path*',
       },
+<<<<<<< HEAD
     ]
   },
 };
@@ -34,6 +46,17 @@ try {
 function mergeConfig(nextConfig, userConfig) {
   if (!userConfig) {
     return nextConfig;
+=======
+    ];
+  },
+}
+
+mergeConfig(nextConfig, userConfig)
+
+function mergeConfig(nextConfig, userConfig) {
+  if (!userConfig) {
+    return
+>>>>>>> graz1e
   }
 
   for (const key in userConfig) {
@@ -44,6 +67,7 @@ function mergeConfig(nextConfig, userConfig) {
       nextConfig[key] = {
         ...nextConfig[key],
         ...userConfig[key],
+<<<<<<< HEAD
       };
     } else {
       nextConfig[key] = userConfig[key];
@@ -53,3 +77,13 @@ function mergeConfig(nextConfig, userConfig) {
 }
 
 export default mergeConfig(nextConfig, userConfig?.default);
+=======
+      }
+    } else {
+      nextConfig[key] = userConfig[key]
+    }
+  }
+}
+
+export default nextConfig
+>>>>>>> graz1e
