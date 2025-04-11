@@ -1,57 +1,53 @@
 package sist.backend.domain.restaurant.entity;
 
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import sist.backend.global.common.BaseTimeEntity;
 
 @Entity
 @Table(name = "restaurants")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Restaurant extends BaseTimeEntity {
+public class Restaurant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "restaurants_idx")
     private Long restaurantsIdx;
 
-    @Column(nullable = false, length = 100)
     private String name;
-
-    @Column(nullable = false)
+    private String location;
     private Integer capacity;
 
-    @Column(nullable = false)
     private LocalTime open;
-
-    @Column(nullable = false)
     private LocalTime close;
 
-    @Column(nullable = false)
-    private String location;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-    // 비즈니스 메서드
-    public void updateHours(LocalTime open, LocalTime close) {
-        this.open = open;
-        this.close = close;
-    }
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
-    public void updateCapacity(Integer capacity) {
-        this.capacity = capacity;
-    }
+    @Column(name = "breakfast_open")
+    private LocalTime breakfastOpen;
 
-    public boolean isOpenAt(LocalTime time) {
-        return !time.isBefore(open) && !time.isAfter(close);
-    }
+    @Column(name = "breakfast_close")
+    private LocalTime breakfastClose;
+
+    @Column(name = "lunch_open")
+    private LocalTime lunchOpen;
+
+    @Column(name = "lunch_close")
+    private LocalTime lunchClose;
+
+    @Column(name = "dinner_open")
+    private LocalTime dinnerOpen;
+
+    @Column(name = "dinner_close")
+    private LocalTime dinnerClose;
 }
