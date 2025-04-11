@@ -52,7 +52,6 @@ export default function BookingCheckPage() {
       alert("예약 정보 조회에 실패했습니다. 다시 시도해주세요.")
     }
   }
-
   return (
     <div className="container mx-auto py-20 px-4">
       <div className={styles.header || "mb-8 text-center"}>
