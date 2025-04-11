@@ -43,7 +43,6 @@ public class AdminRegisterController {
         user.setEmail(request.getEmail());
         user.setRole(UserRole.STAFF);
         user.setStatus(UserStatus.ACTIVE);
-        user.setCreatedAt(LocalDateTime.now());
 
         userRepository.save(user);
 

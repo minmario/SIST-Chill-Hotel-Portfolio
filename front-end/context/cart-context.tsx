@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from './auth-context';
+import { useAuth, registerCartClear } from './auth-context';
 
 interface CartItem {
   cartItemIdx: number;
@@ -20,6 +20,7 @@ interface CartContextType {
   removeItem: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
+  clearCartItems: () => void;
   totalItems: number;
   totalPrice: number;
   isLoggedIn: boolean;
@@ -48,7 +49,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
   // 장바구니 데이터 로드
   const fetchUserCart = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken');
       if (!token) {
         console.error('토큰이 없습니다. 로그인이 필요합니다.');
         return; // 로컬 데이터 유지
@@ -61,7 +62,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
         
         if (Date.now() >= expirationTime) {
           console.error('토큰이 만료되었습니다. 다시 로그인이 필요합니다.');
-          localStorage.removeItem('token');
+          localStorage.removeItem('accessToken');
           return; // 로컬 데이터 유지
         }
       } catch (decodeError) {
@@ -88,7 +89,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
       console.error('장바구니 데이터를 불러오는데 실패했습니다:', error);
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         // 인증 실패 시 토큰 제거
-        localStorage.removeItem('token');
+        localStorage.removeItem('accessToken');
       }
       // API 호출 실패 시 로컬 데이터 유지
       console.log('로컬 장바구니 데이터를 사용합니다.');
@@ -129,7 +130,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
     // 로그인 상태이면 서버에도 추가 시도
     if (isLoggedIn) {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('accessToken');
         await axios.post('http://localhost:8080/api/v1/cart/items', {
           productIdx: item.productIdx,
           quantity: item.quantity
@@ -166,7 +167,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
     // 로그인 상태이면 서버에도 업데이트 시도
     if (isLoggedIn) {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('accessToken');
         await axios.put(`http://localhost:8080/api/v1/cart/items/${id}`, {
           quantity: quantity
         }, {
@@ -194,7 +195,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
     // 로그인 상태이면 서버에서도 제거 시도
     if (isLoggedIn) {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('accessToken');
         await axios.delete(`http://localhost:8080/api/v1/cart/items/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -217,7 +218,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
     // 로그인 상태이면 서버에서도 비우기 시도
     if (isLoggedIn) {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('accessToken');
         await axios.delete('http://localhost:8080/api/v1/cart', {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -227,6 +228,17 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
       }
     }
   };
+
+  // 장바구니 항목 초기화 (외부에서 호출 가능)
+  const clearCartItems = () => {
+    console.log('[Cart] 장바구니 항목 초기화');
+    setItems([]);
+  };
+
+  // 장바구니 초기화 함수 등록
+  useEffect(() => {
+    registerCartClear(clearCartItems);
+  }, []);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -238,6 +250,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
       removeItem,
       updateQuantity,
       clearCart,
+      clearCartItems,
       totalItems,
       totalPrice,
       isLoggedIn

@@ -6,9 +6,11 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import styles from "../membership.module.css"
+import { useAuth } from "@/context/auth-context"
 
 export default function MembershipJoin() {
   const router = useRouter()
+  const { login } = useAuth()
   const [formData, setFormData] = useState({
     userId: "",
     email: "",
@@ -36,7 +38,7 @@ export default function MembershipJoin() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // 비밀번호 확인
@@ -45,14 +47,50 @@ export default function MembershipJoin() {
       return
     }
 
-    // 회원가입 처리 (실제로는 API 호출 등이 필요)
-    console.log("회원가입 정보:", formData)
+    try {
+      // 회원가입 API 호출
+      const response = await fetch("http://localhost:8080/api/user/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: formData.userId,
+          pwd: formData.password,
+          email: formData.email,
+          name: formData.lastName + " " + formData.firstName,
+          phone: formData.phone,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        }),
+      })
 
-    // 성공 메시지 표시
-    alert("회원가입이 완료되었습니다.")
+      if (!response.ok) {
+        throw new Error("회원가입에 실패했습니다.")
+      }
 
-    // 로그인 페이지로 이동
-    router.push("/login")
+      const data = await response.json()
+      console.log('[Register] 서버 응답 데이터:', data)
+      
+      // 필드명 확인
+      const token = data.token || data.message
+      const role = data.role
+      
+      console.log('[Register] 추출한 토큰:', token)
+      console.log('[Register] 추출한 역할:', role)
+      
+      // AuthContext의 login 함수 사용
+      login(token, formData.userId, role)
+
+      // 성공 메시지 표시
+      alert("회원가입이 완료되었습니다.")
+
+      // 로그인 페이지로 이동
+      router.push("/login")
+    } catch (error) {
+      console.error("회원가입 중 오류:", error)
+      alert("회원가입에 실패했습니다. 다시 시도해주세요.")
+    }
   }
 
   return (
