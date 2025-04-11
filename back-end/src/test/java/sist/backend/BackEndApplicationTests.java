@@ -2,9 +2,6 @@ package sist.backend;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import sist.backend.domain.shop.service.interfaces.OrderService;
 import sist.backend.domain.shop.service.interfaces.CartService;
