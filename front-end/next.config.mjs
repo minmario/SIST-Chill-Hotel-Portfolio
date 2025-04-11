@@ -30,7 +30,7 @@ const nextConfig = {
       },
     ];
   },
-}
+};
 
 mergeConfig(nextConfig, userConfig)
 

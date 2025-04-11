@@ -4,6 +4,7 @@ package sist.backend.domain.room.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import sist.backend.domain.reservation.entity.Reservation;
 import sist.backend.domain.reservation.repository.ReservationRepository;
 import sist.backend.domain.room.entity.RoomType;
@@ -20,7 +21,8 @@ public class RoomTypeService {
 
     private final RoomTypeRepository roomTypeRepository;
     private final ReservationRepository reservationRepository;
-
+    
+    @Transactional
     public List<RoomTypeResponse> getAvailableRoomTypes(LocalDate checkIn, LocalDate checkOut,
                                                         int roomCount, int adults, int children) {
         int totalPeople = adults + children;

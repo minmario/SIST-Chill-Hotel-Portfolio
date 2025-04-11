@@ -24,6 +24,7 @@ public class RoomTypeController {
             @RequestParam("adults") int adults,
             @RequestParam("children") int children
     ) {
+        System.out.println("roomTypeController - getAvailableRoomTypes() called");
         List<RoomTypeResponse> result = roomTypeService.getAvailableRoomTypes(
                 checkInDate, checkOutDate, roomCount, adults, children
         );
