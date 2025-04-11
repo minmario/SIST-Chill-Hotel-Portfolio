@@ -135,8 +135,8 @@ export default function CustomerInfo() {
       userIdx: isLoggedIn ? 1 : null, // 실제 로그인 사용자 idx로 교체 필요
       roomIdx: baseBooking.roomIdx,
       roomTypesIdx: baseBooking.roomTypesIdx,
-      checkIn: baseBooking.params.checkIn,
-      checkOut: baseBooking.params.checkOut,
+      checkIn: baseBooking?.params?.checkIn, // ✅ 무조건 ISO 형식 문자열
+      checkOut: baseBooking?.params?.checkOut,
       roomCount: parseInt(baseBooking.params.rooms),
       adultCount: parseInt(baseBooking.params.adults),
       childCount: parseInt(baseBooking.params.children),
@@ -158,6 +158,7 @@ export default function CustomerInfo() {
       cardExpiry: formData.cardExpiry,
     }
     try {
+      console.log("예약 정보:", bookingInfo);
       const res = await fetch("/api/reservations", {
         method: "POST",
         headers: {

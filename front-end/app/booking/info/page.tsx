@@ -52,26 +52,33 @@ export default function BookingInfo() {
   }
 
   const calculateTotal = () => {
-    let total = selectedRoom.price
-    const basePrice = selectedRoom?.weekPrice ?? selectedRoom?.price ?? 0
-
-    // 조식 추가 비용
-    const adultBreakfastPrice = 35000 * adultBreakfast
-    const childBreakfastPrice = 20000 * childBreakfast
-
-    total += adultBreakfastPrice + childBreakfastPrice
+    const nights = calculateNights(bookingParams.checkIn, bookingParams.checkOut)
+    const basePrice = (selectedRoom?.weekPrice ?? selectedRoom?.price ?? 0) * nights
+    const adultBreakfastPrice = 35000 * adultBreakfast * nights
+    const childBreakfastPrice = 20000 * childBreakfast * nights
+    const total = basePrice + adultBreakfastPrice + childBreakfastPrice
 
     // 회원 할인 (2%)
-    const discount = Math.round(basePrice * 0.02)
+    const discount = Math.round(total * 0.02)
 
     return {
-      roomPrice: basePrice,
-      adultBreakfastPrice,
-      childBreakfastPrice,
-      subtotal: basePrice + adultBreakfastPrice + childBreakfastPrice,
-      discount,
-      total: basePrice - discount,
+      nights,
+    roomPrice: basePrice,
+    adultBreakfastPrice,
+    childBreakfastPrice,
+    adultBreakfast,
+    childBreakfast,
+    subtotal: total,
+    discount,
+    total: total - discount,
     }
+  }
+  const calculateNights = (checkIn: string, checkOut: string): number => {
+    const inDate = new Date(checkIn)
+    const outDate = new Date(checkOut)
+    const diffTime = outDate.getTime() - inDate.getTime()
+    const diffDays = diffTime / (1000 * 60 * 60 * 24)
+    return Math.max(diffDays, 1) // 최소 1박
   }
 
   const handleContinue = () => {
