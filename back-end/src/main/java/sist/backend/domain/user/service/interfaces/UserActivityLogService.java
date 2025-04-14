@@ -29,6 +29,11 @@ public interface UserActivityLogService {
     void logLogout(User user, String ipAddress);
     
     /**
+     * 모든 활동 로그를 조회합니다.
+     */
+    List<UserActivityLogResponseDTO> getAllLogs();
+    
+    /**
      * 사용자별 활동 로그를 조회합니다.
      */
     List<UserActivityLogResponseDTO> getLogsByUser(Long userIdx);

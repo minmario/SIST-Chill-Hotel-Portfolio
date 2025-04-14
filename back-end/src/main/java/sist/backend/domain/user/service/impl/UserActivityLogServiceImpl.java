@@ -60,6 +60,14 @@ public class UserActivityLogServiceImpl implements UserActivityLogService {
     }
 
     @Override
+    public List<UserActivityLogResponseDTO> getAllLogs() {
+        List<UserActivityLog> allLogs = userActivityLogRepository.findAll();
+        return allLogs.stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<UserActivityLogResponseDTO> getLogsByUser(Long userIdx) {
         List<UserActivityLog> logs = userActivityLogRepository.findByUserUserIdx(userIdx);
         return logs.stream()
