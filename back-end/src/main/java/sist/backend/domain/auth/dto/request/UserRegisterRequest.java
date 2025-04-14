@@ -13,4 +13,5 @@ public class UserRegisterRequest {
     private String phone;
     private String firstName;
     private String lastName;
-} 
+    private PaymentMethodRequest paymentMethod; // 추가
+}

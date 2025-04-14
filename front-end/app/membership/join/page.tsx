@@ -26,7 +26,26 @@ export default function MembershipJoin() {
     cardNumber: "",
     cardHolder: "",
     agreeTerms: false,
+    registerCard: false, // <-- 추가
   })
+  const bodyData: any = {
+    id: formData.userId,
+    pwd: formData.password,
+    email: formData.email,
+    name: formData.lastName + " " + formData.firstName,
+    phone: formData.phone,
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+  }
+  
+  if (formData.registerCard) {
+    bodyData.paymentMethod = {
+      cardCompany: formData.cardCompany,
+      cardExpiry: formData.cardExpiry,
+      cardNumber: formData.cardNumber,
+      cardHolder: formData.cardHolder,
+    }
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -54,15 +73,7 @@ export default function MembershipJoin() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          id: formData.userId,
-          pwd: formData.password,
-          email: formData.email,
-          name: formData.lastName + " " + formData.firstName,
-          phone: formData.phone,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-        }),
+        body: JSON.stringify(bodyData),
       })
 
       if (!response.ok) {
@@ -219,7 +230,22 @@ export default function MembershipJoin() {
                   />
                 </div>
               </div>
-
+              <div className="mb-4 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="registerCard"
+                  name="registerCard"
+                  checked={formData.registerCard}
+                  onChange={handleInputChange}
+                  className="w-5 h-5"
+                />
+                <label htmlFor="registerCard" className="text-sm text-gray-700">
+                  결제 수단을 지금 등록하겠습니다
+                </label>
+              </div>
+              
+              
+            {formData.registerCard && (
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-4">결제수단</h3>
 
@@ -293,6 +319,7 @@ export default function MembershipJoin() {
                   </div>
                 </div>
               </div>
+              )}
 
               <div className="flex items-center gap-2 mb-8">
                 <input
@@ -306,9 +333,9 @@ export default function MembershipJoin() {
                 />
                 <label htmlFor="agreeTerms">
                   <span className="ml-2">
-                    <Link href="/terms" className="text-primary-color underline">
-                      이용약관
-                    </Link>{" "}
+                    
+                    이용약관
+                    
                     및{" "}
                     <Link href="/privacy" className="text-primary-color underline">
                       개인정보 처리방침

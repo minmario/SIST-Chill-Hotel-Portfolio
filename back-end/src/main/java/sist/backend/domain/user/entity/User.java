@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,10 +31,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import sist.backend.domain.shop.entity.Order;
+import sist.backend.global.common.BaseTimeEntity;
 import sist.backend.domain.shop.entity.Cart;
-import sist.backend.global.common.BaseTimeEntity;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import sist.backend.global.common.BaseTimeEntity;
 
 @Entity
 @Table(name = "users")
@@ -70,15 +71,12 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
-    
+
     @Column(length = 20)
     private String firstName;
-    
+
     @Column(length = 50)
     private String lastName;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
@@ -127,4 +125,11 @@ public class User extends BaseTimeEntity implements UserDetails {
     public boolean isEnabled() {
         return status == UserStatus.ACTIVE;
     }
+
+    @Column(length = 50)
+    private String englishFirstName;
+
+    @Column(length = 50)
+    private String englishLastName;
+
 }

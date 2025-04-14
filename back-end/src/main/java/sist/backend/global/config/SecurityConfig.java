@@ -1,4 +1,7 @@
 package sist.backend.global.config;
+
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,6 +13,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
 import lombok.RequiredArgsConstructor;
 import sist.backend.global.security.JwtAuthenticationFilter;
@@ -19,7 +24,7 @@ import sist.backend.global.security.JwtUtil;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    
+
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
@@ -30,26 +35,32 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/**").permitAll() // API는 누구나 접근 가능
-                .requestMatchers("/admin/**").authenticated() // 관리자만
-                .requestMatchers("/dining/**").permitAll()
-                .anyRequest().permitAll() // 그 외 모두 허용 (개발용)
-            )
-            .formLogin(Customizer.withDefaults()) // 기본 로그인 폼 사용
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
-            );
+                .cors(cors -> cors
+                        .configurationSource(request -> {
+                            CorsConfiguration config = new CorsConfiguration();
+                            config.setAllowedOrigins(List.of("http://localhost:3000"));
+                            config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+                            config.setAllowedHeaders(List.of("*"));
+                            config.setAllowCredentials(true);
+                            return config;
+                        }))
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/**").permitAll()
+                        .requestMatchers("/admin/**").authenticated()
+                        .anyRequest().permitAll())
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class) // ✅ 필터 추가
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/"));
 
         return http.build();
     }
-    
+
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 

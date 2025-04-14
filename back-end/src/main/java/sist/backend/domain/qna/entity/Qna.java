@@ -2,8 +2,7 @@ package sist.backend.domain.qna.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
+import sist.backend.global.common.BaseTimeEntity;
 
 @Entity
 @Table(name = "qna")
@@ -12,7 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Qna {
+public class Qna extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,20 +28,19 @@ public class Qna {
     @Column(columnDefinition = "TEXT")
     private String answer; // 답변 내용
 
-    private LocalDateTime writeDate; // 문의 작성일
-    private LocalDateTime answerDate; // 답변 작성일 (선택)
+    // ✅ 아래 두 필드는 삭제했어:
+    // private LocalDateTime writeDate;
+    // private LocalDateTime answerDate;
 
-    private LocalDateTime createdAt; // 엔티티 생성 시각
-    private LocalDateTime updatedAt; // 엔티티 수정 시각
+    // ✅ 아래 두 메서드도 삭제!
+    // @PrePersist
+    // protected void onCreate() {
+    // this.writeDate = LocalDateTime.now();
+    // }
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.writeDate = LocalDateTime.now();
-    }
+    // @PreUpdate
+    // protected void onUpdate() {
+    // this.updatedAt = LocalDateTime.now();
+    // }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 }
