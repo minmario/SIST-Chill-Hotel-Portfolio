@@ -5,6 +5,9 @@ try {
   // ignore error
 }
 
+// 개발 모드에서 모의 API 사용 여부 (true: 모의 API 사용, false: 실제 백엔드 API 사용)
+const USE_MOCK_API = false;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -23,6 +26,12 @@ const nextConfig = {
   },
   reactStrictMode: true,
   async rewrites() {
+    // 모의 API 사용 시 리다이렉트 비활성화
+    if (USE_MOCK_API) {
+      return [];
+    }
+    
+    // 실제 백엔드 API 사용 시 리다이렉트 활성화
     return [
       {
         source: '/api/:path*',

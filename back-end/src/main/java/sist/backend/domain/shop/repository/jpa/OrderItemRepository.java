@@ -10,4 +10,5 @@ import sist.backend.domain.shop.entity.*;
 @Repository
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
      List<OrderItem> findByOrderOrderIdx(Long orderIdx);
+     List<OrderItem> findByItemItemIdx(Long itemIdx);
  }

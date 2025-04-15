@@ -27,6 +27,8 @@ public class GiftShopServiceImpl implements GiftShopService {
     private final GiftShopRepository giftShopRepository;
     private final GiftShopQueryRepository giftShopQueryRepository;
     private final GiftShopMapper giftShopMapper;
+    private final CartItemRepository cartItemRepository;
+    private final OrderItemRepository orderItemRepository;
 
     @Override
     @Transactional
@@ -45,7 +47,12 @@ public class GiftShopServiceImpl implements GiftShopService {
 
     @Override
     public List<GiftShopResponseDTO> getAllProducts() {
+        log.info("모든 상품 조회 서비스 호출");
         List<GiftShop> giftShops = giftShopRepository.findAll();
+        log.info("상품 {} 개 조회됨", giftShops.size());
+        for (GiftShop shop : giftShops) {
+            log.debug("상품 정보: {}", shop);
+        }
         return giftShopMapper.toDtoList(giftShops);
     }
 
@@ -118,21 +125,23 @@ public class GiftShopServiceImpl implements GiftShopService {
     @Override
     @Transactional
     public GiftShopResponseDTO updateItem(Long itemIdx, GiftShopRequestDTO requestDto) {
-        GiftShop giftShop = giftShopRepository.findById(itemIdx)
+        GiftShop existingGiftShop = giftShopRepository.findById(itemIdx)
                 .orElseThrow(() -> new ResourceNotFoundException("상품을 찾을 수 없습니다: " + itemIdx));
         
-        // 엔티티 업데이트
-        giftShop = GiftShop.builder()
-                .itemIdx(giftShop.getItemIdx())
+        // 엔티티 업데이트 (기존 생성일자와 업데이트일자 유지)
+        GiftShop updatedGiftShop = GiftShop.builder()
+                .itemIdx(existingGiftShop.getItemIdx())
                 .itemName(requestDto.getItemName())
                 .description(requestDto.getDescription())
                 .price(requestDto.getPrice())
                 .stockQuantity(requestDto.getStockQuantity())
                 .category(requestDto.getCategory())
+                .createdAt(existingGiftShop.getCreatedAt()) // 기존 생성일자 유지
+                .updatedAt(java.time.LocalDateTime.now()) // 현재 시간으로 업데이트일자 설정
                 .build();
         
-        GiftShop updatedGiftShop = giftShopRepository.save(giftShop);
-        return giftShopMapper.toDto(updatedGiftShop);
+        GiftShop savedGiftShop = giftShopRepository.save(updatedGiftShop);
+        return giftShopMapper.toDto(savedGiftShop);
     }
 
     @Override
@@ -141,7 +150,29 @@ public class GiftShopServiceImpl implements GiftShopService {
         if (!giftShopRepository.existsById(itemIdx)) {
             throw new ResourceNotFoundException("상품을 찾을 수 없습니다: " + itemIdx);
         }
-        giftShopRepository.deleteById(itemIdx);
+        
+        try {
+            // 주문 아이템에서 해당 상품을 참조하는지 확인
+            List<OrderItem> orderItems = orderItemRepository.findByItemItemIdx(itemIdx);
+            if (!orderItems.isEmpty()) {
+                log.warn("상품 {}은(는) {} 개의 주문에서 사용 중이므로 삭제할 수 없습니다.", itemIdx, orderItems.size());
+                throw new IllegalStateException("이 상품은 주문 내역에 포함되어 있어 삭제할 수 없습니다. 상품 ID: " + itemIdx);
+            }
+            
+            // 해당 상품을 참조하는 장바구니 아이템을 먼저 삭제
+            cartItemRepository.deleteByItemItemIdx(itemIdx);
+            log.info("상품 {}와 연관된 장바구니 아이템 삭제 완료", itemIdx);
+            
+            // 상품 삭제
+            giftShopRepository.deleteById(itemIdx);
+            log.info("상품 {} 삭제 완료", itemIdx);
+        } catch (IllegalStateException e) {
+            // 주문에 포함된 상품 삭제 시도 시 발생하는 예외는 그대로 던짐
+            throw e;
+        } catch (Exception e) {
+            log.error("상품 삭제 중 오류 발생: {}", e.getMessage(), e);
+            throw new RuntimeException("상품 삭제 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
     }
 
     @Override
