@@ -19,6 +19,52 @@ interface Product {
   updatedAt: string;
 }
 
+// 카테고리 문자열 포맷 함수
+const formatCategory = (category: string): string => {
+  if (!category) return '기타';
+  
+  // 카테고리 경로에서 메인 카테고리와 서브 카테고리 추출
+  const segments = category.split('/');
+  
+  // 카테고리 표시 맵핑
+  const categoryMap: Record<string, string> = {
+    'signature': '시그니처 컬렉션',
+    'wellness': '힐링 & 웰니스 컬렉션',
+    'eco': '에코 & 지속가능한 라이프스타일',
+    'food': '휴식을 위한 식음료 제품',
+    'room': '객실 등급별 맞춤 컬렉션',
+    'memory': '메모리 & 컬렉터블 아이템',
+    // 서브 카테고리
+    'aroma': '아로마 & 디퓨저',
+    'bath': '목욕 제품',
+    'bedding': '침구 & 가운',
+    'meditation': '명상 & 요가',
+    'sleep': '수면 & 릴렉스',
+    'aromatherapy': '아로마테라피',
+    'eco-living': '친환경 생활용품',
+    'organic': '유기농 퍼스널 케어',
+    'travel': '지속가능한 여행용품',
+    'tea': '차 & 티웨어',
+    'organic-food': '유기농 식품',
+    'wine': '와인 & 음료',
+    'comfort': '컴포트 & 하모니 컬렉션',
+    'family': '패밀리 & 레이크 컬렉션',
+    'ultimate': '얼티메이트 컬렉션',
+    'photo': '포토 & 아트',
+    'miniature': '미니어처 & 피규어',
+    'seasonal': '시즌 & 한정판 컬렉션',
+  };
+  
+  if (segments.length === 1) {
+    return categoryMap[segments[0]] || segments[0];
+  }
+  
+  const mainCategory = categoryMap[segments[0]] || segments[0];
+  const subCategory = categoryMap[segments[1]] || segments[1];
+  
+  return `${mainCategory} > ${subCategory}`;
+};
+
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -103,7 +149,7 @@ export default function ProductDetailPage() {
         
         <div className="md:w-1/2">
           <h1 className="text-3xl font-bold mb-2">{product.itemName}</h1>
-          <p className="text-gray-600 mb-4">{product.category}</p>
+          <p className="text-gray-600 mb-4">{formatCategory(product.category)}</p>
           <p className="text-2xl font-bold mb-6">{Number(product.price).toLocaleString()}원</p>
           
           <div className="mb-6">
@@ -155,7 +201,7 @@ export default function ProductDetailPage() {
         <div className="border-t border-gray-200">
           <div className="py-3 flex border-b border-gray-200">
             <span className="w-1/3 font-semibold">카테고리</span>
-            <span className="w-2/3">{product.category}</span>
+            <span className="w-2/3">{formatCategory(product.category)}</span>
           </div>
           <div className="py-3 flex border-b border-gray-200">
             <span className="w-1/3 font-semibold">등록일</span>
