@@ -26,98 +26,98 @@ import sist.backend.domain.user.repository.UserRepository;
 @RequiredArgsConstructor
 public class ReservationService {
 
-    private final ReservationRepository reservationRepository;
-    private final RoomRepository roomRepository;
-    private final UserRepository userRepository;
-    private final RoomTypeRepository roomTypeRepository;
-    private final ReservationLookupResponse reservationLookupResponse;
+        private final ReservationRepository reservationRepository;
+        private final RoomRepository roomRepository;
+        private final UserRepository userRepository;
+        private final RoomTypeRepository roomTypeRepository;
 
-    public ReservationResponse getReservation(Long userIdx, String reservationNum) {
-        Reservation entity = reservationRepository.findByUser_UserIdxAndReservationNum(userIdx, reservationNum)
-                .orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다."));
-        return ReservationResponse.fromEntity(entity);
-    }
-    
-    public Long saveReservation(ReservationRequest request) {
-        User user = null;
+        public ReservationResponse getReservation(Long userIdx, String reservationNum) {
+                Reservation entity = reservationRepository.findByUser_UserIdxAndReservationNum(userIdx, reservationNum)
+                                .orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다."));
+                return ReservationResponse.fromEntity(entity);
+        }
 
-        if (request.getUserIdx() != null  && request.getUserIdx() != 0) {
-                user = userRepository.findByUserIdx(request.getUserIdx())
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            }
-        Room room = roomRepository.findById(request.getRoomIdx())
-                .orElseThrow(() -> new IllegalArgumentException("객실을 찾을 수 없습니다."));
+        public Long saveReservation(ReservationRequest request) {
+                User user = null;
 
-        RoomType roomType = roomTypeRepository.findById(request.getRoomTypesIdx())
-                .orElseThrow(() -> new IllegalArgumentException("객실 타입을 찾을 수 없습니다."));
+                if (request.getUserIdx() != null && request.getUserIdx() != 0) {
+                        user = userRepository.findByUserIdx(request.getUserIdx())
+                                        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                }
 
-        Reservation reservation = Reservation.builder()
-                .status(ReservationStatus.CONFIRMED)
-                .user(user)
-                .room(room)
-                .roomType(roomType)
-                .reservationNum(generateReservationCode())
-                .checkIn(LocalDate.parse(request.getCheckIn()))
-                .checkOut(LocalDate.parse(request.getCheckOut()))
-                .roomCount(request.getRoomCount())
-                .adultCount(request.getAdultCount())
-                .childCount(request.getChildCount())
-                .bedType(request.getBedType())
-                .specialRequests(request.getSpecialRequests())
-                .roomPrice(request.getRoomPrice())
-                .adultBreakfastPrice(request.getAdultBreakfastPrice())
-                .childBreakfastPrice(request.getChildBreakfastPrice())
-                .subtotal(request.getSubtotal())
-                .discount(request.getDiscount())
-                .total(request.getTotal())
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .cardNumber(request.getCardNumber())
-                .cardExpiry(request.getCardExpiry())
-                .build();
+                Room room = roomRepository.findById(request.getRoomIdx())
+                                .orElseThrow(() -> new IllegalArgumentException("객실을 찾을 수 없습니다."));
 
-        reservationRepository.save(reservation);
-        return reservation.getReservationIdx();
-    }
+                RoomType roomType = roomTypeRepository.findById(request.getRoomTypesIdx())
+                                .orElseThrow(() -> new IllegalArgumentException("객실 타입을 찾을 수 없습니다."));
 
-    private String generateReservationCode() {
-        return "LX" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-    }
-    
-    @Transactional(readOnly = true)
-    public ReservationLookupResponse getReservationByNumber(String reservationNum) {
-        Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
-                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
-        return toLookupDto(reservation); // ✅ 이걸 내부 메서드로 처리
-    }
+                Reservation reservation = Reservation.builder()
+                                .status(ReservationStatus.CONFIRMED)
+                                .user(user)
+                                .room(room)
+                                .roomType(roomType)
+                                .reservationNum(generateReservationCode())
+                                .checkIn(LocalDate.parse(request.getCheckIn()))
+                                .checkOut(LocalDate.parse(request.getCheckOut()))
+                                .roomCount(request.getRoomCount())
+                                .adultCount(request.getAdultCount())
+                                .childCount(request.getChildCount())
+                                .bedType(request.getBedType())
+                                .specialRequests(request.getSpecialRequests())
+                                .roomPrice(request.getRoomPrice())
+                                .adultBreakfastPrice(request.getAdultBreakfastPrice())
+                                .childBreakfastPrice(request.getChildBreakfastPrice())
+                                .subtotal(request.getSubtotal())
+                                .discount(request.getDiscount())
+                                .total(request.getTotal())
+                                .firstName(request.getFirstName())
+                                .lastName(request.getLastName())
+                                .email(request.getEmail())
+                                .phone(request.getPhone())
+                                .cardNumber(request.getCardNumber())
+                                .cardExpiry(request.getCardExpiry())
+                                .build();
 
-    @Transactional(readOnly = true)
-    public ReservationLookupResponse getReservationByGuest(String lastName, String firstName, String phone) {
-        Reservation reservation = reservationRepository
-                .findByLastNameAndFirstNameAndPhone(lastName, firstName, phone)
-                .orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다."));
-        return toLookupDto(reservation);
-    }
+                reservationRepository.save(reservation);
+                return reservation.getReservationIdx();
+        }
 
-    private ReservationLookupResponse toLookupDto(Reservation r) {
-    int nights = (int) ChronoUnit.DAYS.between(r.getCheckIn(), r.getCheckOut());
+        private String generateReservationCode() {
+                return "LX" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        }
 
-    return ReservationLookupResponse.builder()
-            .reservationNum(r.getReservationNum())
-            .fullName(r.getLastName() + r.getFirstName())
-            .phone(r.getPhone())
-            .email(r.getEmail())
-            .roomName(r.getRoom().getRoomType().getRoomName())
-            .roomGrade(r.getRoomType().getGrade())
-            .checkInDate(r.getCheckIn())
-            .checkOutDate(r.getCheckOut())
-            .adultCount(r.getAdultCount())
-            .childCount(r.getChildCount())
-            .totalNights(nights)
-            .totalPrice(r.getTotal())
-            .status(r.getStatus().toString())
-            .build();
-}
+        @Transactional(readOnly = true)
+        public ReservationLookupResponse getReservationByNumber(String reservationNum) {
+                Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
+                                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+                return toLookupDto(reservation);
+        }
+
+        @Transactional(readOnly = true)
+        public ReservationLookupResponse getReservationByGuest(String lastName, String firstName, String phone) {
+                Reservation reservation = reservationRepository
+                                .findByLastNameAndFirstNameAndPhone(lastName, firstName, phone)
+                                .orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다."));
+                return toLookupDto(reservation);
+        }
+
+        private ReservationLookupResponse toLookupDto(Reservation r) {
+                int nights = (int) ChronoUnit.DAYS.between(r.getCheckIn(), r.getCheckOut());
+
+                return ReservationLookupResponse.builder()
+                                .reservationNum(r.getReservationNum())
+                                .fullName(r.getLastName() + r.getFirstName())
+                                .phone(r.getPhone())
+                                .email(r.getEmail())
+                                .roomName(r.getRoom().getRoomType().getRoomName())
+                                .roomGrade(r.getRoomType().getGrade())
+                                .checkInDate(r.getCheckIn())
+                                .checkOutDate(r.getCheckOut())
+                                .adultCount(r.getAdultCount())
+                                .childCount(r.getChildCount())
+                                .totalNights(nights)
+                                .totalPrice(r.getTotal())
+                                .status(r.getStatus().toString())
+                                .build();
+        }
 }

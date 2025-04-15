@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class ReservationRequest {
+public class DiningReservationRequest {
 
     @NotNull
     private Long restaurantId;
@@ -23,9 +23,11 @@ public class ReservationRequest {
     private String reservationTime;
 
     @Min(1)
+    @Max(5)
     private int adults;
 
     @Min(0)
+    @Max(5)
     private int children;
 
     @NotBlank

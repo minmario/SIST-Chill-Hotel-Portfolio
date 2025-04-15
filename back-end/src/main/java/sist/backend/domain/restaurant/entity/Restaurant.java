@@ -23,9 +23,17 @@ public class Restaurant {
     private String name;
     private String location;
     private Integer capacity;
-
+    private String type;
+    private String description;
+    private String image;
     private LocalTime open;
     private LocalTime close;
+
+    @Column(name = "price_adult")
+    private Integer priceAdult;
+
+    @Column(name = "price_child")
+    private Integer priceChild;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
