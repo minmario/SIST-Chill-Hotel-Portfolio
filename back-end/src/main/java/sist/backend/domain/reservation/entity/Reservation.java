@@ -16,6 +16,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.NoArgsConstructor;
 import sist.backend.domain.room.entity.Room;
 import sist.backend.domain.room.entity.RoomType;
@@ -25,6 +26,7 @@ import sist.backend.domain.user.entity.User;
 @Entity
 @Table(name = "reservation")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder

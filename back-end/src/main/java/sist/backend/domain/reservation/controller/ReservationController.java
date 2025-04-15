@@ -39,4 +39,11 @@ public ResponseEntity<ReservationLookupResponse> getReservationByNumber(@Request
             reservationService.getReservationByGuest(lastName, firstName, phone)
         );
     }
+
+    @PostMapping("/cancel/{reservationNum}")
+public ResponseEntity<Void> cancelReservation(@PathVariable String reservationNum) {
+    reservationService.cancelReservation(reservationNum);
+    return ResponseEntity.ok().build();
+
+    }
 }

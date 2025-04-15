@@ -67,11 +67,11 @@ export default function AdminLayout({
       <AdminSidebar />
     </aside>
  
-    <section className="flex-1 bg-gray-100 min-h-screen">
+    <section className="flex-1 bg-gray-100 min-h-screen overflow-hidden">
       {/* ✅ 여기 추가 */}
       <AdminHeader/>
 
-      <main className="p-8">{children}</main>
+      <main className="flex-1 p-8 overflow-auto w-full">{children}</main>
     </section>
   </div>
   )

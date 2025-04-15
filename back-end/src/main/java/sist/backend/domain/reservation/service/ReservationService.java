@@ -30,7 +30,6 @@ public class ReservationService {
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
     private final RoomTypeRepository roomTypeRepository;
-    private final ReservationLookupResponse reservationLookupResponse;
 
     public ReservationResponse getReservation(Long userIdx, String reservationNum) {
         Reservation entity = reservationRepository.findByUser_UserIdxAndReservationNum(userIdx, reservationNum)
@@ -111,13 +110,20 @@ public class ReservationService {
             .email(r.getEmail())
             .roomName(r.getRoom().getRoomType().getRoomName())
             .roomGrade(r.getRoomType().getGrade())
-            .checkInDate(r.getCheckIn())
-            .checkOutDate(r.getCheckOut())
+            .checkIn(r.getCheckIn())
+            .checkOut(r.getCheckOut())
             .adultCount(r.getAdultCount())
             .childCount(r.getChildCount())
             .totalNights(nights)
             .totalPrice(r.getTotal())
             .status(r.getStatus().toString())
             .build();
+        }
+        @Transactional
+public void cancelReservation(String reservationNum) {
+    Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
+            .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+
+    reservation.setStatus(ReservationStatus.CANCELLED); // ENUM 업데이트
 }
 }

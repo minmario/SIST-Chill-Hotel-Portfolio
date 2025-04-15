@@ -24,7 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-
+                
         // 테스트용 하드코딩된 사용자 정보 (테스트 시에만 사용)
         String testUserEmail = "test@a.a";
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(testUserEmail);
@@ -34,7 +34,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 userDetails, null, userDetails.getAuthorities());
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
+        
+ 
         /* 실제 JWT 인증 로직 (현재는 주석 처리)
         String header = request.getHeader("Authorization");
         
