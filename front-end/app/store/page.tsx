@@ -81,10 +81,25 @@ export default function Store() {
   const [activeCategory, setActiveCategory] = useState("all")
   const [activeSubcategory, setActiveSubcategory] = useState("all")
   const [products, setProducts] = useState<Product[]>([])
+  const [allProducts, setAllProducts] = useState<Product[]>([]) // 모든 상품 데이터 저장
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortBy>(SortBy.NEWEST)
   const [sortDirection, setSortDirection] = useState<SortDirection>(SortDirection.DESC)
+
+  // 초기 로딩 시 모든 상품 가져오기
+  useEffect(() => {
+    const loadAllProducts = async () => {
+      try {
+        const data = await fetchProducts(sortBy, sortDirection)
+        setAllProducts(data)
+      } catch (err) {
+        console.error("모든 상품 로딩 오류:", err)
+      }
+    }
+    
+    loadAllProducts()
+  }, [sortBy, sortDirection])
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -100,19 +115,28 @@ export default function Store() {
           // 정렬 옵션을 포함하여 API 호출
           if (activeCategory !== "all") {
             // 서브카테고리가 선택된 경우 카테고리/서브카테고리 형식으로 조합하여 API 호출
-            let categoryParam = activeCategory
-            
             if (activeSubcategory !== "all") {
-              categoryParam = `${activeCategory}-${activeSubcategory}`
-            }
+              // 특정 서브카테고리 선택 - API로 직접 호출
+              const categoryParam = `${activeCategory}-${activeSubcategory}`
+              console.log(`조합된 카테고리 파라미터: ${categoryParam}`)
+              data = await fetchProductsByCategory(categoryParam, sortBy, sortDirection)
+            } else {
+              // 전체보기 선택 - 모든 상품에서 필터링
+              console.log(`${activeCategory} 카테고리 전체보기 필터링`)
+              data = allProducts.filter(product => 
+                product.category === activeCategory || 
+                product.category.startsWith(`${activeCategory}-`) || 
+                product.category.startsWith(`${activeCategory}/`)
+              )
               
-            console.log(`조합된 카테고리 파라미터: ${categoryParam}`)
-            data = await fetchProductsByCategory(categoryParam, sortBy, sortDirection)
+              // 정렬 적용
+              data = sortProducts(data, sortBy, sortDirection)
+            }
           } else {
             data = await fetchProducts(sortBy, sortDirection)
           }
           
-          console.log("받은 상품 데이터:", data)
+          console.log("받은 상품 데이터:", data ? data.length : 0, "개")
           
           // 백엔드에서 정렬이 제대로 작동하지 않는 경우를 대비해 클라이언트 측에서도 정렬 적용
           const sortedData = sortProducts(data, sortBy, sortDirection)
@@ -138,27 +162,55 @@ export default function Store() {
       }
     }
 
-    loadProducts()
-  }, [activeCategory, activeSubcategory, sortBy, sortDirection]) // 카테고리, 서브카테고리, 정렬 옵션이 변경될 때마다 상품 목록 다시 로드
+    // allProducts가 로드된 후 카테고리 필터링 수행
+    if (allProducts.length > 0 || activeCategory === "all" || activeSubcategory !== "all") {
+      loadProducts()
+    }
+  }, [activeCategory, activeSubcategory, sortBy, sortDirection, allProducts]) // 상품 정보가 변경될 때도 필터링
+
+  // 카테고리에 속하는지 확인하는 함수
+  const belongsToCategory = (productCategory: string, mainCategory: string): boolean => {
+    if (!productCategory) return false
+    
+    // 정확히 일치하는 경우
+    if (productCategory === mainCategory) return true
+    
+    // 하이픈(-) 또는 슬래시(/) 형식으로 시작하는 경우
+    if (productCategory.startsWith(`${mainCategory}-`) || 
+        productCategory.startsWith(`${mainCategory}/`)) {
+      return true
+    }
+    
+    // 문자열 자체에 카테고리가 포함된 경우 (DB 데이터 구조에 따라 필요 시)
+    if (productCategory.includes(mainCategory)) {
+      // 추가 검증 - 단순 부분 문자열 포함이 아닌 실제 카테고리명과 일치하는지
+      const possibleCategories = ['signature', 'wellness', 'eco', 'food', 'room', 'memory']
+      // 현재 선택된 카테고리가 아닌 다른 메인 카테고리명이 포함된 경우 제외
+      for (const cat of possibleCategories) {
+        if (cat !== mainCategory && productCategory.includes(cat)) {
+          return false
+        }
+      }
+      return true
+    }
+    
+    return false
+  }
 
   const filteredProducts = products.filter((product) => {
     if (activeCategory === "all") {
       return true // 전체 상품 선택 시 모든 상품 표시
     }
     
-    // 현재 카테고리 형식에 맞게 필터링
-    const categoryString = activeCategory
-    const subcategoryString = activeSubcategory !== "all" ? activeSubcategory : ""
-    
-    // 하이픈(-) 형식으로 변환된 카테고리 구조 체크
-    if (subcategoryString) {
-      return product.category === `${categoryString}-${subcategoryString}` || 
-             product.category === `${categoryString}/${subcategoryString}`
+    if (activeSubcategory === "all") {
+      // 전체보기 선택 시 해당 메인 카테고리의 모든 상품 표시
+      return belongsToCategory(product.category, activeCategory)
     }
     
-    return product.category === categoryString || 
-           product.category.startsWith(`${categoryString}-`) || 
-           product.category.startsWith(`${categoryString}/`)
+    // 서브카테고리까지 선택된 경우
+    // 하이픈(-) 또는 슬래시(/) 형식 모두 확인
+    return product.category === `${activeCategory}-${activeSubcategory}` || 
+           product.category === `${activeCategory}/${activeSubcategory}`
   })
 
   const currentCategory = categories.find((cat) => cat.id === activeCategory)
@@ -203,7 +255,7 @@ export default function Store() {
     return parts[parts.length - 1]
   }
 
-  if (loading) return <div className="container mx-auto p-4">상품 로딩 중...</div>
+  if (loading && products.length === 0) return <div className="container mx-auto p-4">상품 로딩 중...</div>
   if (error) return <div className="container mx-auto p-4 text-red-500">오류: {error}</div>
 
   return (
