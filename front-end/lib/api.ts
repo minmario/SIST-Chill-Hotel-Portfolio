@@ -88,18 +88,13 @@ export async function fetchProductById(productIdx: number): Promise<Product> {
 // 카테고리별 상품 조회
 export async function fetchProductsByCategory(category: string, sortBy?: SortBy, sortDirection?: SortDirection): Promise<Product[]> {
   try {
-    console.log(`카테고리로 상품 조회: ${category}`);
+    console.log(`카테고리로 상품 조회 시작: '${category}'`);
     
-    // URL 인코딩은 한 번만 적용하기 위해 이미 인코딩된 문자열인지 확인
-    const encodedCategory = category.includes('%') ? category : encodeURIComponent(category);
-    
-    // 슬래시(/)가 포함된 카테고리는 서버에서 처리 가능한 형식으로 변환
-    // URL에 슬래시가 포함되면 Spring에서 경로 변수로 해석하는 문제가 발생할 수 있음
-    const categoryParam = encodedCategory.replace(/%2F/g, '-');
-    
-    let url = `${API_BASE_URL}/gift-shop/category/${categoryParam}`;
+    // 카테고리 파라미터는 이미 적절히 구성됨 (하이픈 형식)
+    const categoryParam = category;
     
     // 정렬 옵션이 있는 경우 쿼리 파라미터 추가
+    let url = `${API_BASE_URL}/gift-shop/category/${categoryParam}`;
     if (sortBy && sortDirection) {
       url += `?sortBy=${sortBy}&sortDirection=${sortDirection}`;
     }
@@ -112,8 +107,7 @@ export async function fetchProductsByCategory(category: string, sortBy?: SortBy,
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      credentials: 'include',
-      mode: 'cors'
+      credentials: 'include'  // 기존과 일관성을 위해 include로 유지
     });
     
     if (!response.ok) {
@@ -123,10 +117,16 @@ export async function fetchProductsByCategory(category: string, sortBy?: SortBy,
     }
     
     const data = await response.json();
-    console.log(`카테고리 ${category}의 상품 수: ${data.length}`);
+    console.log(`카테고리 '${category}' 조회 성공: ${data.length}개 상품`);
+    
+    // 디버깅을 위한 첫 번째 상품 정보 출력
+    if (data.length > 0) {
+      console.log(`첫 번째 상품: ${data[0].itemName}, 카테고리: ${data[0].category}`);
+    }
+    
     return data;
   } catch (error) {
-    console.error('Error fetching products by category:', error);
+    console.error('카테고리별 상품 조회 중 오류 발생:', error);
     throw error;
   }
 }

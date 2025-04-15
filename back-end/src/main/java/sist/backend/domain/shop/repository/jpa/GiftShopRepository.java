@@ -10,5 +10,6 @@ import sist.backend.domain.shop.entity.*;
 @Repository
 public interface GiftShopRepository extends JpaRepository<GiftShop, Long> {
     List<GiftShop> findByCategory(String category);
+    List<GiftShop> findByCategoryStartingWith(String categoryPrefix);
     List<GiftShop> findByItemNameContaining(String keyword);
 }

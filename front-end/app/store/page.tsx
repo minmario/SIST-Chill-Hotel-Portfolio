@@ -118,19 +118,52 @@ export default function Store() {
             if (activeSubcategory !== "all") {
               // 특정 서브카테고리 선택 - API로 직접 호출
               const categoryParam = `${activeCategory}-${activeSubcategory}`
-              console.log(`조합된 카테고리 파라미터: ${categoryParam}`)
-              data = await fetchProductsByCategory(categoryParam, sortBy, sortDirection)
-            } else {
-              // 전체보기 선택 - 모든 상품에서 필터링
-              console.log(`${activeCategory} 카테고리 전체보기 필터링`)
-              data = allProducts.filter(product => 
-                product.category === activeCategory || 
-                product.category.startsWith(`${activeCategory}-`) || 
-                product.category.startsWith(`${activeCategory}/`)
-              )
+              console.log(`조합된 카테고리 파라미터: ${categoryParam} (하이픈 형식)`)
               
-              // 정렬 적용
-              data = sortProducts(data, sortBy, sortDirection)
+              try {
+                console.log(`서브카테고리 API 호출 시작 - 파라미터: ${categoryParam}, 정렬: ${sortBy}, ${sortDirection}`)
+                data = await fetchProductsByCategory(categoryParam, sortBy, sortDirection)
+                console.log(`서브카테고리 API 응답: ${data.length} 개 상품, 첫 번째 상품 카테고리: ${data.length > 0 ? data[0].category : '없음'}`)
+              } catch (apiError) {
+                console.error(`서브카테고리 API 오류:`, apiError)
+                // 오류 발생 시 클라이언트 필터링으로 대체
+                console.log(`전체 상품에서 클라이언트 필터링으로 대체`)
+                data = allProducts.filter((product) => {
+                  // 하이픈 형식과 슬래시 형식 모두 확인
+                  const categoryMatch = product.category === categoryParam || 
+                                      product.category === categoryParam.replace('-', '/');
+                  if (categoryMatch && product.category) {
+                    console.log(`일치하는 상품 발견: ${product.itemName}, 카테고리: ${product.category}`);
+                  }
+                  return categoryMatch;
+                })
+                console.log(`클라이언트 필터링 결과: ${data.length} 개 상품`)
+              }
+            } else {
+              // 전체보기 선택 - 서버에서 접두어 검색으로 조회
+              console.log(`${activeCategory} 카테고리 전체보기 API 호출 - 정렬: ${sortBy}, ${sortDirection}`)
+              
+              try {
+                data = await fetchProductsByCategory(activeCategory, sortBy, sortDirection)
+                console.log(`카테고리 전체보기 API 응답: ${data.length} 개 상품`)
+                if (data.length > 0) {
+                  console.log(`첫 번째 상품: ${data[0].itemName}, 카테고리: ${data[0].category}`)
+                }
+              } catch (apiError) {
+                console.error(`카테고리 API 오류:`, apiError)
+                // 오류 발생 시 클라이언트 필터링으로 대체
+                console.log(`전체 상품에서 클라이언트 필터링으로 대체`)
+                data = allProducts.filter((product) => {
+                  const categoryMatch = product.category === activeCategory || 
+                                      product.category.startsWith(`${activeCategory}-`) || 
+                                      product.category.startsWith(`${activeCategory}/`);
+                  if (categoryMatch && product.category) {
+                    console.log(`일치하는 상품 발견: ${product.itemName}, 카테고리: ${product.category}`);
+                  }
+                  return categoryMatch;
+                })
+                console.log(`클라이언트 필터링 결과: ${data.length} 개 상품`)
+              }
             }
           } else {
             data = await fetchProducts(sortBy, sortDirection)
@@ -166,7 +199,7 @@ export default function Store() {
     if (allProducts.length > 0 || activeCategory === "all" || activeSubcategory !== "all") {
       loadProducts()
     }
-  }, [activeCategory, activeSubcategory, sortBy, sortDirection, allProducts]) // 상품 정보가 변경될 때도 필터링
+  }, [activeCategory, activeSubcategory, sortBy, sortDirection, allProducts])
 
   // 카테고리에 속하는지 확인하는 함수
   const belongsToCategory = (productCategory: string, mainCategory: string): boolean => {
