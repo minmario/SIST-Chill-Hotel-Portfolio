@@ -583,7 +583,7 @@ export default function ReservationsPage() {
                               return (
                                 <td
                                   key={day.toString()}
-                                  className={`p-0 border border-gray-100 ${reservation ? getStatusColorClass(reservation.status) : "bg-white"}`}
+                                  className={`p-0 box-border border-gray-100 ${reservation ? getStatusColorClass(reservation.status) : "bg-white"}`}
                                   onClick={() => reservation && viewReservationDetails(reservation)}
                                 >
                                   {reservation && (

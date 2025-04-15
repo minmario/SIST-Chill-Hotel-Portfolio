@@ -33,11 +33,7 @@ public class Membership extends BaseTimeEntity {
 
     @Column(unique = true, nullable = false, length = 20)
     private String membershipNumber;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_idx", nullable = false)
-    private User user;
-
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MembershipTier tier;

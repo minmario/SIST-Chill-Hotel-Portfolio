@@ -80,6 +80,9 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "membership_idx")
+    private Long membershipIdx;
+    
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Order> orders = new ArrayList<>();

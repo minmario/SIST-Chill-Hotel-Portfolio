@@ -135,4 +135,9 @@ public class Reservation {
         return !now.isBefore(checkIn) && !now.isAfter(checkOut)
                 && status == ReservationStatus.CONFIRMED;
     }
+
+    public String getContact() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getContact'");
+    }
 }

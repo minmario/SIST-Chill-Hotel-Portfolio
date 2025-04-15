@@ -48,5 +48,4 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     @Transactional
     @Query("UPDATE Reservation r SET r.status = 'CANCELLED' WHERE r.reservationNum = :reservationNum")
     void cancelReservationByNum(@Param("reservationNum") String reservationNum);
-        
 }
