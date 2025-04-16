@@ -66,45 +66,50 @@ export default function DiningPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {restaurants.map((restaurant) => (
-            <div key={restaurant.id} className="border rounded-lg shadow-md overflow-hidden">
-              <div className="relative w-full h-64">
-                <Image
-                  src={restaurant.image || "/placeholder.svg"}
-                  alt={restaurant.name}
-                  fill
-                  style={{ objectFit: "cover" }}
-                />
-              </div>
-              <div className="p-6">
-                <h2 className="text-xl font-semibold mb-2">{restaurant.name}</h2>
-                <p className="text-sm text-gray-500 mb-2">{restaurant.type}</p>
-                <p className="text-sm text-gray-600 mb-4">{restaurant.description}</p>
-
-                {/* ✅ 호텔 추가 정보 */}
-                <ul className="text-sm text-gray-700 space-y-1 mb-4">
-                  <li><strong>위치:</strong> {restaurant.location}</li>
-                  <li><strong>좌석 수:</strong> {restaurant.capacity}석</li>
-                  <li>
-                    <strong>운영시간:</strong>{" "}
-                    {restaurant.breakfastOpen && <>아침 {restaurant.breakfastOpen}~{restaurant.breakfastClose} </>}
-                    {restaurant.lunchOpen && <>점심 {restaurant.lunchOpen}~{restaurant.lunchClose} </>}
-                    {restaurant.dinnerOpen && <>저녁 {restaurant.dinnerOpen}~{restaurant.dinnerClose}</>}
-                  </li>
-                  {restaurant.price && (
-                    <li>
-                      <strong>가격:</strong> 성인 {restaurant.price.adult.toLocaleString()}원 / 어린이 {restaurant.price.child.toLocaleString()}원
-                    </li>
-                  )}
-                </ul>
-
-                <Link
-                  href={`/dining/reserve/${restaurant.id}`}
-                  className="inline-block mt-2 px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600"
-                >
-                  예약하기
-                </Link>
-              </div>
+            <div key={restaurant.id} className="relative border rounded-lg shadow-md overflow-hidden">
+            <div className="relative w-full h-64">
+              <Image
+                src={restaurant.image || "/placeholder.svg"}
+                alt={restaurant.name}
+                fill
+                style={{ objectFit: "cover" }}
+              />
             </div>
+          
+            <div className="p-6 pb-16"> {/* 아래 버튼 공간 확보 */}
+              <h2 className="text-xl font-semibold mb-2">{restaurant.name}</h2>
+              <p className="inline-block px-3 py-1 text-xs text-gray-700 bg-gray-200 rounded-full mb-2">
+              {restaurant.type}
+              </p>
+              <p className="text-sm text-gray-600 mb-4">{restaurant.description}</p>
+          
+              {/* ✅ 호텔 추가 정보 */}
+              <ul className="text-sm text-gray-700 space-y-1 mb-4">
+                <li><strong>위치:</strong> {restaurant.location}</li>
+                <li><strong>좌석 수:</strong> {restaurant.capacity}석</li>
+                <li>
+                  <strong>운영시간:</strong>{" "}
+                  {restaurant.breakfastOpen && <>아침 {restaurant.breakfastOpen.slice(0, 5)}~{restaurant.breakfastClose?.slice(0, 5)} </>}
+                  {restaurant.lunchOpen && <>점심 {restaurant.lunchOpen.slice(0, 5)}~{restaurant.lunchClose?.slice(0, 5)} </>}
+                  {restaurant.dinnerOpen && <>저녁 {restaurant.dinnerOpen.slice(0, 5)}~{restaurant.dinnerClose?.slice(0, 5)}</>}
+                </li>
+                {restaurant.price && (
+                  <li>
+                    <strong>가격:</strong> 성인 {restaurant.price.adult.toLocaleString()}원 / 어린이 {restaurant.price.child.toLocaleString()}원
+                  </li>
+                )}
+              </ul>
+            </div>
+          
+            {/* 왼쪽 하단 고정된 버튼 */}
+            <Link
+              href={`/dining/reserve/${restaurant.id}`}
+              className="absolute bottom-4 left-4 w-80 mx-auto px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600 text-center"
+            >
+              예약하기
+            </Link>
+          </div>
+          
           ))}
         </div>
       )}
