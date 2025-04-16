@@ -129,8 +129,8 @@ export default function ItemsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null)
-  const [sortField, setSortField] = useState<string>("createdAt") // 정렬 필드 추가: createdAt, price, stockQuantity
-  const [sortDirection, setSortDirection] = useState<string>("desc") // 정렬 방향 추가: asc, desc
+  const [sortField, setSortField] = useState<string>("itemIdx") // 기본 정렬 필드를 itemIdx로 변경
+  const [sortDirection, setSortDirection] = useState<string>("desc") // 내림차순 정렬
 
   // 선택된 항목 관리
   const [selectedItems, setSelectedItems] = useState<number[]>([])
@@ -187,6 +187,10 @@ export default function ItemsPage() {
       case "itemName":
         valueA = a.itemName;
         valueB = b.itemName;
+        break;
+      case "itemIdx":
+        valueA = a.itemIdx;
+        valueB = b.itemIdx;
         break;
       case "createdAt":
       default:
@@ -672,7 +676,11 @@ export default function ItemsPage() {
                     )}
                   </div>
                 </TableHead>
-                <TableHead className="w-[80px]">ID</TableHead>
+                <TableHead className="w-[80px]">
+                  <div className="flex items-center cursor-pointer" onClick={() => handleSortFieldChange("itemIdx")}>
+                    ID {renderSortIcon("itemIdx")}
+                  </div>
+                </TableHead>
                 <TableHead>
                   <div className="flex items-center cursor-pointer" onClick={() => handleSortFieldChange("itemName")}>
                     상품명 {renderSortIcon("itemName")}
