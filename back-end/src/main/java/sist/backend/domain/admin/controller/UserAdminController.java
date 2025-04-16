@@ -4,7 +4,8 @@ import lombok.RequiredArgsConstructor;
 import sist.backend.domain.admin.dto.response.TotalUserDailyChangeResponse;
 import sist.backend.domain.admin.dto.response.UserDailyChangeResponse;
 import sist.backend.domain.admin.dto.response.UserResponse;
-import sist.backend.domain.admin.service.service.UserService;
+import sist.backend.domain.admin.service.service.UserAdminService;
+
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,41 +21,42 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
-public class UserController {
+public class UserAdminController {
 
-    private final UserService userService;
+    private final UserAdminService userAdminService;
 
     /** 전체 회원 수 반환 */
     @GetMapping("/count")
     public ResponseEntity<Long> getTotalUsers() {
-        return ResponseEntity.ok(userService.getTotalUserCount());
+        return ResponseEntity.ok(userAdminService.getTotalUserCount());
     }
 
     /** 최근 7일 이내 가입자 목록 반환 */
     @GetMapping("/recent")
     public ResponseEntity<List<UserResponse>> getRecentUsers() {
-        return ResponseEntity.ok(userService.getRecentUsers());
+        return ResponseEntity.ok(userAdminService.getRecentUsers());
     }
 
     /** staff 권한 회원 수 반환 */
     @GetMapping("/staff-count")
     public ResponseEntity<Long> getStaffCount() {
-        return ResponseEntity.ok(userService.getStaffCount());
+        return ResponseEntity.ok(userAdminService.getStaffCount());
     }
 
     @GetMapping("/daily-change")
     public ResponseEntity<UserDailyChangeResponse> getDailyUserChange() {
-        return ResponseEntity.ok(userService.getDailyUserChange());
+        return ResponseEntity.ok(userAdminService.getDailyUserChange());
     }
 
     @GetMapping("/daily-total-change")
     public ResponseEntity<TotalUserDailyChangeResponse> getDailyTotalUserChange() {
-        return ResponseEntity.ok(userService.getDailyTotalUserChange());
+        return ResponseEntity.ok(userAdminService.getDailyTotalUserChange());
     }
 
     @GetMapping("/daily-staff-change")
     public ResponseEntity<UserDailyChangeResponse> getDailyNewStaffChange() {
-        return ResponseEntity.ok(userService.getDailyNewStaffChange());
+        return ResponseEntity.ok(userAdminService.getDailyNewStaffChange());
     }
+    
 
 }

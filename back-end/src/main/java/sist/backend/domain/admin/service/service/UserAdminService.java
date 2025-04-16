@@ -8,7 +8,7 @@ import sist.backend.domain.admin.dto.response.TotalUserDailyChangeResponse;
 import sist.backend.domain.admin.dto.response.UserDailyChangeResponse;
 import sist.backend.domain.admin.dto.response.UserResponse;
 
-public interface UserService {
+public interface UserAdminService {
     void registerStaff(UserRegisterRequest request);
 
     /** 전체 회원 수 조회 */
@@ -25,5 +25,7 @@ public interface UserService {
     TotalUserDailyChangeResponse getDailyTotalUserChange();
 
     UserDailyChangeResponse getDailyNewStaffChange();
+    
 
 }
+

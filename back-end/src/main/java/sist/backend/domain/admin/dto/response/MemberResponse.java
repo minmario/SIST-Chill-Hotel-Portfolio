@@ -1,4 +1,4 @@
-package sist.backend.domain.membership.dto;
+package sist.backend.domain.admin.dto.response;
 
 import java.time.LocalDateTime;
 

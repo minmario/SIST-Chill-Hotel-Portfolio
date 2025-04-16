@@ -1,16 +1,16 @@
-package sist.backend.domain.membership.service.impl;
+package sist.backend.domain.admin.service.impl;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import sist.backend.domain.membership.dto.MemberResponse;
+import sist.backend.domain.admin.dto.response.MemberResponse;
+import sist.backend.domain.admin.service.service.MemberService;
 import sist.backend.domain.membership.entity.Membership;
 import sist.backend.domain.membership.repository.MembershipRepository;
 import sist.backend.domain.membership.repository.PointTransactionRepository;
-import sist.backend.domain.membership.service.interfaces.MemberService;
-
+import sist.backend.domain.user.entity.UserStatus;
 import sist.backend.domain.user.repository.UserRepository;
 
 @Service
@@ -42,6 +42,15 @@ public class MemberServiceImpl implements MemberService {
 
     private String calculateTierFromDB(int point) {
         List<Membership> candidates = membershipRepository.findAvailableTiersByPoint(point);
-        return candidates.isEmpty() ? "BROWN" : candidates.get(0).getTier().name();
+        return candidates.isEmpty() ? "BRONZE" : candidates.get(0).getTier().name();
     }
+    
+    @Override
+    public void updateUserStatus(String userId, String status) {
+    var user = userRepository.findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    user.setStatus(UserStatus.valueOf(status.toUpperCase()));
+    userRepository.save(user);
+    }
+
 }

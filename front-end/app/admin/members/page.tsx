@@ -64,6 +64,21 @@ export default function MembersPage() {
       member.name.includes(searchTerm) || member.email.includes(searchTerm) || member.phone.includes(searchTerm),
   )
 
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 7; // 한 페이지에 보여줄 회원 수
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentMembers = filteredMembers.slice(indexOfFirst, indexOfLast);
+
+  // 전체 페이지 수 계산
+  const totalPages = Math.max(1, Math.ceil(filteredMembers.length / itemsPerPage));
+
+  // 검색어가 바뀌면 1페이지로 이동
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   // 회원 수정 다이얼로그 열기
   const openEditDialog = (member: Member) => {
     setSelectedMember(member)
@@ -140,7 +155,7 @@ export default function MembersPage() {
         return "text-yellow-500"
       case "SILVER":
         return "text-gray-500"
-      case "BROWN":
+      case "BRONZE":
         return "text-amber-700"
       default:
         return ""
@@ -183,8 +198,8 @@ export default function MembersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredMembers.length > 0 ? (
-                filteredMembers.map((member) => (
+              {currentMembers.length > 0 ? (
+                currentMembers.map((member) => (
                   <TableRow key={member.id}>
                     <TableCell className="font-medium">{member.name}</TableCell>
                     <TableCell>{member.email}</TableCell>
@@ -240,6 +255,35 @@ export default function MembersPage() {
         </CardContent>
       </Card>
 
+      {/* 페이지네이션 버튼 */}
+      <div className="flex justify-center mt-4 gap-2 items-center">
+        <Button onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}>
+          이전
+        </Button>
+        {/* 숫자 버튼 */}
+        {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+          <Button
+            key={pageNum}
+            variant={pageNum === currentPage ? "default" : "outline"}
+            size="sm"
+            className={
+              pageNum === currentPage
+                ? "font-bold bg-black text-white hover:bg-black"
+                : ""
+            }
+            onClick={() => setCurrentPage(pageNum)}
+          >
+            {pageNum}
+          </Button>
+        ))}
+        <Button
+          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          disabled={currentPage === totalPages}
+        >
+          다음
+        </Button>
+      </div>
+
       {/* 회원 수정 다이얼로그 */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -258,6 +302,31 @@ export default function MembersPage() {
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                 className="col-span-3"
               />
+            </div>
+            {/* 상태 변경 드롭다운 */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="status" className="text-right">
+                상태
+              </Label>
+              <select
+                id="status"
+                value={editForm.status}
+                onChange={async (e) => {
+                  const newStatus = e.target.value as "active" | "inactive";
+                  setEditForm({ ...editForm, status: newStatus });
+                  if (selectedMember) {
+                    await fetch(`/api/admin/members/${selectedMember.id}`, {
+                      method: "PUT",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ ...selectedMember, status: newStatus }),
+                    });
+                  }
+                }}
+                className="col-span-3 border rounded px-2 py-1"
+              >
+                <option value="active">활성</option>
+                <option value="inactive">비활성</option>
+              </select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="email" className="text-right">
@@ -308,7 +377,7 @@ export default function MembersPage() {
                 <option value="DIAMOND">DIAMOND</option>
                 <option value="GOLD">GOLD</option>
                 <option value="SILVER">SILVER</option>
-                <option value="BROWN">BROWN</option>
+                <option value="BRONZE">BRONZE</option>
               </select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
