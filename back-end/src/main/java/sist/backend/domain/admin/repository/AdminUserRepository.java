@@ -30,5 +30,5 @@ public interface AdminUserRepository extends JpaRepository<User, Long> {
     long countByCreatedAtBefore(LocalDateTime dateTime);
 
     long countByRoleAndCreatedAtBetween(UserRole role, LocalDateTime start, LocalDateTime end);
-
+    List<User> findByRoleIn(List<UserRole> roles);
 }

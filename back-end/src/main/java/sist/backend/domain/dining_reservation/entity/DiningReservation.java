@@ -33,7 +33,7 @@ public class DiningReservation {
     @Column(name = "meal_time", length = 10)
     private String mealTime;
 
-    @Column(name = "reservation_time", length = 10)
+    @Column(name = "reservation_time", length = 20)
     private String reservationTime;
 
     private int adults;

@@ -17,4 +17,5 @@ public class MemberResponse {
     private String status;
     private String membershipLevel;
     private int points;
+    private String role;
 }

@@ -31,11 +31,12 @@ public class MemberServiceImpl implements MemberService {
                     .name(user.getName())
                     .email(user.getEmail())
                     .phone(user.getPhone())
-                    .createdAt(user.getCreatedAt()) // ✅ 추가
-                    .updatedAt(user.getUpdatedAt()) // ✅ 추가
+                    .createdAt(user.getCreatedAt()) // 
+                    .updatedAt(user.getUpdatedAt()) // 
                     .status(user.getStatus().name().toLowerCase())
                     .membershipLevel(tier)
                     .points(totalPoints)
+                    .role(user.getRole() != null ? user.getRole().name() : null)
                     .build();
         }).toList();
     }
