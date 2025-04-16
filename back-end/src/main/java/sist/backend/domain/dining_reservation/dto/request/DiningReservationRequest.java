@@ -1,4 +1,4 @@
-package sist.backend.domain.dining_reservation.dto;
+package sist.backend.domain.dining_reservation.dto.request;
 
 import jakarta.validation.constraints.*;
 import lombok.Getter;

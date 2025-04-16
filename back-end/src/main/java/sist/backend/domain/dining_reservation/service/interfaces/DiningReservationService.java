@@ -2,13 +2,19 @@ package sist.backend.domain.dining_reservation.service.interfaces;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import sist.backend.domain.dining_reservation.dto.DiningReservationRequest;
+import org.springframework.transaction.annotation.Transactional;
+
+import sist.backend.domain.dining_reservation.dto.request.DiningReservationRequest;
+import sist.backend.domain.dining_reservation.dto.response.DiningReservationResponse;
 import sist.backend.domain.dining_reservation.entity.DiningReservation;
 import sist.backend.domain.dining_reservation.repository.jpa.DiningReservationRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,9 +29,6 @@ public class DiningReservationService {
         if (requestedTotal < 1 || requestedTotal > 5) {
             throw new IllegalArgumentException("예약 인원은 최소 1명 이상, 최대 5명까지 가능합니다.");
         }
-
-        // 🔽 여기에서 LocalTime으로 변환
-        // LocalTime parsedTime = LocalTime.parse(reservation.getReservationTime());
 
         // 2. 시간대별 누적 인원 제한
         int alreadyReserved = reservationRepository.countPeopleByRestaurantIdAndReservationDateAndReservationTime(
@@ -65,5 +68,23 @@ public class DiningReservationService {
                 .email(dto.getEmail())
                 .request(dto.getRequest())
                 .build();
+    }
+
+    @Transactional
+    public void updateReservationStatus(Long id, String status) {
+        DiningReservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 예약이 존재하지 않습니다."));
+
+        reservation.setStatus(status);
+        reservation.setUpdatedAt(LocalDateTime.now());
+    }
+
+    public List<DiningReservationResponse> getReservationsByDate(String date) {
+        LocalDate parsedDate = LocalDate.parse(date); // "2025-04-17" 형식
+        List<DiningReservation> reservations = reservationRepository.findByReservationDate(parsedDate);
+
+        return reservations.stream()
+                .map(DiningReservationResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 }

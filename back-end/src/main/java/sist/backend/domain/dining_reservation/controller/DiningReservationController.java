@@ -1,7 +1,7 @@
 package sist.backend.domain.dining_reservation.controller;
 
 import lombok.RequiredArgsConstructor;
-import sist.backend.domain.dining_reservation.dto.DiningReservationRequest;
+import sist.backend.domain.dining_reservation.dto.request.DiningReservationRequest;
 import sist.backend.domain.dining_reservation.entity.DiningReservation;
 import sist.backend.domain.dining_reservation.service.interfaces.DiningReservationService;
 

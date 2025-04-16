@@ -2,9 +2,11 @@ package sist.backend.domain.restaurant.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "restaurants")
@@ -20,26 +22,20 @@ public class Restaurant {
     @Column(name = "restaurants_idx")
     private Long restaurantsIdx;
 
+    @Column(nullable = false, length = 100)
     private String name;
-    private String location;
-    private Integer capacity;
+
+    @Column(length = 255)
     private String type;
+
+    @Column(length = 255)
     private String description;
+
+    @Column(length = 255)
     private String image;
-    private LocalTime open;
-    private LocalTime close;
 
-    @Column(name = "price_adult")
-    private Integer priceAdult;
-
-    @Column(name = "price_child")
-    private Integer priceChild;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Column(length = 255)
+    private String location;
 
     @Column(name = "breakfast_open")
     private LocalTime breakfastOpen;
@@ -58,4 +54,27 @@ public class Restaurant {
 
     @Column(name = "dinner_close")
     private LocalTime dinnerClose;
+
+    @Column
+    private LocalTime open;
+
+    @Column
+    private LocalTime close;
+
+    @Column(name = "price_adult")
+    private Integer priceAdult;
+
+    @Column(name = "price_child")
+    private Integer priceChild;
+
+    @Column
+    private Integer capacity;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
