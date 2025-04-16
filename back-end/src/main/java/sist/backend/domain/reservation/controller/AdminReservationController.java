@@ -30,11 +30,12 @@ public class AdminReservationController {
     AdminReservationResponse response = reservationService.getReservationDetail(reservationNum);
     return ResponseEntity.ok(response);
     }
-    @PatchMapping("/{reservationNum}/status")
+    @PostMapping("/{reservationNum}/status")
     public ResponseEntity<Void> updateReservationStatus(
             @PathVariable String reservationNum,
             @RequestBody ReservationStatusUpdateRequest request
     ) {
+        System.out.println("pacth호출됨");
         reservationService.updateReservationStatus(reservationNum, request.getStatus());
         return ResponseEntity.ok().build();
     }

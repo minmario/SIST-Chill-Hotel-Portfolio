@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect } from "react"
 
 import { useState } from "react"
 import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns"
@@ -15,306 +15,72 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Badge } from "@/components/ui/badge"
 
 // 객실 타입 정의
+type StatusValue = "CONFIRMED" | "CHECKED_IN" | "COMPLETED" | "CANCELLED"
 type Room = {
-  id: string
-  number: string
-  type: string
-  floor: string
-  category: string
+  roomIdx: number;      // 객실 고유 번호
+  roomNum: string;      // 객실 번호
+  roomTypeIdx: number;  // 객실 타입(카테고리) 고유 번호
+};
+interface Reservation {
+  reservationNum: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  status: string;
+  checkIn: string;
+  checkOut: string;
+  roomCount: number;
+  adultCount: number;
+  childCount: number;
+  roomNumber: string;
+  roomTypeName: string;
+  roomGrade: string;
+  total: number;
+  specialRequests: string;
 }
 
-// 예약 타입 정의
-type Reservation = {
-  id: string
-  roomId: string
-  guestName: string
-  checkIn: string
-  checkOut: string
-  status: "confirmed" | "pending" | "cancelled" | "checked-in" | "checked-out"
-  guestCount: number
-  contact: string
-  specialRequests?: string
-  email?: string
-  paymentStatus?: "paid" | "pending" | "refunded"
-  totalAmount?: number
-  diningReservations?: Array<{
-    id: number
-    restaurant: string
-    date: string
-    time: string
-    people: number
-  }>
-  giftShopPurchases?: Array<{
-    id: number
-    item: string
-    price: number
-    date: string
-  }>
-}
 
-// 기프트샵 주문 타입 정의
-type GiftShopOrder = {
-  id: string
-  orderId: string
-  guestName: string
-  roomId?: string
-  items: Array<{
-    id: number
-    name: string
-    price: number
-    quantity: number
-    imageUrl?: string
-  }>
-  orderDate: string
-  totalAmount: number
-  status: "pending" | "ready" | "delivered" | "cancelled"
-  paymentMethod: "room-charge" | "credit-card" | "cash"
-  deliveryOption: "room-delivery" | "pickup"
-  deliveryTime?: string
-  specialInstructions?: string
-  contactNumber: string
-}
-
-// 더미 객실 데이터
-const rooms: Room[] = [
-  // 스탠다드 객실 (1층)
-  { id: "101", number: "101", type: "스탠다드", floor: "1층", category: "스탠다드" },
-  { id: "102", number: "102", type: "스탠다드", floor: "1층", category: "스탠다드" },
-  { id: "103", number: "103", type: "스탠다드", floor: "1층", category: "스탠다드" },
-  { id: "104", number: "104", type: "스탠다드", floor: "1층", category: "스탠다드" },
-
-  // 디럭스 객실 (2층)
-  { id: "201", number: "201", type: "디럭스", floor: "2층", category: "디럭스" },
-  { id: "202", number: "202", type: "디럭스", floor: "2층", category: "디럭스" },
-  { id: "203", number: "203", type: "디럭스", floor: "2층", category: "디럭스" },
-  { id: "204", number: "204", type: "디럭스", floor: "2층", category: "디럭스" },
-  { id: "205", number: "205", type: "디럭스", floor: "2층", category: "디럭스" },
-  { id: "206", number: "206", type: "디럭스", floor: "2층", category: "디럭스" },
-
-  // 디럭스 더블 객실 (3층)
-  { id: "301", number: "301", type: "디럭스 더블", floor: "3층", category: "디럭스 더블" },
-  { id: "302", number: "302", type: "디럭스 더블", floor: "3층", category: "디럭스 더블" },
-  { id: "303", number: "303", type: "디럭스 더블", floor: "3층", category: "디럭스 더블" },
-  { id: "304", number: "304", type: "디럭스 더블", floor: "3층", category: "디럭스 더블" },
-
-  // 패밀리 스위트 (4층)
-  { id: "401", number: "401", type: "패밀리 스위트", floor: "4층", category: "패밀리" },
-  { id: "402", number: "402", type: "패밀리 스위트", floor: "4층", category: "패밀리" },
-  { id: "403", number: "403", type: "패밀리 스위트", floor: "4층", category: "패밀리" },
-]
-
-// 더미 예약 데이터
-const initialReservations: Reservation[] = [
-  {
-    id: "RES-2025-1001",
-    roomId: "101",
-    guestName: "김철수",
-    checkIn: "2025-03-31",
-    checkOut: "2025-04-02",
-    status: "confirmed",
-    guestCount: 2,
-    contact: "010-1234-5678",
-    email: "kim@example.com",
-    paymentStatus: "paid",
-    totalAmount: 300000,
-    specialRequests: "늦은 체크인, 추가 베개 요청",
-    diningReservations: [{ id: 101, restaurant: "메인 레스토랑", date: "2025-03-31", time: "19:00", people: 2 }],
-  },
-  {
-    id: "RES-2025-1002",
-    roomId: "201",
-    guestName: "이영희",
-    checkIn: "2025-04-05",
-    checkOut: "2025-04-07",
-    status: "confirmed",
-    guestCount: 2,
-    contact: "010-2345-6789",
-    email: "lee@example.com",
-    paymentStatus: "paid",
-    totalAmount: 450000,
-    giftShopPurchases: [{ id: 201, item: "기념품 세트", price: 45000, date: "2025-04-05" }],
-  },
-  {
-    id: "RES-2025-1003",
-    roomId: "301",
-    guestName: "박지민",
-    checkIn: "2025-04-10",
-    checkOut: "2025-04-15",
-    status: "pending",
-    guestCount: 3,
-    contact: "010-3456-7890",
-    email: "park@example.com",
-    paymentStatus: "pending",
-    totalAmount: 750000,
-    specialRequests: "조용한 객실 요청",
-    diningReservations: [{ id: 102, restaurant: "루프탑 바", date: "2025-04-11", time: "20:30", people: 3 }],
-    giftShopPurchases: [{ id: 202, item: "와인 세트", price: 85000, date: "2025-04-10" }],
-  },
-  {
-    id: "RES-2025-1004",
-    roomId: "401",
-    guestName: "최민준",
-    checkIn: "2025-04-20",
-    checkOut: "2025-04-25",
-    status: "confirmed",
-    guestCount: 4,
-    contact: "010-4567-8901",
-    email: "choi@example.com",
-    paymentStatus: "paid",
-    totalAmount: 1200000,
-    specialRequests: "아이 동반, 유아용 침대 필요",
-  },
-  {
-    id: "RES-2025-1005",
-    roomId: "102",
-    guestName: "정수연",
-    checkIn: "2025-04-01",
-    checkOut: "2025-04-03",
-    status: "checked-in",
-    guestCount: 1,
-    contact: "010-5678-9012",
-    email: "jung@example.com",
-    paymentStatus: "paid",
-    totalAmount: 300000,
-  },
-  {
-    id: "RES-2025-1006",
-    roomId: "202",
-    guestName: "강동원",
-    checkIn: "2025-04-15",
-    checkOut: "2025-04-18",
-    status: "cancelled",
-    guestCount: 2,
-    contact: "010-6789-0123",
-    email: "kang@example.com",
-    paymentStatus: "refunded",
-    totalAmount: 450000,
-    specialRequests: "알러지: 견과류",
-  },
-]
-
-// 더미 기프트샵 주문 데이터
-const initialGiftShopOrders: GiftShopOrder[] = [
-  {
-    id: "GS-2025-001",
-    orderId: "ORD-2025-001",
-    guestName: "김철수",
-    roomId: "101",
-    items: [
-      {
-        id: 1,
-        name: "Chill Haven 시그니처 로브",
-        price: 120000,
-        quantity: 1,
-        imageUrl: "/placeholder.svg?height=80&width=80",
-      },
-      { id: 2, name: "아로마 캔들 세트", price: 45000, quantity: 1, imageUrl: "/placeholder.svg?height=80&width=80" },
-    ],
-    orderDate: "2025-03-31",
-    totalAmount: 165000,
-    status: "pending",
-    paymentMethod: "room-charge",
-    deliveryOption: "room-delivery",
-    deliveryTime: "2025-04-01 14:00",
-    contactNumber: "010-1234-5678",
-  },
-  {
-    id: "GS-2025-002",
-    orderId: "ORD-2025-002",
-    guestName: "이영희",
-    roomId: "201",
-    items: [
-      {
-        id: 3,
-        name: "프리미엄 와인 세트",
-        price: 180000,
-        quantity: 1,
-        imageUrl: "/placeholder.svg?height=80&width=80",
-      },
-    ],
-    orderDate: "2025-04-05",
-    totalAmount: 180000,
-    status: "ready",
-    paymentMethod: "credit-card",
-    deliveryOption: "pickup",
-    contactNumber: "010-2345-6789",
-  },
-  {
-    id: "GS-2025-003",
-    orderId: "ORD-2025-003",
-    guestName: "박지민",
-    roomId: "301",
-    items: [
-      {
-        id: 4,
-        name: "Chill Haven 시그니처 티셔츠",
-        price: 45000,
-        quantity: 2,
-        imageUrl: "/placeholder.svg?height=80&width=80",
-      },
-      {
-        id: 5,
-        name: "핸드메이드 초콜릿 박스",
-        price: 35000,
-        quantity: 1,
-        imageUrl: "/placeholder.svg?height=80&width=80",
-      },
-    ],
-    orderDate: "2025-04-11",
-    totalAmount: 125000,
-    status: "delivered",
-    paymentMethod: "room-charge",
-    deliveryOption: "room-delivery",
-    specialInstructions: "문 앞에 놓아주세요",
-    contactNumber: "010-3456-7890",
-  },
-  {
-    id: "GS-2025-004",
-    orderId: "ORD-2025-004",
-    guestName: "최민준",
-    roomId: "401",
-    items: [
-      { id: 6, name: "어린이용 인형 세트", price: 65000, quantity: 1, imageUrl: "/placeholder.svg?height=80&width=80" },
-    ],
-    orderDate: "2025-04-21",
-    totalAmount: 65000,
-    status: "pending",
-    paymentMethod: "room-charge",
-    deliveryOption: "room-delivery",
-    deliveryTime: "2025-04-22 10:00",
-    contactNumber: "010-4567-8901",
-  },
-  {
-    id: "GS-2025-005",
-    orderId: "ORD-2025-005",
-    guestName: "정수연",
-    roomId: "102",
-    items: [
-      { id: 7, name: "스파 기프트 세트", price: 85000, quantity: 1, imageUrl: "/placeholder.svg?height=80&width=80" },
-    ],
-    orderDate: "2025-04-02",
-    totalAmount: 85000,
-    status: "ready",
-    paymentMethod: "cash",
-    deliveryOption: "pickup",
-    contactNumber: "010-5678-9012",
-  },
-]
 
 export default function ReservationsPage() {
   const [activeTab, setActiveTab] = useState("calendar")
   const [currentDate, setCurrentDate] = useState(new Date(2025, 2, 31)) // 2025년 3월 31일
-  const [reservations, setReservations] = useState<Reservation[]>(initialReservations)
-  const [giftShopOrders, setGiftShopOrders] = useState<GiftShopOrder[]>(initialGiftShopOrders)
+  const [reservations, setReservations] = useState<Reservation[]>([])
+  const [giftShopOrders, setGiftShopOrders] = useState<[]>([])
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null)
-  const [selectedGiftShopOrder, setSelectedGiftShopOrder] = useState<GiftShopOrder | null>(null)
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | undefined>(undefined)
+  const [selectedGiftShopOrder, setSelectedGiftShopOrder] = useState<GiftShopOrder | undefined>(undefined)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [isGiftShopDetailDialogOpen, setIsGiftShopDetailDialogOpen] = useState(false)
   const [roomFilter, setRoomFilter] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [giftShopStatusFilter, setGiftShopStatusFilter] = useState<string>("all")
+  const [rooms, setRooms] = useState<Room[]>([])
 
+  useEffect(() => {
+    const fetchReservations = async () => {
+      const res = await fetch("/api/admin/reservations")
+      const data = await res.json()
+      if (Array.isArray(data)) {
+  setReservations(data)
+} else if (data && typeof data === 'object') {
+  setReservations([data])
+} else {
+  setReservations([])
+}
+    }
+  
+    fetchReservations()
+  }, [])
+  useEffect(() => {
+    const fetchRooms = async () => {
+      const res = await fetch("/api/admin/rooms/minimal") // 백엔드 URL 맞게 수정
+      const data = await res.json()
+      setRooms(data)
+      console.log("객실 데이터:", data)
+    }
+    fetchRooms()
+  }, [])
+  
   // 현재 월의 시작일과 종료일
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
@@ -328,16 +94,18 @@ export default function ReservationsPage() {
   const daysToShow = eachDayOfInterval({ start: startDate, end: endDate })
 
   // 객실 카테고리별로 그룹화
-  const roomsByCategory = rooms.reduce(
-    (acc, room) => {
-      if (!acc[room.category]) {
-        acc[room.category] = []
-      }
-      acc[room.category].push(room)
-      return acc
-    },
-    {} as Record<string, Room[]>,
-  )
+  const roomsByCategory = Array.isArray(rooms)
+  ? rooms.reduce(
+      (acc, room) => {
+        if (!acc[room.roomTypeIdx]) {
+          acc[room.roomTypeIdx] = [];
+        }
+        acc[room.roomTypeIdx].push(room);
+        return acc;
+      },
+      {} as Record<string, Room[]>,
+    )
+  : {};
 
   // 날짜 이동 함수
   const goToPreviousMonth = () => {
@@ -348,28 +116,30 @@ export default function ReservationsPage() {
     setCurrentDate((prev) => addDays(prev, 30))
   }
 
-  // 예약 필터링
+  // 예약 필터링 (상태 대소문자 구분 없이 비교)
   const filteredReservations = reservations.filter((reservation) => {
     // 검색어 필터링
     const searchMatch =
-      reservation.guestName.includes(searchTerm) ||
-      reservation.contact.includes(searchTerm) ||
-      reservation.id.includes(searchTerm)
+      reservation.fullName?.includes(searchTerm) ||
+      reservation.phone?.includes(searchTerm) ||
+      reservation.reservationNum?.includes(searchTerm)
 
     // 객실 필터링
-    const roomMatch = roomFilter === "all" || reservation.roomId === roomFilter
+    const roomMatch = roomFilter === "all" || reservation.roomNumber === roomFilter
 
-    // 상태 필터링
-    const statusMatch = statusFilter === "all" || reservation.status === statusFilter
+    // 상태 필터링 (대소문자 무시)
+    const statusMatch =
+      statusFilter === "all" ||
+      reservation.status.toLowerCase() === statusFilter.toLowerCase();
 
-    return searchMatch && roomMatch && statusMatch
-  })
+    return searchMatch && roomMatch && statusMatch;
+  });
 
   // 기프트샵 주문 필터링
   const filteredGiftShopOrders = giftShopOrders.filter((order) => {
     // 검색어 필터링
     const searchMatch =
-      order.guestName.includes(searchTerm) ||
+      order.fullName.includes(searchTerm) ||
       order.contactNumber.includes(searchTerm) ||
       order.orderId.includes(searchTerm)
 
@@ -388,17 +158,15 @@ export default function ReservationsPage() {
       const checkOut = new Date(res.checkOut)
       const currentDate = new Date(dateStr)
 
-      return res.roomId === roomId && currentDate >= checkIn && currentDate < checkOut
+      return res.roomNumber === roomId && currentDate >= checkIn && currentDate < checkOut
     })
   }
 
   // 예약 상태에 따른 색상 클래스
   const getStatusColorClass = (status: Reservation["status"]) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case "confirmed":
         return "bg-blue-100 border-blue-300"
-      case "pending":
-        return "bg-yellow-100 border-yellow-300"
       case "cancelled":
         return "bg-red-100 border-red-300"
       case "checked-in":
@@ -409,14 +177,10 @@ export default function ReservationsPage() {
         return "bg-gray-50 border-gray-200"
     }
   }
-
-  // 예약 상태에 따른 배지 컴포넌트
   const getStatusBadge = (status: Reservation["status"]) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case "confirmed":
         return <Badge className="bg-blue-500">예약 확정</Badge>
-      case "pending":
-        return <Badge className="bg-yellow-500">대기중</Badge>
       case "cancelled":
         return <Badge className="bg-red-500">취소됨</Badge>
       case "checked-in":
@@ -427,6 +191,35 @@ export default function ReservationsPage() {
         return <Badge>알 수 없음</Badge>
     }
   }
+
+  const getEditableStatusBadge = (reservation: Reservation) => {
+  return (
+    <Select
+      defaultValue={reservation.status.toLowerCase()}
+      onValueChange={async (value) => {
+        try {
+          await updateReservationStatus(reservation.reservationNum, mapToApiStatus(value))
+          setReservations((prev) =>
+            prev.map((res) => res.reservationNum === reservation.reservationNum ? { ...res, status: value as Reservation["status"] } : res)
+          )
+        } catch (err) {
+          alert("상태 변경 실패")
+          console.error(err)
+        }
+      }}
+    >
+      <SelectTrigger className="h-6 bg-white border px-2 text-xs w-[100px]">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="confirmed">예약 확정</SelectItem>
+        <SelectItem value="checked-in">체크인</SelectItem>
+        <SelectItem value="checked-out">체크아웃</SelectItem>
+        <SelectItem value="cancelled">취소됨</SelectItem>
+      </SelectContent>
+    </Select>
+  )
+}
 
   // 기프트샵 주문 상태에 따른 배지 컴포넌트
   const getGiftShopStatusBadge = (status: GiftShopOrder["status"]) => {
@@ -445,10 +238,17 @@ export default function ReservationsPage() {
   }
 
   // 예약 상세 정보 보기
-  const viewReservationDetails = (reservation: Reservation) => {
-    setSelectedReservation(reservation)
+const viewReservationDetails = async (reservationNum: string) => {
+  try {
+    const res = await fetch(`/api/admin/reservations/${reservationNum}`)
+    const data = await res.json()
+    setSelectedReservation(data)
     setIsDetailDialogOpen(true)
+  } catch (err) {
+    console.error("예약 상세 불러오기 실패", err)
+    alert("예약 상세를 불러올 수 없습니다.")
   }
+}
 
   // 기프트샵 주문 상세 정보 보기
   const viewGiftShopOrderDetails = (order: GiftShopOrder) => {
@@ -467,6 +267,36 @@ export default function ReservationsPage() {
       })
     }
   }
+
+  async function updateReservationStatus(reservationNum: string, newStatus: string) {
+    const res = await fetch(`/api/admin/reservations/${reservationNum}/status`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ status: newStatus }),
+    })
+  
+    if (!res.ok) {
+      throw new Error("예약 상태 변경 실패")
+    }
+  }
+ 
+  function mapToApiStatus(status: StatusValue): string {
+    switch (status) {
+      case "CONFIRMED":
+        return "예약 확정"
+      case "CHECKED_IN":
+        return "체크인"
+      case "COMPLETED":
+        return "체크아웃"
+      case "CANCELLED":
+        return "취소됨"
+      default:
+        return status
+  }
+}
 
   return (
     <div className="space-y-6">
@@ -521,9 +351,9 @@ export default function ReservationsPage() {
               </SelectTrigger>
               <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-md text-sm">
                 <SelectItem value="all">모든 객실</SelectItem>
-                {rooms.map((room) => (
-                  <SelectItem key={room.id} value={room.id}>
-                    {room.number} ({room.type})
+                {Array.isArray(rooms) && rooms.map((room) => (
+                  <SelectItem key={room.roomIdx} value={room.roomNum}>
+                    {room.roomNum} ({room.roomTypeIdx})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -536,7 +366,6 @@ export default function ReservationsPage() {
               <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-md text-sm">
                 <SelectItem value="all">모든 상태</SelectItem>
                 <SelectItem value="confirmed">예약 확정</SelectItem>
-                <SelectItem value="pending">대기중</SelectItem>
                 <SelectItem value="cancelled">취소됨</SelectItem>
                 <SelectItem value="checked-in">체크인</SelectItem>
                 <SelectItem value="checked-out">체크아웃</SelectItem>
@@ -571,35 +400,34 @@ export default function ReservationsPage() {
                           </td>
                         </tr>
                         {categoryRooms.map((room) => (
-                          <tr key={room.id} className="border-b border-gray-100">
-                            <td className="sticky left-0 z-10 bg-white border-r border-gray-200 p-2 font-medium">
-                              {room.number}
-                            </td>
-                            {daysToShow.map((day) => {
-                              const reservation = getReservationForDateAndRoom(day, room.id)
-                              const isCheckIn = reservation && format(day, "yyyy-MM-dd") === reservation.checkIn
-                              const isCheckOut = reservation && format(day, "yyyy-MM-dd") === reservation.checkOut
-
-                              return (
-                                <td
-                                  key={day.toString()}
-                                  className={`p-0 box-border border-gray-100 ${reservation ? getStatusColorClass(reservation.status) : "bg-white"}`}
-                                  onClick={() => reservation && viewReservationDetails(reservation)}
-                                >
-                                  {reservation && (
-                                    <div
-                                      className={`h-full w-full p-1 cursor-pointer ${isCheckIn ? "border-l-4 border-l-blue-500" : ""} ${isCheckOut ? "border-r-4 border-r-green-500" : ""}`}
-                                    >
-                                      {isCheckIn && (
-                                        <div className="text-xs font-medium truncate">{reservation.guestName}</div>
-                                      )}
-                                    </div>
-                                  )}
-                                </td>
-                              )
-                            })}
-                          </tr>
-                        ))}
+  <tr key={room.roomIdx} className="border-b border-gray-100">
+    <td className="sticky left-0 z-10 bg-white border-r border-gray-200 p-2 font-medium">
+      {room.roomNum}
+    </td>
+    {daysToShow.map((day) => {
+      const reservation = getReservationForDateAndRoom(day, room.roomNum)
+      const isCheckIn = reservation && format(day, "yyyy-MM-dd") === reservation.checkIn
+      const isCheckOut = reservation && format(day, "yyyy-MM-dd") === reservation.checkOut
+      return (
+        <td
+          key={day.toString()}
+          className={`p-0 box-border border-gray-100 ${reservation ? getStatusColorClass(reservation.status) : "bg-white"}`}
+          onClick={() => reservation && viewReservationDetails(reservation.reservationNum)}
+        >
+          {reservation ? (
+            <div
+              className={`h-full w-full p-1 cursor-pointer ${isCheckIn ? "border-l-4 border-l-blue-500" : ""} ${isCheckOut ? "border-r-4 border-r-green-500" : ""}`}
+            >
+              {isCheckIn && (
+                <div className="text-xs font-medium truncate">{reservation.fullName}</div>
+              )}
+            </div>
+          ) : null}
+        </td>
+      )
+    })}
+  </tr>
+))}
                       </React.Fragment>
                     ))}
                   </tbody>
@@ -612,10 +440,6 @@ export default function ReservationsPage() {
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-blue-100 border border-blue-300 rounded"></div>
               <span className="text-sm">예약 확정</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-100 border border-yellow-300 rounded"></div>
-              <span className="text-sm">대기중</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-green-100 border border-green-300 rounded"></div>
@@ -648,30 +472,30 @@ export default function ReservationsPage() {
                       <th className="text-left p-2">고객명</th>
                       <th className="text-left p-2">체크인</th>
                       <th className="text-left p-2">체크아웃</th>
-                      <th className="text-left p-2">인원</th>
+                      <th className="text-left p-2">총 인원</th>
                       <th className="text-left p-2">상태</th>
                       <th className="text-left p-2">연락처</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredReservations.map((reservation) => {
-                      const room = rooms.find((r) => r.id === reservation.roomId)
+                      const room = rooms.find((r) => r.roomNum === reservation.roomNumber)
                       return (
                         <tr
-                          key={reservation.id}
+                          key={reservation.reservationNum}
                           className="border-b hover:bg-gray-50 cursor-pointer"
-                          onClick={() => viewReservationDetails(reservation)}
+                          onClick={() => viewReservationDetails(reservation.reservationNum)}
                         >
-                          <td className="p-2">{reservation.id}</td>
+                          <td className="p-2">{reservation.reservationNum}</td>
                           <td className="p-2">
-                            {room?.number} ({room?.type})
+                            {room?.roomNum} ({room?.roomTypeIdx})
                           </td>
-                          <td className="p-2">{reservation.guestName}</td>
+                          <td className="p-2">{reservation.fullName}</td>
                           <td className="p-2">{reservation.checkIn}</td>
                           <td className="p-2">{reservation.checkOut}</td>
-                          <td className="p-2">{reservation.guestCount}명</td>
-                          <td className="p-2">{getStatusBadge(reservation.status)}</td>
-                          <td className="p-2">{reservation.contact}</td>
+                          <td className="p-2">{reservation.adultCount+reservation.childCount}명</td>
+                          <td className="p-2">{getEditableStatusBadge(reservation)}</td>
+                          <td className="p-2">{reservation.phone}</td>
                         </tr>
                       )
                     })}
@@ -735,7 +559,7 @@ export default function ReservationsPage() {
                       return (
                         <tr key={order.id} className="border-b hover:bg-gray-50">
                           <td className="p-2">{order.orderId}</td>
-                          <td className="p-2">{order.guestName}</td>
+                          <td className="p-2">{order.fullName}</td>
                           <td className="p-2">{room ? `${room.number} (${room.type})` : "-"}</td>
                           <td className="p-2">{order.orderDate}</td>
                           <td className="p-2">{order.totalAmount.toLocaleString()}원</td>
@@ -790,40 +614,15 @@ export default function ReservationsPage() {
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-sm text-gray-500">예약 번호</p>
-                  <p className="font-medium">{selectedReservation.id}</p>
+                  <p className="font-medium">{selectedReservation.reservationNum}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">상태</p>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      defaultValue={selectedReservation.status}
-                      onValueChange={(value) => {
-                        // 예약 상태 변경 처리
-                        setReservations((prev) =>
-                          prev.map((res) =>
-                            res.id === selectedReservation.id
-                              ? { ...res, status: value as Reservation["status"] }
-                              : res,
-                          ),
-                        )
-                        setSelectedReservation({
-                          ...selectedReservation,
-                          status: value as Reservation["status"],
-                        })
-                      }}
-                    >
-                      <SelectTrigger className=" bg-white/90 backdrop-blur-md border border-gray-300 rounded-md">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-md text-sm">
-                        <SelectItem value="confirmed">예약 확정</SelectItem>
-                        <SelectItem value="pending">대기중</SelectItem>
-                        <SelectItem value="cancelled">취소됨</SelectItem>
-                        <SelectItem value="checked-in">체크인</SelectItem>
-                        <SelectItem value="checked-out">체크아웃</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="flex items-center gap-2">
+                <p className="text-base font-semibold">
+                  {getStatusBadge(selectedReservation.status)}
+                </p>
+              </div>
                 </div>
               </div>
 
@@ -831,12 +630,12 @@ export default function ReservationsPage() {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-500">고객명</p>
-                    <p className="font-medium">{selectedReservation.guestName}</p>
+                    <p className="font-medium">{selectedReservation.fullName}</p>
                   </div>
 
                   <div>
                     <p className="text-sm text-gray-500">연락처</p>
-                    <p className="font-medium">{selectedReservation.contact}</p>
+                    <p className="font-medium">{selectedReservation.phone}</p>
                   </div>
 
                   {selectedReservation.email && (
@@ -861,43 +660,29 @@ export default function ReservationsPage() {
                     <div>
                       <p className="text-sm text-gray-500">객실</p>
                       <p className="font-medium">
-                        {rooms.find((r) => r.id === selectedReservation.roomId)?.number}(
-                        {rooms.find((r) => r.id === selectedReservation.roomId)?.type})
+                        {selectedReservation.roomNumber}
                       </p>
                     </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-500">인원</p>
-                      <p className="font-medium">{selectedReservation.guestCount}명</p>
+                      <p className="text-sm text-gray-500">성인</p>
+                      <p className="font-medium">{selectedReservation.adultCount}명</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">어린이</p>
+                      <p className="font-medium">{selectedReservation.childCount}명</p>
                     </div>
                   </div>
 
-                  {selectedReservation.totalAmount && (
+
+                  {selectedReservation.total && (
                     <div>
                       <p className="text-sm text-gray-500">총 금액</p>
-                      <p className="font-medium">{selectedReservation.totalAmount.toLocaleString()}원</p>
+                      <p className="font-medium">{selectedReservation.total.toLocaleString()}원</p>
                     </div>
                   )}
 
-                  {selectedReservation.paymentStatus && (
-                    <div>
-                      <p className="text-sm text-gray-500">결제 상태</p>
-                      <Badge
-                        className={
-                          selectedReservation.paymentStatus === "paid"
-                            ? "bg-green-500"
-                            : selectedReservation.paymentStatus === "refunded"
-                              ? "bg-red-500"
-                              : "bg-yellow-500"
-                        }
-                      >
-                        {selectedReservation.paymentStatus === "paid"
-                          ? "결제 완료"
-                          : selectedReservation.paymentStatus === "refunded"
-                            ? "환불됨"
-                            : "결제 대기중"}
-                      </Badge>
-                    </div>
-                  )}
                 </div>
 
                 <div className="space-y-4">
@@ -908,37 +693,6 @@ export default function ReservationsPage() {
                     </div>
                   )}
 
-                  {selectedReservation.diningReservations && selectedReservation.diningReservations.length > 0 && (
-                    <div>
-                      <p className="text-sm text-gray-500 mb-2">다이닝 예약</p>
-                      <div className="space-y-2">
-                        {selectedReservation.diningReservations.map((dining) => (
-                          <div key={dining.id} className="bg-gray-50 p-2 rounded-md">
-                            <p className="font-medium">{dining.restaurant}</p>
-                            <p className="text-sm">
-                              {dining.date} {dining.time} • {dining.people}명
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedReservation.giftShopPurchases && selectedReservation.giftShopPurchases.length > 0 && (
-                    <div>
-                      <p className="text-sm text-gray-500 mb-2">기프트샵 구매</p>
-                      <div className="space-y-2">
-                        {selectedReservation.giftShopPurchases.map((purchase) => (
-                          <div key={purchase.id} className="bg-gray-50 p-2 rounded-md">
-                            <p className="font-medium">{purchase.item}</p>
-                            <p className="text-sm">
-                              {purchase.date} • {purchase.price.toLocaleString()}원
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -946,38 +700,90 @@ export default function ReservationsPage() {
           <DialogFooter className="flex justify-between items-center">
             <div className="flex gap-2">
               {selectedReservation &&
-                selectedReservation.status !== "checked-in" &&
-                selectedReservation.status !== "checked-out" &&
-                selectedReservation.status !== "cancelled" && (
-                  <Button
-                    variant="default"
-                    onClick={() => {
-                      // 체크인 처리
-                      setReservations((prev) =>
-                        prev.map((res) => (res.id === selectedReservation.id ? { ...res, status: "checked-in" } : res)),
-                      )
-                      setSelectedReservation({
-                        ...selectedReservation,
-                        status: "checked-in",
-                      })
-                    }}
-                  >
-                    체크인 처리
-                  </Button>
-                )}
+  selectedReservation.status !== "checked-in" &&
+  selectedReservation.status !== "checked-out" &&
+  selectedReservation.status !== "cancelled" && (
+    <Button
+      variant="default"
+      onClick={async () => {
+        await updateReservationStatus(selectedReservation.reservationNum, "checked-in");
+        setReservations((prev) =>
+          prev.map((res) =>
+            res.reservationNum === selectedReservation.reservationNum
+              ? { ...res, status: "checked-in" }
+              : res,
+          ),
+        );
+        setSelectedReservation({
+          ...selectedReservation,
+          status: "checked-in",
+        });
+      }}
+    >
+      체크인 처리
+    </Button>
+  )}
+
+{selectedReservation && selectedReservation.status === "cancelled" && (
+  <Button
+    variant="default"
+    onClick={async () => {
+      await updateReservationStatus(selectedReservation.reservationNum, "CONFIRMED");
+      setReservations((prev) =>
+        prev.map((res) =>
+          res.reservationNum === selectedReservation.reservationNum
+            ? { ...res, status: "confirmed" }
+            : res,
+        ),
+      );
+      setSelectedReservation({
+        ...selectedReservation,
+        status: "confirmed",
+      });
+    }}
+  >
+    예약 확정
+  </Button>
+)}
+
+{selectedReservation && selectedReservation.status === "checked-out" && (
+  <Button
+    variant="default"
+    onClick={async () => {
+      await updateReservationStatus(selectedReservation.reservationNum, "checked-in");
+      setReservations((prev) =>
+        prev.map((res) =>
+          res.reservationNum === selectedReservation.reservationNum
+            ? { ...res, status: "checked-in" }
+            : res,
+        ),
+      );
+      setSelectedReservation({
+        ...selectedReservation,
+        status: "checked-in",
+      });
+    }}
+  >
+    체크인
+  </Button>
+)}
 
               {selectedReservation && selectedReservation.status === "checked-in" && (
                 <Button
                   variant="default"
-                  onClick={() => {
-                    // 체크아웃 처리
+                  onClick={async () => {
+                    await updateReservationStatus(selectedReservation.reservationNum, "CHECKED_OUT");
                     setReservations((prev) =>
-                      prev.map((res) => (res.id === selectedReservation.id ? { ...res, status: "checked-out" } : res)),
-                    )
+                      prev.map((res) =>
+                        res.reservationNum === selectedReservation.reservationNum
+                          ? { ...res, status: "checked-out" }
+                          : res,
+                      ),
+                    );
                     setSelectedReservation({
                       ...selectedReservation,
                       status: "checked-out",
-                    })
+                    });
                   }}
                 >
                   체크아웃 처리
@@ -985,28 +791,30 @@ export default function ReservationsPage() {
               )}
 
               {selectedReservation &&
-                selectedReservation.status !== "cancelled" &&
-                selectedReservation.status !== "checked-out" && (
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      // 예약 취소 처리
-                      if (window.confirm("정말로 이 예약을 취소하시겠습니까?")) {
-                        setReservations((prev) =>
-                          prev.map((res) =>
-                            res.id === selectedReservation.id ? { ...res, status: "cancelled" } : res,
-                          ),
-                        )
-                        setSelectedReservation({
-                          ...selectedReservation,
-                          status: "cancelled",
-                        })
-                      }
-                    }}
-                  >
-                    예약 취소
-                  </Button>
-                )}
+  selectedReservation.status !== "cancelled" &&
+  selectedReservation.status !== "checked-out" && (
+    <Button
+      variant="destructive"
+      onClick={async () => {
+        if (window.confirm("정말로 이 예약을 취소하시겠습니까?")) {
+          await updateReservationStatus(selectedReservation.reservationNum, "CANCELLED");
+          setReservations((prev) =>
+            prev.map((res) =>
+              res.reservationNum === selectedReservation.reservationNum
+                ? { ...res, status: "cancelled" }
+                : res,
+            ),
+          );
+          setSelectedReservation({
+            ...selectedReservation,
+            status: "cancelled",
+          });
+        }
+      }}
+    >
+      예약 취소
+    </Button>
+  )}
             </div>
 
             <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
@@ -1057,7 +865,7 @@ export default function ReservationsPage() {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-500">주문자</p>
-                    <p className="font-medium">{selectedGiftShopOrder.guestName}</p>
+                    <p className="font-medium">{selectedGiftShopOrder.fullName}</p>
                   </div>
 
                   <div>
@@ -1194,4 +1002,3 @@ export default function ReservationsPage() {
     </div>
   )
 }
-

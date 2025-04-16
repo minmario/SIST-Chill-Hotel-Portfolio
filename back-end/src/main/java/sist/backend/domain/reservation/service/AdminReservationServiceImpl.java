@@ -2,8 +2,8 @@ package sist.backend.domain.reservation.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
 import sist.backend.domain.reservation.dto.response.AdminReservationResponse;
 import sist.backend.domain.reservation.entity.Reservation;
 import sist.backend.domain.reservation.entity.ReservationStatus;
@@ -20,29 +20,32 @@ public class AdminReservationServiceImpl implements AdminReservationService {
     private final ReservationRepository reservationRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<AdminReservationResponse> getAllReservations() {
         List<Reservation> reservations = reservationRepository.findAll();
 
         return reservations.stream()
-                .map(res -> AdminReservationResponse.builder()
-                        .reservationNum(res.getReservationNum())
-                        .fullName(res.getLastName() + res.getFirstName())
-                        .phone(res.getPhone())
-                        .email(res.getEmail())
-                        .status(res.getStatus().name())
-                        .checkIn(res.getCheckIn())
-                        .checkOut(res.getCheckOut())
-                        .roomCount(res.getRoomCount())
-                        .adultCount(res.getAdultCount())
-                        .childCount(res.getChildCount())
-                        .roomNumber(res.getRoom() != null ? res.getRoom().getRoomNum() : "N/A")
-                        .roomType(res.getRoomType() != null ? res.getRoomType().getRoomName() : "N/A")
-                        .total(res.getTotal())
-                        .specialRequests(res.getSpecialRequests())
-                        .build())
-                .collect(Collectors.toList());
+            .map(res -> AdminReservationResponse.builder()
+            .reservationNum(res.getReservationNum())
+            .fullName(res.getLastName() + res.getFirstName())
+            .phone(res.getPhone())
+            .email(res.getEmail())
+            .status(res.getStatus().name())
+            .checkIn(res.getCheckIn())
+            .checkOut(res.getCheckOut())
+            .roomCount(res.getRoomCount())
+            .adultCount(res.getAdultCount())
+            .childCount(res.getChildCount())
+            .roomNumber(res.getRoom().getRoomNum())
+            .roomTypeName(res.getRoomType().getRoomName())
+            .roomGrade(res.getRoomType().getGrade())
+            .total(res.getTotal())
+            .specialRequests(res.getSpecialRequests())
+            .build())
+            .collect(Collectors.toList());
                 
     }
+    @Transactional(readOnly = true)
     public AdminReservationResponse getReservationDetail(String reservationNum) {
         Reservation res = reservationRepository.findByReservationNum(reservationNum)
                 .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다: " + reservationNum));
@@ -59,7 +62,8 @@ public class AdminReservationServiceImpl implements AdminReservationService {
                 .adultCount(res.getAdultCount())
                 .childCount(res.getChildCount())
                 .roomNumber(res.getRoom() != null ? res.getRoom().getRoomNum() : "N/A")
-                .roomType(res.getRoomType() != null ? res.getRoomType().getRoomName() : "N/A")
+                .roomTypeName(res.getRoomType() != null ? res.getRoomType().getRoomName() : "N/A")
+                .roomGrade(res.getRoomType() != null ? res.getRoomType().getGrade() : "N/A")
                 .total(res.getTotal())
                 .specialRequests(res.getSpecialRequests())
                 .build();
