@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import sist.backend.domain.user.entity.User;
+import sist.backend.domain.user.entity.UserStatus;
 import sist.backend.domain.user.repository.UserRepository;
 import sist.backend.domain.user.service.interfaces.UserVerificationService;
 import sist.backend.global.jwt.JwtProvider;
@@ -41,5 +42,23 @@ public class UserVerificationServiceImpl implements UserVerificationService {
         System.out.println("비밀번호 일치 여부: " + matched);
 
         return matched;
+    }
+
+    @Override
+    public void withdrawCurrentUser(HttpServletRequest request) {
+        String userId = jwtProvider.extractUserId(request);
+        if (userId == null) {
+            throw new IllegalStateException("토큰 오류");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("사용자 없음"));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new IllegalStateException("이미 탈퇴된 사용자입니다.");
+        }
+
+        user.setStatus(UserStatus.INACTIVE);
+        userRepository.save(user);
     }
 }

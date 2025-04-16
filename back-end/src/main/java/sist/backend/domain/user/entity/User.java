@@ -18,9 +18,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -32,6 +35,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import sist.backend.domain.shop.entity.Order;
 import sist.backend.global.common.BaseTimeEntity;
+import sist.backend.domain.membership.entity.Membership;
 import sist.backend.domain.shop.entity.Cart;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -131,5 +135,9 @@ public class User extends BaseTimeEntity implements UserDetails {
 
     @Column(length = 50)
     private String englishLastName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "membership_idx") // FK 컬럼 명시
+    private Membership membership;
 
 }

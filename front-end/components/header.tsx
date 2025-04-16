@@ -239,6 +239,7 @@ const Header = () => {
               </Link>
 
               <div className="mt-8">
+                console.log("[Header] isLoggedIn 상태:", isLoggedIn)
                 {isLoggedIn ? (
                   <>
                     <Link

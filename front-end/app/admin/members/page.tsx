@@ -23,8 +23,9 @@ type Member = {
   name: string
   email: string
   phone: string
-  joinDate: string
-  status: "active" | "inactive" // Changed from "active" | "inactive" | "suspended"
+  createdAt: string | null
+  updatedAt: string | null
+  status: "active" | "inactive"
   membershipLevel: string
   points: number
 }
@@ -47,61 +48,14 @@ export default function MembersPage() {
 
   // 회원 데이터 로드 (실제로는 API에서 가져와야 함)
   useEffect(() => {
-    // 더미 데이터 - 등급 체계 변경
-    const dummyMembers: Member[] = [
-      {
-        id: "1",
-        name: "김철수",
-        email: "kimcs@example.com",
-        phone: "010-1234-5678",
-        joinDate: "2023-01-15",
-        status: "active",
-        membershipLevel: "GOLD",
-        points: 160000,
-      },
-      {
-        id: "2",
-        name: "이영희",
-        email: "leeyh@example.com",
-        phone: "010-2345-6789",
-        joinDate: "2023-02-20",
-        status: "active",
-        membershipLevel: "SILVER",
-        points: 80000,
-      },
-      {
-        id: "3",
-        name: "박지민",
-        email: "parkjm@example.com",
-        phone: "010-3456-7890",
-        joinDate: "2023-03-10",
-        status: "inactive",
-        membershipLevel: "BROWN",
-        points: 20000,
-      },
-      {
-        id: "4",
-        name: "최민준",
-        email: "choimj@example.com",
-        phone: "010-4567-8901",
-        joinDate: "2023-04-05",
-        status: "inactive", // Changed from "suspended"
-        membershipLevel: "BROWN",
-        points: 5000,
-      },
-      {
-        id: "5",
-        name: "정수연",
-        email: "jungsy@example.com",
-        phone: "010-5678-9012",
-        joinDate: "2023-05-12",
-        status: "active",
-        membershipLevel: "DIAMOND",
-        points: 350000,
-      },
-    ]
-
-    setMembers(dummyMembers)
+    fetch("http://localhost:8080/api/admin/members")
+      .then((res) => res.json())
+      .then((data: Member[]) => {
+        setMembers(data)
+      })
+      .catch((err) => {
+        console.error("회원 목록 불러오기 실패:", err)
+      })
   }, [])
 
   // 검색 필터링된 회원 목록
@@ -222,6 +176,7 @@ export default function MembersPage() {
                 <TableHead>이메일</TableHead>
                 <TableHead>전화번호</TableHead>
                 <TableHead>가입일</TableHead>
+                <TableHead>업데이트일</TableHead>
                 <TableHead>등급</TableHead>
                 <TableHead>포인트</TableHead>
                 <TableHead>상태</TableHead>
@@ -234,7 +189,8 @@ export default function MembersPage() {
                     <TableCell className="font-medium">{member.name}</TableCell>
                     <TableCell>{member.email}</TableCell>
                     <TableCell>{member.phone}</TableCell>
-                    <TableCell>{member.joinDate}</TableCell>
+                    <TableCell>{member.createdAt ? member.createdAt.slice(0, 10) : "없음"}</TableCell>
+                    <TableCell>{member.updatedAt ? member.updatedAt.slice(0, 10) : "없음"}</TableCell>
                     <TableCell className={getMembershipColor(member.membershipLevel)}>
                       {member.membershipLevel}
                     </TableCell>

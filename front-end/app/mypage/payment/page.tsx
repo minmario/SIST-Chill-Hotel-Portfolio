@@ -42,7 +42,7 @@ export default function Payment() {
     cardType: "삼성카드",
     expiryMonth: "",
     expiryYear: "",
-    cvc: "",
+    
     isDefault: false,
   })
 
@@ -51,7 +51,7 @@ export default function Payment() {
     cardName: "",
     expiryMonth: "",
     expiryYear: "",
-    cvc: "",
+    
   })
 
   useEffect(() => {
@@ -122,7 +122,7 @@ export default function Payment() {
       cardName: "",
       expiryMonth: "",
       expiryYear: "",
-      cvc: "",
+      
     }
 
     // 카드 번호 검증
@@ -149,12 +149,7 @@ export default function Payment() {
       isValid = false
     }
 
-    // CVC 검증
-    const cvcRegex = /^\d{3,4}$/
-    if (!cvcRegex.test(newPaymentData.cvc)) {
-      errors.cvc = "유효한 CVC 번호를 입력해주세요."
-      isValid = false
-    }
+    
 
     setFormErrors(errors)
     return isValid
@@ -201,7 +196,7 @@ export default function Payment() {
       cardType: "삼성카드",
       expiryMonth: "",
       expiryYear: "",
-      cvc: "",
+      
       isDefault: false,
     })
   }
@@ -221,7 +216,7 @@ export default function Payment() {
       cardType: paymentToEdit.type,
       expiryMonth,
       expiryYear: `20${expiryYear}`,
-      cvc: "",
+      
       isDefault: paymentToEdit.isDefault,
     })
 
@@ -270,7 +265,7 @@ export default function Payment() {
       cardType: "삼성카드",
       expiryMonth: "",
       expiryYear: "",
-      cvc: "",
+      
       isDefault: false,
     })
   }
@@ -600,23 +595,7 @@ export default function Payment() {
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label htmlFor="cvc" className="block mb-2 font-medium">
-                  CVC/CVV
-                </label>
-                <input
-                  type="text"
-                  id="cvc"
-                  name="cvc"
-                  className={`w-full p-3 border ${formErrors.cvc ? "border-red-500" : "border-gray-300"} rounded-md`}
-                  value={newPaymentData.cvc}
-                  onChange={handleInputChange}
-                  placeholder="카드 뒷면 3자리 또는 4자리 숫자"
-                  maxLength={4}
-                  required
-                />
-                {formErrors.cvc && <p className="text-red-500 text-sm mt-1">{formErrors.cvc}</p>}
-              </div>
+              
 
               <div className="mb-6">
                 <label className="flex items-center">
@@ -763,23 +742,7 @@ export default function Payment() {
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label htmlFor="cvc" className="block mb-2 font-medium">
-                  CVC/CVV
-                </label>
-                <input
-                  type="text"
-                  id="cvc"
-                  name="cvc"
-                  className={`w-full p-3 border ${formErrors.cvc ? "border-red-500" : "border-gray-300"} rounded-md`}
-                  value={newPaymentData.cvc}
-                  onChange={handleInputChange}
-                  placeholder="카드 뒷면 3자리 또는 4자리 숫자"
-                  maxLength={4}
-                  required
-                />
-                {formErrors.cvc && <p className="text-red-500 text-sm mt-1">{formErrors.cvc}</p>}
-              </div>
+              
 
               <div className="mb-6">
                 <label className="flex items-center">

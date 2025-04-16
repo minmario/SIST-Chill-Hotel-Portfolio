@@ -4,4 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public interface UserVerificationService {
     boolean verifyCurrentUserPassword(String password, HttpServletRequest request);
+
+    void withdrawCurrentUser(HttpServletRequest request);
 }

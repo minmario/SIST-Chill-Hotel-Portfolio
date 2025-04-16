@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import sist.backend.domain.user.dto.request.UserUpdateRequest;
 import sist.backend.domain.user.dto.response.UserResponse;
 import sist.backend.domain.user.entity.User;
+import sist.backend.domain.user.entity.UserStatus;
 import sist.backend.domain.user.repository.UserRepository;
 import sist.backend.global.jwt.JwtProvider;
 
@@ -72,6 +73,26 @@ public class UserInfoController {
         userRepository.save(user);
 
         return ResponseEntity.ok(UserResponse.from(user));
+    }
+
+    @DeleteMapping("/withdraw")
+    public ResponseEntity<?> withdrawUser(HttpServletRequest request) {
+        String userId = jwtProvider.extractUserId(request);
+        if (userId == null) {
+            return ResponseEntity.status(401).body("토큰 오류 또는 만료");
+        }
+
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(404).body("사용자 없음");
+        }
+
+        // 실제 삭제 또는 비활성화 방식 중 택1
+        // userRepository.delete(user); // 진짜 삭제
+        user.setStatus(UserStatus.INACTIVE); // soft delete
+        userRepository.save(user);
+
+        return ResponseEntity.ok("회원 탈퇴 완료");
     }
 
 }
