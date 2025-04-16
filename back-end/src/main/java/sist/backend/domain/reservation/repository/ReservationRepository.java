@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
+        Optional<Reservation> findByReservationNum(String reservationNum);
         Optional<Reservation> findByUser_UserIdxAndReservationNum(Long userIdx, String reservationNum);
         @Query("""
                 SELECT r.room.roomIdx FROM Reservation r

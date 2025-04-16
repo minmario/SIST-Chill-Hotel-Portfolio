@@ -1,10 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../lib/axios';
+import { isAxiosError } from 'axios';
 import { useAuth, registerCartClear } from './auth-context';
 
 interface CartItem {
+  id: number; // 고유 식별자 추가
   cartItemIdx: number;
   productIdx: number;
   productName: string;
@@ -71,11 +73,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
       }
 
       console.log('장바구니 데이터 요청 중...');
-      const response = await axios.get('http://localhost:8080/api/v1/cart', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      const response = await axios.get('/api/v1/cart');
       console.log('장바구니 데이터 응답:', response.data);
       
       if (response.data && Array.isArray(response.data) && response.data.length > 0) {
@@ -85,9 +83,9 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
         localStorage.setItem('guestCart', JSON.stringify(response.data));
       } 
       // 서버 데이터가 비어있더라도 로컬 데이터는 유지
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('장바구니 데이터를 불러오는데 실패했습니다:', error);
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
+      if (isAxiosError(error) && error.response?.status === 401) {
         // 인증 실패 시 토큰 제거
         localStorage.removeItem('accessToken');
       }

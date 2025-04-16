@@ -37,7 +37,7 @@ public class GiftShopController {
     }
 
     @GetMapping("/{itemIdx}")
-    public ResponseEntity<GiftShopResponseDTO> getItemById(@PathVariable Long itemIdx) {
+    public ResponseEntity<GiftShopResponseDTO> getItemById(@PathVariable("itemIdx") Long itemIdx) {
         GiftShopResponseDTO responseDto = giftShopService.getItemById(itemIdx);
         return ResponseEntity.ok(responseDto);
     }
@@ -52,9 +52,9 @@ public class GiftShopController {
 
     @GetMapping("/category/{category}")
     public ResponseEntity<List<GiftShopResponseDTO>> getProductsByCategory(
-            @PathVariable String category,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(required = false) String sortDirection) {
+            @PathVariable("category") String category,
+            @RequestParam(value = "sortBy", required = false) String sortBy,
+            @RequestParam(value = "sortDirection", required = false) String sortDirection) {
         log.info("카테고리별 상품 조회 요청: category={}, sortBy={}, sortDirection={}", 
                 category, sortBy, sortDirection);
         

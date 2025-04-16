@@ -332,17 +332,17 @@ export default function ItemsPage() {
       }
 
       const newItem = await response.json()
-      setItems([...items, newItem])
-      setCurrentItem({
+    setItems([...items, newItem])
+    setCurrentItem({
         itemName: "",
-        price: 0,
+      price: 0,
         stockQuantity: 0,
         createdAt: "",
         updatedAt: "",
-        category: "",
-        description: "",
-      })
-      setIsAddModalOpen(false)
+      category: "",
+      description: "",
+    })
+    setIsAddModalOpen(false)
       toast.success('상품이 추가되었습니다')
     } catch (error: unknown) {
       console.error('Error adding item:', error)
@@ -377,12 +377,12 @@ export default function ItemsPage() {
       }
 
       const updatedItem = await response.json()
-      const updatedItems = items.map((item) =>
+    const updatedItems = items.map((item) =>
         item.itemIdx === currentItem.itemIdx ? updatedItem : item
-      )
+    )
 
-      setItems(updatedItems)
-      setIsEditModalOpen(false)
+    setItems(updatedItems)
+    setIsEditModalOpen(false)
       toast.success('상품이 수정되었습니다')
     } catch (error: unknown) {
       console.error('Error updating item:', error)
@@ -412,8 +412,8 @@ export default function ItemsPage() {
       }
 
       const updatedItems = items.filter((item) => item.itemIdx !== currentItem.itemIdx)
-      setItems(updatedItems)
-      setIsDeleteModalOpen(false)
+    setItems(updatedItems)
+    setIsDeleteModalOpen(false)
       toast.success('상품이 삭제되었습니다')
     } catch (error: unknown) {
       console.error('Error deleting item:', error)
@@ -443,8 +443,8 @@ export default function ItemsPage() {
 
       // 삭제 후 목록 다시 불러오기
       await fetchItems();
-      setSelectedItems([])
-      setIsBulkDeleteModalOpen(false)
+    setSelectedItems([])
+    setIsBulkDeleteModalOpen(false)
       toast.success('선택한 상품이 삭제되었습니다')
     } catch (error: unknown) {
       console.error('Error bulk deleting items:', error);
@@ -510,7 +510,7 @@ export default function ItemsPage() {
   // 날짜 포맷팅
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString)
+    const date = new Date(dateString)
       return new Intl.DateTimeFormat('ko-KR', {
         year: 'numeric',
         month: '2-digit',
@@ -577,15 +577,15 @@ export default function ItemsPage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-start mb-4">
           <div className="flex-1 w-full">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-              <Input
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <Input
                 type="text"
                 placeholder="상품명 또는 설명으로 검색"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
-              />
-            </div>
+          />
+        </div>
           </div>
           
           <div className="flex gap-2 items-center w-full sm:w-auto">
@@ -603,9 +603,9 @@ export default function ItemsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">전체 카테고리</SelectItem>
-                {categories.map((category) => (
+          {categories.map((category) => (
                   <SelectItem key={category} value={category}>
-                    {category}
+              {category}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -640,8 +640,8 @@ export default function ItemsPage() {
               <RefreshCw size={18} className={`${refreshing ? "animate-spin" : ""}`} />
             </Button>
           </div>
-        </div>
-        
+      </div>
+
         <div className="flex flex-wrap gap-2 justify-between items-center">
           <div className="flex gap-2">
             <Button variant="default" onClick={handleOpenAddModal}>
@@ -664,10 +664,10 @@ export default function ItemsPage() {
       {/* 물품 테이블 */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50px]">
                   <div className="flex justify-center items-center" onClick={toggleSelectAll}>
                     {selectedItems.length === filteredItems.length && filteredItems.length > 0 ? (
                       <CheckSquare size={18} className="cursor-pointer text-primary" />
@@ -675,7 +675,7 @@ export default function ItemsPage() {
                       <Square size={18} className="cursor-pointer" />
                     )}
                   </div>
-                </TableHead>
+              </TableHead>
                 <TableHead className="w-[80px]">
                   <div className="flex items-center cursor-pointer" onClick={() => handleSortFieldChange("itemIdx")}>
                     ID {renderSortIcon("itemIdx")}
@@ -686,7 +686,7 @@ export default function ItemsPage() {
                     상품명 {renderSortIcon("itemName")}
                   </div>
                 </TableHead>
-                <TableHead>카테고리</TableHead>
+              <TableHead>카테고리</TableHead>
                 <TableHead className="text-right">
                   <div className="flex items-center justify-end cursor-pointer" onClick={() => handleSortFieldChange("price")}>
                     가격 {renderSortIcon("price")}
@@ -704,12 +704,12 @@ export default function ItemsPage() {
                 </TableHead>
                 <TableHead>수정일</TableHead>
                 <TableHead className="w-[100px] text-center">관리</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
               {loading ? (
                 // 로딩 스켈레톤
-                Array.from({ length: 5 }).map((_, index) => (
+              Array.from({ length: 5 }).map((_, index) => (
                   <TableRow key={`skeleton-${index}`}>
                     <TableCell><Skeleton className="h-5 w-5 rounded-sm mx-auto" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-10" /></TableCell>
@@ -720,8 +720,8 @@ export default function ItemsPage() {
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-8 w-20 mx-auto" /></TableCell>
-                  </TableRow>
-                ))
+                </TableRow>
+              ))
               ) : filteredItems.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="h-24 text-center">
@@ -739,9 +739,9 @@ export default function ItemsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredItems.map((item) => (
+              filteredItems.map((item) => (
                   <TableRow key={item.itemIdx}>
-                    <TableCell>
+                  <TableCell>
                       <div
                         className="flex justify-center items-center"
                         onClick={() => toggleItemSelection(item.itemIdx)}
@@ -752,7 +752,7 @@ export default function ItemsPage() {
                           <Square size={18} className="cursor-pointer" />
                         )}
                       </div>
-                    </TableCell>
+                  </TableCell>
                     <TableCell className="font-medium">{item.itemIdx}</TableCell>
                     <TableCell>
                       <div className="max-w-[200px] truncate" title={item.itemName}>
@@ -766,7 +766,7 @@ export default function ItemsPage() {
                     </TableCell>
                     <TableCell>{item.category || "-"}</TableCell>
                     <TableCell className="text-right">{item.price.toLocaleString()}원</TableCell>
-                    <TableCell className="text-right">
+                  <TableCell className="text-right">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
                           item.stockQuantity <= 5
@@ -790,22 +790,22 @@ export default function ItemsPage() {
                           onClick={() => openEditModal(item)}
                         >
                           <Pencil size={16} />
-                        </Button>
-                        <Button
+                      </Button>
+                      <Button
                           variant="ghost"
-                          size="icon"
+                        size="icon"
                           className="h-8 w-8 text-red-500"
-                          onClick={() => openDeleteModal(item)}
-                        >
+                        onClick={() => openDeleteModal(item)}
+                      >
                           <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
         </div>
       </div>
 
@@ -899,28 +899,28 @@ export default function ItemsPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="price">가격 (원) *</Label>
-              <Input
-                id="price"
-                name="price"
-                type="number"
+            <Input
+              id="price"
+              name="price"
+              type="number"
                 min="0"
                 value={currentItem.price || 0}
-                onChange={handleInputChange}
+              onChange={handleInputChange}
                 required
-              />
-            </div>
+            />
+          </div>
             <div>
               <Label htmlFor="stockQuantity">재고 수량 *</Label>
-              <Input
+            <Input
                 id="stockQuantity"
                 name="stockQuantity"
-                type="number"
+              type="number"
                 min="0"
                 value={currentItem.stockQuantity || 0}
-                onChange={handleInputChange}
+              onChange={handleInputChange}
                 required
-              />
-            </div>
+            />
+          </div>
           </div>
           
           <div>
@@ -1027,28 +1027,28 @@ export default function ItemsPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="edit-price">가격 (원) *</Label>
-              <Input
+            <Input
                 id="edit-price"
-                name="price"
-                type="number"
+              name="price"
+              type="number"
                 min="0"
                 value={currentItem.price || 0}
-                onChange={handleInputChange}
+              onChange={handleInputChange}
                 required
-              />
-            </div>
+            />
+          </div>
             <div>
               <Label htmlFor="edit-stockQuantity">재고 수량 *</Label>
-              <Input
+            <Input
                 id="edit-stockQuantity"
                 name="stockQuantity"
-                type="number"
+              type="number"
                 min="0"
                 value={currentItem.stockQuantity || 0}
-                onChange={handleInputChange}
+              onChange={handleInputChange}
                 required
-              />
-            </div>
+            />
+          </div>
           </div>
           
           <div>

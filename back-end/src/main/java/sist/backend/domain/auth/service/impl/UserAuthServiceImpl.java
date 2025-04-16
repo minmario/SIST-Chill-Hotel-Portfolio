@@ -49,7 +49,8 @@ public class UserAuthServiceImpl implements UserAuthService {
         String ipAddress = getClientIp();
         userActivityLogService.logLogin(user, ipAddress);
 
-        String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
+        // user.getId()를 JWT subject로 사용
+String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
 
         return new UserLoginResponse(token, user.getRole().name());
     }
@@ -83,7 +84,8 @@ public class UserAuthServiceImpl implements UserAuthService {
         userRepository.save(user);
         
         // JWT 토큰 생성
-        String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
+        // user.getId()를 JWT subject로 사용
+String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
         
         // 응답 반환
         return UserRegisterResponse.builder()
