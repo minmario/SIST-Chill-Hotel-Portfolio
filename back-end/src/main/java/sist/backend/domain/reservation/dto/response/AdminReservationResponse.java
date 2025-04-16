@@ -25,7 +25,7 @@ public class AdminReservationResponse {
     private int childCount;
 
     private String roomNumber;       // from Room.roomNum
-    private String roomTypeName;     // from RoomType.roomName
+    private String roomTypeIdx;     // from RoomType.roomName
     private String roomGrade;        // from RoomType.grade
 
     private int total;
