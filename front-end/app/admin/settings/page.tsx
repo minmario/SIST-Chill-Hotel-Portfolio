@@ -10,21 +10,19 @@ import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/hooks/use-toast"
-import { LanguageProvider, useLanguage } from "@/lib/language-context"
+
 import { Loader2, Save, Download, Upload, RefreshCw } from "lucide-react"
 
 // 설정 페이지 래퍼 컴포넌트
 export default function SettingsPage() {
   return (
-    <LanguageProvider>
-      <SettingsContent />
-    </LanguageProvider>
+    <SettingsContent />
   )
 }
 
 // 설정 페이지 내용 컴포넌트
 function SettingsContent() {
-  const { t, language, setLanguage } = useLanguage()
+  // const { t, language, setLanguage } = { t: (s: string) => s, language: 'ko', setLanguage: () => {} }
   const { toast } = useToast()
   const [saving, setSaving] = useState(false)
 

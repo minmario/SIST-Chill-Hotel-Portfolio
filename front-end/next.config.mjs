@@ -44,10 +44,10 @@ const nextConfig = {
 mergeConfig(nextConfig, userConfig)
 
 function mergeConfig(nextConfig, userConfig) {
+  if (!nextConfig) nextConfig = {};
   if (!userConfig) {
-    return
+    return nextConfig;
   }
-
   for (const key in userConfig) {
     if (
       typeof nextConfig[key] === 'object' &&
@@ -64,4 +64,54 @@ function mergeConfig(nextConfig, userConfig) {
   return nextConfig;
 }
 
-export default mergeConfig(nextConfig, userConfig?.default);
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
+
+const withBundleAnalyzer = (nextConfig = {}) => {
+  return {
+    ...nextConfig,
+    webpack: (typeof nextConfig.webpack === 'function'
+      ? (config, options) => {
+          config = nextConfig.webpack(config, options);
+          if (process.env.ANALYZE === 'true') {
+            config.plugins.push(
+              new BundleAnalyzerPlugin({
+                analyzerMode: 'static',
+                reportFilename: './analyze.html',
+                openAnalyzer: false,
+              })
+            );
+          }
+          config.optimization = {
+            ...config.optimization,
+            splitChunks: {
+              chunks: 'all',
+              minSize: 20000,
+              maxSize: 240000,
+            },
+          };
+          return config;
+        }
+      : (config, options) => {
+          if (process.env.ANALYZE === 'true') {
+            config.plugins.push(
+              new BundleAnalyzerPlugin({
+                analyzerMode: 'static',
+                reportFilename: './analyze.html',
+                openAnalyzer: false,
+              })
+            );
+          }
+          config.optimization = {
+            ...config.optimization,
+            splitChunks: {
+              chunks: 'all',
+              minSize: 20000,
+              maxSize: 240000,
+            },
+          };
+          return config;
+        }),
+  };
+};
+
+export default withBundleAnalyzer(mergeConfig(nextConfig, userConfig?.default));
