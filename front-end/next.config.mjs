@@ -62,10 +62,10 @@ function mergeConfig(nextConfig, userConfig) {
         ...userConfig[key],
       };
     } else {
-      base[key] = user[key];
+      nextConfig[key] = userConfig[key];
     }
   }
-  return base;
+  return nextConfig;
 }
 
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
