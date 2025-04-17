@@ -2,12 +2,11 @@ package sist.backend.domain.restaurant.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
-import sist.backend.domain.restaurant.entity.Restaurant;
 
 @Getter
 @Builder
 public class RestaurantResponse {
-    private Long restaurantsIdx;
+    private Long id;
     private String name;
     private String type;
     private String description;
@@ -25,9 +24,18 @@ public class RestaurantResponse {
     private Integer priceChild;
     private Integer capacity;
 
-    public static RestaurantResponse fromEntity(Restaurant restaurant) {
+    private Price price; // price 객체 포함
+
+    @Getter
+    @Builder
+    public static class Price {
+        private Integer adult;
+        private Integer child;
+    }
+
+    public static RestaurantResponse fromEntity(sist.backend.domain.restaurant.entity.Restaurant restaurant) {
         return RestaurantResponse.builder()
-                .restaurantsIdx(restaurant.getRestaurantsIdx())
+                .id(restaurant.getRestaurantsIdx())
                 .name(restaurant.getName())
                 .type(restaurant.getType())
                 .description(restaurant.getDescription())
@@ -44,6 +52,10 @@ public class RestaurantResponse {
                 .priceAdult(restaurant.getPriceAdult())
                 .priceChild(restaurant.getPriceChild())
                 .capacity(restaurant.getCapacity())
+                .price(Price.builder()
+                        .adult(restaurant.getPriceAdult())
+                        .child(restaurant.getPriceChild())
+                        .build())
                 .build();
     }
 
