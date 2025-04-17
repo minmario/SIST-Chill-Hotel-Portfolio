@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import sist.backend.domain.shop.dto.mapper.*;
 import sist.backend.domain.shop.dto.request.*;
 import sist.backend.domain.shop.dto.response.*;
@@ -36,13 +38,35 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponseDTO createOrder(Long userIdx, OrderRequestDTO requestDto) {
-        User user = getUserById(userIdx);
+    public OrderResponseDTO createOrder(OrderRequestDTO requestDto) {
+        // 인증된 사용자 정보 추출
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+            throw new IllegalStateException("인증된 사용자를 찾을 수 없습니다.");
+        }
+        String userId = authentication.getName();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
+        System.out.println("[DEBUG] user: " + user);
+        System.out.println("[DEBUG] user.getUserIdx(): " + user.getUserIdx());
+        System.out.println("[DEBUG] user.getId(): " + user.getId());
+
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new ResourceNotFoundException("장바구니를 찾을 수 없습니다."));
+        System.out.println("[DEBUG] cart: " + cart);
+        if (cart != null) {
+            System.out.println("[DEBUG] cart.getUser(): " + cart.getUser());
+            if (cart.getUser() != null) {
+                System.out.println("[DEBUG] cart.getUser().getUserIdx(): " + cart.getUser().getUserIdx());
+            }
+        }
+
+        // 결제 금액 계산 (cart의 totalPrice 사용, 없으면 0)
+        BigDecimal totalAmount = cart.getTotalPrice() != null ? cart.getTotalPrice() : BigDecimal.ZERO;
 
         Order order = Order.builder()
                 .user(user)
+                .totalAmount(totalAmount)
                 .orderStatus(OrderStatus.PENDING)
                 .orderDate(LocalDateTime.now())
                 .build();
@@ -109,8 +133,5 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.toOrderDtoList(orders);
     }
 
-    private User getUserById(Long userIdx) {
-        return userRepository.findById(userIdx)
-                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
-    }
+
 }

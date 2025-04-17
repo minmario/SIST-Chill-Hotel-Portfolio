@@ -33,7 +33,7 @@ export default function Login() {
     if (!isClient) return
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/login", {
+      const response = await fetch("http://localhost:8080/api/user/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -49,16 +49,22 @@ export default function Login() {
       }
 
       const data = await response.json()
-      const { message: token, role } = data
+      console.log('[Login] 서버 응답 데이터:', data)
+      
+      // 필드명 확인 
+      const token = data.token || data.message
+      const role = data.role
+      
+      console.log('[Login] 추출한 토큰:', token)
+      console.log('[Login] 추출한 역할:', role)
 
-      localStorage.setItem("accessToken", token)
-      localStorage.setItem("userId", loginData.userId)
-      localStorage.setItem("userRole", role)
+      // AuthContext의 login 함수 사용
+      login(token, loginData.userId, role)
 
-      router.push("/") // ✅ 로그인 성공 후 이동 경로 필요 시 변경
+      router.push("/") // 로그인 성공 후 이동
     } catch (error) {
       console.error("로그인 중 오류:", error)
-      alert("로그인에 실패했습니다. 다시 시도해주세요.")
+      setError("로그인에 실패했습니다. 다시 시도해주세요.")
     }
   };
 

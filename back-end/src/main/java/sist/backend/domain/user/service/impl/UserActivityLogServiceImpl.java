@@ -30,16 +30,41 @@ public class UserActivityLogServiceImpl implements UserActivityLogService {
     public void logActivity(Long userIdx, ActivityType activityType, String activityDetails, String ipAddress) {
         User user = userRepository.findById(userIdx)
                 .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userIdx));
+        
+        logActivity(user, activityType, activityDetails, ipAddress);
+    }
 
-        UserActivityLog log = UserActivityLog.builder()
+    @Override
+    @Transactional
+    public void logActivity(User user, ActivityType activityType, String activityDetails, String ipAddress) {
+        UserActivityLog activityLog = UserActivityLog.builder()
                 .user(user)
                 .activityType(activityType)
                 .activityDetails(activityDetails)
                 .ipAddress(ipAddress)
-                .createdAt(LocalDateTime.now())
                 .build();
+                
+        userActivityLogRepository.save(activityLog);
+    }
+    
+    @Override
+    @Transactional
+    public void logLogin(User user, String ipAddress) {
+        logActivity(user, ActivityType.LOGIN, "사용자 로그인", ipAddress);
+    }
+    
+    @Override
+    @Transactional
+    public void logLogout(User user, String ipAddress) {
+        logActivity(user, ActivityType.LOGOUT, "사용자 로그아웃", ipAddress);
+    }
 
-        userActivityLogRepository.save(log);
+    @Override
+    public List<UserActivityLogResponseDTO> getAllLogs() {
+        List<UserActivityLog> allLogs = userActivityLogRepository.findAll();
+        return allLogs.stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -67,6 +92,7 @@ public class UserActivityLogServiceImpl implements UserActivityLogService {
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
+    
     private UserActivityLogResponseDTO toDto(UserActivityLog log) {
         return UserActivityLogResponseDTO.builder()
                 .logIdx(log.getLogIdx())

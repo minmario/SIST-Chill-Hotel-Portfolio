@@ -105,7 +105,7 @@ public class User extends BaseTimeEntity implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return id; // JWT subject와 반드시 일치하도록 id 반환
     }
 
     @Override

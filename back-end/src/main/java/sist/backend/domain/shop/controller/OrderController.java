@@ -29,11 +29,9 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping("/{userIdx}")
-    public ResponseEntity<OrderResponseDTO> createOrder(
-            @PathVariable Long userIdx,
-            @Valid @RequestBody OrderRequestDTO requestDto) {
-        OrderResponseDTO responseDto = orderService.createOrder(userIdx, requestDto);
+    @PostMapping
+    public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO requestDto) {
+        OrderResponseDTO responseDto = orderService.createOrder(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 

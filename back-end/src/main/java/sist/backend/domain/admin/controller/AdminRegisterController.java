@@ -11,8 +11,6 @@ import sist.backend.domain.user.entity.UserRole;
 import sist.backend.domain.user.entity.UserStatus;
 import sist.backend.domain.admin.repository.AdminUserRepository;
 
-import java.time.LocalDateTime;
-
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
@@ -43,7 +41,6 @@ public class AdminRegisterController {
         user.setEmail(request.getEmail());
         user.setRole(UserRole.STAFF);
         user.setStatus(UserStatus.ACTIVE);
-        user.setCreatedAt(LocalDateTime.now());
 
         userRepository.save(user);
 

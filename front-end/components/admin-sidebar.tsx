@@ -4,7 +4,7 @@ import type React from "react"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Users, UserCog, LayoutDashboard, Calendar, CreditCard, FileText, Utensils, AlertCircle } from "lucide-react"
+import { Users, UserCog, LayoutDashboard, Calendar, CreditCard, FileText, Utensils, AlertCircle, Package } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth"
 
@@ -58,6 +58,12 @@ export default function AdminSidebar() {
       title: "다이닝 예약 관리",
       href: "/admin/dining",
       icon: Utensils,
+      section: "시설 관리",
+    },
+    {
+      title: "기프트샵 관리",
+      href: "/admin/giftshop",
+      icon: Package,
       section: "시설 관리",
     },
     {

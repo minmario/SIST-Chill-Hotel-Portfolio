@@ -28,6 +28,12 @@ export default function Checkout() {
     setMounted(true)
   }, [])
 
+  useEffect(() => {
+    if (mounted && cartItems.length === 0) {
+      router.push("/cart");
+    }
+  }, [mounted, cartItems, router]);
+
   // 클라이언트 컴포넌트 로직
   const { getCartTotal } = useCart()
 
@@ -42,8 +48,7 @@ export default function Checkout() {
   }
 
   if (cartItems.length === 0) {
-    router.push("/cart")
-    return null
+    return null;
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -60,19 +65,15 @@ export default function Checkout() {
 
     try {
       // 주문 생성 API 호출
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("accessToken")
       const orderData = {
-        items: cartItems.map(item => ({
-          productId: item.id,
-          quantity: item.quantity
-        })),
-        shippingInfo: {
-          ...formData,
-          paymentMethod
-        }
+        amount: totalPrice, // 결제 금액
+        paymentMethod: paymentMethod,
+        cartItemIdxList: cartItems.map(item => item.cartItemIdx) // 장바구니 아이템 번호 배열 전달
+        // userIdx는 백엔드에서 JWT로 추출
       }
 
-      const response = await fetch("http://localhost:8080/api/orders", {
+      const response = await fetch("http://localhost:8080/api/payments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -82,12 +83,12 @@ export default function Checkout() {
       })
 
       if (!response.ok) {
-        throw new Error("주문 처리 중 오류가 발생했습니다.")
+        throw new Error("결제 처리 중 오류가 발생했습니다.")
       }
 
-      const data = await response.json()
       clearCart()
-      router.push(`/orders/${data.orderId}`)
+      alert("결제가 완료되었습니다!")
+      router.push("/cart")
     } catch (error) {
       alert("주문 처리 중 오류가 발생했습니다.")
       setIsProcessing(false)
@@ -241,8 +242,8 @@ export default function Checkout() {
               <h2 className={styles.orderSummaryTitle}>주문 요약</h2>
 
               <div className={styles.orderItems}>
-                {cartItems.map((item) => (
-                  <div key={item.id} className={styles.orderItem}>
+                {cartItems.map((item, idx) => (
+                  <div key={item.id ?? idx} className={styles.orderItem}>
                     <div className={styles.orderItemDetails}>
                       <div className={styles.orderItemName}>{item.name}</div>
                       <div className={styles.orderItemMeta}>수량: {item.quantity}</div>

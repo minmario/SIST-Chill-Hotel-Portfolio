@@ -43,7 +43,6 @@ public class UserServiceImpl implements UserService {
                 .phone(request.getPhone())
                 .role(UserRole.STAFF)
                 .status(UserStatus.ACTIVE)
-                .createdAt(LocalDateTime.now())
                 .build();
 
         userRepository.save(user);
