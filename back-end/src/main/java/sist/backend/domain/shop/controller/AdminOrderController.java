@@ -13,7 +13,7 @@ import sist.backend.domain.shop.service.impl.AdminGiftShopService;
 @RestController
 @RequestMapping("/api/admin/gift_shop/orders")
 @RequiredArgsConstructor
-public class AdminGiftShopController {
+public class AdminOrderController {
     private final AdminGiftShopService orderService;
 
     @GetMapping
