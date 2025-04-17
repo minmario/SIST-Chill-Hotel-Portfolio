@@ -30,15 +30,19 @@ public class StaffAdminServiceImpl implements StaffAdminService {
     }
     @Override
     public void addStaff(StaffAdminRequest request) {
-        User staff = User.builder()
-                .id(request.getId())
+        // ✅ null일 경우 STAFF로 기본값 지정
+        UserRole role = request.getRole() != null ? request.getRole() : UserRole.STAFF;
+
+    User staff = User.builder()
+            .id(request.getId())
                 .pwd(passwordEncoder.encode(request.getPwd()))
                 .name(request.getName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .status(UserStatus.ACTIVE)
-                .role(UserRole.STAFF)
+                .role(role) // ✅ 동적 적용
                 .build();
+
         adminUserRepository.save(staff);
     }
 

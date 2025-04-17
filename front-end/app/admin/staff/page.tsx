@@ -28,37 +28,14 @@ type Staff = {
   status: string
   createdAt: string
   updatedAt: string
-  position?: string   // ✅ 추가
-  department?: string // ✅ 추가
+    // ✅ 추가
+  
 }
 
-// 직책 목록
-const positions = [
-  "총괄 매니저",
-  "프론트 매니저",
-  "하우스키핑 매니저",
-  "레스토랑 매니저",
-  "스파 테라피스트",
-  "시설 관리자",
-  "인사 담당자",
-  "마케팅 담당자",
-  "회계 담당자",
-  "예약 담당자",
-]
+
 
 // 부서 목록
-const departments = [
-  "경영관리",
-  "프론트 데스크",
-  "하우스키핑",
-  "F&B",
-  "스파 & 웰니스",
-  "시설관리",
-  "인사",
-  "마케팅",
-  "재무",
-  "IT",
-]
+
 
 export default function StaffPage() {
   // 페이지네이션 상태
@@ -74,15 +51,17 @@ export default function StaffPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false)
   const [staffForm, setStaffForm] = useState({
+    id: "",                // ✅ ID 추가
     name: "",
     email: "",
     phone: "",
-    position: "",
-    department: "",
     status: "active",
-    role: "staff",
-  })
-
+    role: "ADMIN",         // 관리자 추가용이면 기본 admin
+    password: "",          // ✅ 비밀번호 추가
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
   // 스태프 데이터 로드 (API에서 가져옴)
   useEffect(() => {
     fetch("http://localhost:8080/admin/staff")
@@ -108,31 +87,41 @@ export default function StaffPage() {
   }, [searchTerm, staffList])
 
   // 스태프 추가 다이얼로그 열기
-  const openAddDialog = () => {
+  const openAddDialog = (role: "ADMIN" | "staff" = "staff") => {
     setStaffForm({
+      id: "",
+      password: "",
       name: "",
       email: "",
       phone: "",
-      position: "스태프",
-      department: "일반",
       status: "active",
-      role: "staff",
-    })
-    setIsAddDialogOpen(true)
-  }
+      role, // ✅ 동적으로 설정
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setIsAddDialogOpen(true);
+  };
   const openEditDialog = (staff: Staff) => {
-  setSelectedStaff(staff);
-  setStaffForm({
-    name: staff.name,
-    email: staff.email,
-    phone: staff.phone,
-    status: staff.status,
-    role: staff.role,
-    position: staff.position ?? "스태프",
-    department: staff.department ?? "일반"
-  });
-  setIsEditDialogOpen(true);
-};
+    setSelectedStaff(staff);
+    setStaffForm({
+      id: staff.id,         // ✅ 추가
+      password: "",         // ✅ 초기화
+      name: staff.name,
+      email: staff.email,
+      phone: staff.phone,
+      
+    
+      status: staff.status,
+      role: staff.role,
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+
 
 
 
@@ -157,12 +146,14 @@ export default function StaffPage() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          id: staffForm.email.split("@")[0], // 로그인용 ID: 예시로 이메일 앞부분 사용
-          pwd: "default1234",                // 초기 비밀번호 (백엔드에서 암호화됨)
+          id: staffForm.email.split("@")[0],
+          pwd: "default1234",
           name: staffForm.name,
           email: staffForm.email,
-          phone: staffForm.phone
-        })
+          phone: staffForm.phone,
+          role: staffForm.role,
+          status: staffForm.status,
+        }),
       });
   
       // 추가 성공 후 목록 다시 불러오기
@@ -176,37 +167,83 @@ export default function StaffPage() {
     }
   };
   // 스태프 정보 수정 처리
-  const handleUpdateStaff = () => {
-    if (!selectedStaff) return
-
-    // 스태프 정보 업데이트 - 이름, 이메일, 전화번호만 업데이트
-    const updatedStaffList = staffList.map((staff) =>
-      staff.id === selectedStaff.id
-        ? {
-            ...staff,
-            name: staffForm.name,
-            email: staffForm.email,
-            phone: staffForm.phone,
-          }
-        : staff,
-    )
-
-    setStaffList(updatedStaffList)
-    setIsEditDialogOpen(false)
-    setSelectedStaff(null)
-  }
+  const handleUpdateStaff = async () => {
+    if (!selectedStaff) return;
+  
+    if (staffForm.newPassword || staffForm.confirmPassword) {
+      if (!staffForm.currentPassword) {
+        alert("기존 비밀번호를 입력하세요.");
+        return;
+      }
+      if (staffForm.newPassword !== staffForm.confirmPassword) {
+        alert("새 비밀번호가 일치하지 않습니다.");
+        return;
+      }
+    }
+  
+    try {
+      // 일반 정보 업데이트
+      const updateInfoRes = await fetch(`http://localhost:8080/admin/staff/${selectedStaff.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: staffForm.name,
+          email: staffForm.email,
+          phone: staffForm.phone,
+       
+          status: staffForm.status,
+          role: staffForm.role
+        }),
+      });
+  
+      // 비밀번호 변경
+      if (staffForm.newPassword) {
+        const passwordChangeRes = await fetch(`http://localhost:8080/admin/staff/${selectedStaff.id}/password`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            currentPassword: staffForm.currentPassword,
+            newPassword: staffForm.newPassword,
+          }),
+        });
+  
+        if (!passwordChangeRes.ok) {
+          alert("비밀번호 변경 실패");
+          return;
+        }
+      }
+  
+      // 성공 후 UI 업데이트
+      const refreshedList = await fetch("http://localhost:8080/admin/staff").then(res => res.json());
+      setStaffList(refreshedList);
+      setIsEditDialogOpen(false);
+      setSelectedStaff(null);
+    } catch (err) {
+      console.error("스태프 정보 수정 실패", err);
+      alert("수정 중 오류가 발생했습니다.");
+    }
+  };
 
   // 스태프 삭제 처리
-  const handleDeleteStaff = () => {
-    if (!selectedStaff) return
-
-    // 스태프 삭제
-    const updatedStaffList = staffList.filter((staff) => staff.id !== selectedStaff.id)
-    setStaffList(updatedStaffList)
-    setIsDeleteDialogOpen(false)
-    setSelectedStaff(null)
-  }
-
+  const handleDeleteStaff = async () => {
+    if (!selectedStaff) return;
+  
+    try {
+      const res = await fetch(`http://localhost:8080/admin/staff/${selectedStaff.userIdx}`, {
+        method: "DELETE",
+      });
+  
+      if (!res.ok) throw new Error("삭제 실패");
+  
+      const updatedList = staffList.filter((staff) => staff.userIdx !== selectedStaff.userIdx);
+      setStaffList(updatedList);
+      setIsDeleteDialogOpen(false);
+      setSelectedStaff(null);
+    } catch (err) {
+      alert("삭제 중 오류 발생");
+      console.error(err);
+    }
+  };
   // 비밀번호 초기화 처리
   const handleResetPassword = () => {
     // 실제로는 API를 통해 비밀번호 초기화 처리
@@ -259,9 +296,9 @@ export default function StaffPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button onClick={openAddDialog}>
+          <Button onClick={() => openAddDialog("ADMIN")}>
             <UserPlus className="mr-2 h-4 w-4" />
-            스태프 추가
+            관리자 추가
           </Button>
         </div>
       </div>
@@ -294,7 +331,57 @@ export default function StaffPage() {
                     <TableCell>{staff.phone ?? "없음"}</TableCell>
                     <TableCell>{staff.email ?? "없음"}</TableCell>
                     <TableCell>{getRoleBadge(staff.role) ?? "없음"}</TableCell>
-                    <TableCell>{getStatusBadge(staff.status) ?? "없음"}</TableCell>
+                    <TableCell>
+  {staff.status === "active" ? (
+    <Button
+      variant="outline"
+      size="sm"
+      className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200"
+      onClick={async () => {
+        try {
+          const response = await fetch(`http://localhost:8080/admin/staff/${staff.userIdx}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "INACTIVE" }),
+          });
+          if (!response.ok) throw new Error("상태 변경 실패");
+          const updatedStaff = staffList.map((s) =>
+            s.userIdx === staff.userIdx ? { ...s, status: "INACTIVE" as const } : s
+          );
+          setStaffList(updatedStaff);
+        } catch (err) {
+          alert("상태 변경에 실패했습니다.");
+        }
+      }}
+    >
+      활성
+    </Button>
+  ) : (
+    <Button
+      variant="outline"
+      size="sm"
+      className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
+      onClick={async () => {
+        try {
+          const response = await fetch(`http://localhost:8080/admin/staff/${staff.userIdx}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "active" }),
+          });
+          if (!response.ok) throw new Error("상태 변경 실패");
+          const updatedStaff = staffList.map((s) =>
+            s.userIdx === staff.userIdx ? { ...s, status: "active" as const } : s
+          );
+          setStaffList(updatedStaff);
+        } catch (err) {
+          alert("상태 변경에 실패했습니다.");
+        }
+      }}
+    >
+      비활성
+    </Button>
+  )}
+</TableCell>
                     <TableCell>{formatDate(staff.createdAt )?? "없음"}</TableCell>
                     <TableCell>{formatDate(staff.updatedAt )?? "없음"}</TableCell>
                     <TableCell>
@@ -370,6 +457,25 @@ export default function StaffPage() {
             <DialogTitle>스태프 추가</DialogTitle>
             <DialogDescription>새 스태프 정보를 입력하세요. 모든 필드를 올바르게 입력해주세요.</DialogDescription>
           </DialogHeader>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="add-id" className="text-right">ID</Label>
+            <Input
+              id="add-id"
+              value={staffForm.id}
+              onChange={(e) => setStaffForm({ ...staffForm, id: e.target.value })}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="add-password" className="text-right">비밀번호</Label>
+            <Input
+              id="add-password"
+              type="password"
+              value={staffForm.password}
+              onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
+              className="col-span-3"
+            />
+          </div>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="add-name" className="text-right">
@@ -410,7 +516,7 @@ export default function StaffPage() {
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
               취소
             </Button>
-            <Button onClick={handleAddStaff}>추가</Button>
+            <Button className="bg-black text-white hover:bg-gray-900" onClick={handleAddStaff}>추가</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -457,6 +563,36 @@ export default function StaffPage() {
                 className="col-span-3"
               />
             </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="current-password" className="text-right">기존 비밀번호</Label>
+              <Input
+                id="current-password"
+                type="password"
+                value={staffForm.currentPassword}
+                onChange={(e) => setStaffForm({ ...staffForm, currentPassword: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="new-password" className="text-right">새 비밀번호</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={staffForm.newPassword}
+              onChange={(e) => setStaffForm({ ...staffForm, newPassword: e.target.value })}
+              className="col-span-3"
+              />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="confirm-password" className="text-right">새 비밀번호 확인</Label>
+            <Input
+              id="confirm-password"
+              type="password"
+              value={staffForm.confirmPassword}
+              onChange={(e) => setStaffForm({ ...staffForm, confirmPassword: e.target.value })}
+              className="col-span-3"
+              />
+          </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>

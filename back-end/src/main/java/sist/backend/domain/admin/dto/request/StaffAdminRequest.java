@@ -1,6 +1,7 @@
 package sist.backend.domain.admin.dto.request;
 
 import lombok.*;
+import sist.backend.domain.user.entity.UserRole;
 
 @Getter
 @Setter
@@ -13,4 +14,5 @@ public class StaffAdminRequest {
     private String name;
     private String email;
     private String phone;
+    private UserRole role;
 }
