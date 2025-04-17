@@ -15,6 +15,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Badge } from "@/components/ui/badge"
 
 // 객실 타입 정의
+// 기프트샵 주문 타입 정의 (백엔드 OrderResponse 기반)
+type GiftShopOrder = {
+  orderIdx: number;
+  userName: string;
+  orderStatus: string;
+  orderDate: string;
+  totalAmount: number;
+  items: GiftShopOrderItem[];
+}
+
+type GiftShopOrderItem = {
+  itemName: string;
+  quantity: number;
+  price: number;
+}
+
 type StatusValue = "CONFIRMED" | "CHECKED_IN" | "COMPLETED" | "CANCELLED"
 type Room = {
   roomIdx: number;      // 객실 고유 번호
@@ -33,19 +49,17 @@ interface Reservation {
   adultCount: number;
   childCount: number;
   roomNumber: string;
-  roomTypeName: string;
+  roomTypeIdx: string;
   roomGrade: string;
   total: number;
   specialRequests: string;
 }
 
-
-
 export default function ReservationsPage() {
   const [activeTab, setActiveTab] = useState("calendar")
   const [currentDate, setCurrentDate] = useState(new Date(2025, 2, 31)) // 2025년 3월 31일
   const [reservations, setReservations] = useState<Reservation[]>([])
-  const [giftShopOrders, setGiftShopOrders] = useState<[]>([])
+  const [giftShopOrders, setGiftShopOrders] = useState<GiftShopOrder[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedReservation, setSelectedReservation] = useState<Reservation | undefined>(undefined)
   const [selectedGiftShopOrder, setSelectedGiftShopOrder] = useState<GiftShopOrder | undefined>(undefined)
@@ -61,14 +75,13 @@ export default function ReservationsPage() {
       const res = await fetch("/api/admin/reservations")
       const data = await res.json()
       if (Array.isArray(data)) {
-  setReservations(data)
-} else if (data && typeof data === 'object') {
-  setReservations([data])
-} else {
-  setReservations([])
-}
+        setReservations(data)
+      } else if (data && typeof data === 'object') {
+        setReservations([data])
+      } else {
+        setReservations([])
+      }
     }
-  
     fetchReservations()
   }, [])
   useEffect(() => {
@@ -76,11 +89,17 @@ export default function ReservationsPage() {
       const res = await fetch("/api/admin/rooms/minimal") // 백엔드 URL 맞게 수정
       const data = await res.json()
       setRooms(data)
-      console.log("객실 데이터:", data)
     }
     fetchRooms()
   }, [])
-  
+  useEffect(() => {
+    const fetchGiftShopOrders = async () => {
+      const res = await fetch("/api/admin/gift_shop/orders");
+      const data = await res.json();
+      setGiftShopOrders(Array.isArray(data) ? data : []);
+    };
+    fetchGiftShopOrders();
+  }, []);
   // 현재 월의 시작일과 종료일
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
@@ -95,17 +114,17 @@ export default function ReservationsPage() {
 
   // 객실 카테고리별로 그룹화
   const roomsByCategory = Array.isArray(rooms)
-  ? rooms.reduce(
-      (acc, room) => {
-        if (!acc[room.roomTypeIdx]) {
-          acc[room.roomTypeIdx] = [];
-        }
-        acc[room.roomTypeIdx].push(room);
-        return acc;
-      },
-      {} as Record<string, Room[]>,
-    )
-  : {};
+    ? rooms.reduce(
+        (acc, room) => {
+          if (!acc[room.roomTypeIdx]) {
+            acc[room.roomTypeIdx] = [];
+          }
+          acc[room.roomTypeIdx].push(room);
+          return acc;
+        },
+        {} as Record<string, Room[]>,
+      )
+    : {};
 
   // 날짜 이동 함수
   const goToPreviousMonth = () => {
@@ -130,23 +149,24 @@ export default function ReservationsPage() {
     // 상태 필터링 (대소문자 무시)
     const statusMatch =
       statusFilter === "all" ||
-      reservation.status.toLowerCase() === statusFilter.toLowerCase();
+      reservation.status === statusFilter;
 
     return searchMatch && roomMatch && statusMatch;
   });
 
   // 기프트샵 주문 필터링
   const filteredGiftShopOrders = giftShopOrders.filter((order) => {
-    // 검색어 필터링
+    // 검색어 필터링 (OrderResponse 구조에 맞게 userName, orderIdx만 사용)
     const searchMatch =
-      order.fullName.includes(searchTerm) ||
-      order.contactNumber.includes(searchTerm) ||
-      order.orderId.includes(searchTerm)
+      order.userName?.includes(searchTerm) ||
+      order.orderIdx?.toString().includes(searchTerm);
 
-    // 상태 필터링
-    const statusMatch = giftShopStatusFilter === "all" || order.status === giftShopStatusFilter
+    // 상태 필터링 (orderStatus 기준)
+    const statusMatch =
+      giftShopStatusFilter === "all" ||
+      order.orderStatus === giftShopStatusFilter;
 
-    return searchMatch && statusMatch
+    return searchMatch && statusMatch;
   })
 
   // 특정 날짜와 객실에 예약이 있는지 확인
@@ -162,30 +182,50 @@ export default function ReservationsPage() {
     })
   }
 
+  // roomTypeIdx를 이름으로 변환하는 함수
+  const getroomTypeIdx = (roomTypeIdx: number | undefined) => {
+    switch (roomTypeIdx) {
+      case 1:
+        return "chill comfort";
+      case 2:
+        return "chill harmony";
+      case 3:
+        return "chill serenity";
+      case 4:
+        return "chill family";
+      case 6:
+        return "chill lake";
+      case 7:
+        return "ultimate chill suite";
+      default:
+        return `타입 ${roomTypeIdx}`;
+    }
+  };
+
   // 예약 상태에 따른 색상 클래스
   const getStatusColorClass = (status: Reservation["status"]) => {
-    switch (status.toLowerCase()) {
-      case "confirmed":
+    switch (status) {
+      case "CONFIRMED":
         return "bg-blue-100 border-blue-300"
-      case "cancelled":
+      case "CANCELLED":
         return "bg-red-100 border-red-300"
-      case "checked-in":
+      case "CHECKED_IN":
         return "bg-green-100 border-green-300"
-      case "checked-out":
+      case "COMPLETED":
         return "bg-gray-100 border-gray-300"
       default:
         return "bg-gray-50 border-gray-200"
     }
   }
   const getStatusBadge = (status: Reservation["status"]) => {
-    switch (status.toLowerCase()) {
-      case "confirmed":
+    switch (status) {
+      case "CONFIRMED":
         return <Badge className="bg-blue-500">예약 확정</Badge>
-      case "cancelled":
+      case "CANCELLED":
         return <Badge className="bg-red-500">취소됨</Badge>
-      case "checked-in":
+      case "CHECKED_IN":
         return <Badge className="bg-green-500">체크인</Badge>
-      case "checked-out":
+      case "COMPLETED":
         return <Badge className="bg-gray-500">체크아웃</Badge>
       default:
         return <Badge>알 수 없음</Badge>
@@ -193,62 +233,41 @@ export default function ReservationsPage() {
   }
 
   const getEditableStatusBadge = (reservation: Reservation) => {
-  return (
-    <Select
-      defaultValue={reservation.status.toLowerCase()}
-      onValueChange={async (value) => {
-        try {
-          await updateReservationStatus(reservation.reservationNum, mapToApiStatus(value))
-          setReservations((prev) =>
-            prev.map((res) => res.reservationNum === reservation.reservationNum ? { ...res, status: value as Reservation["status"] } : res)
-          )
-        } catch (err) {
-          alert("상태 변경 실패")
-          console.error(err)
-        }
-      }}
-    >
-      <SelectTrigger className="h-6 bg-white border px-2 text-xs w-[100px]">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="confirmed">예약 확정</SelectItem>
-        <SelectItem value="checked-in">체크인</SelectItem>
-        <SelectItem value="checked-out">체크아웃</SelectItem>
-        <SelectItem value="cancelled">취소됨</SelectItem>
-      </SelectContent>
-    </Select>
-  )
-}
+    return (
+      <span className="cursor-pointer" title="상세에서 상태 변경 가능">
+        {getStatusBadge(reservation.status)}
+      </span>
+    );
+  }
 
   // 기프트샵 주문 상태에 따른 배지 컴포넌트
-  const getGiftShopStatusBadge = (status: GiftShopOrder["status"]) => {
+  const getGiftShopStatusBadge = (status: string) => {
     switch (status) {
-      case "pending":
-        return <Badge className="bg-yellow-500">준비중</Badge>
-      case "ready":
-        return <Badge className="bg-blue-500">수령 대기</Badge>
-      case "delivered":
-        return <Badge className="bg-green-500">수령 완료</Badge>
-      case "cancelled":
-        return <Badge className="bg-red-500">취소됨</Badge>
+      case "PENDING":
+        return <Badge className="bg-yellow-500">결제 대기</Badge>;
+      case "PAID":
+        return <Badge className="bg-blue-500">결제 완료</Badge>;
+      case "DELIVERED":
+        return <Badge className="bg-green-500">수령 완료</Badge>;
+      case "CANCELLED":
+        return <Badge className="bg-red-500">취소됨</Badge>;
       default:
-        return <Badge>알 수 없음</Badge>
+        return <Badge>알 수 없음</Badge>;
     }
-  }
+  } // orderStatus 필드 기준으로
 
   // 예약 상세 정보 보기
-const viewReservationDetails = async (reservationNum: string) => {
-  try {
-    const res = await fetch(`/api/admin/reservations/${reservationNum}`)
-    const data = await res.json()
-    setSelectedReservation(data)
-    setIsDetailDialogOpen(true)
-  } catch (err) {
-    console.error("예약 상세 불러오기 실패", err)
-    alert("예약 상세를 불러올 수 없습니다.")
+  const viewReservationDetails = async (reservationNum: string) => {
+    try {
+      const res = await fetch(`/api/admin/reservations/${reservationNum}`)
+      const data = await res.json()
+      setSelectedReservation(data)
+      setIsDetailDialogOpen(true)
+    } catch (err) {
+      console.error("예약 상세 불러오기 실패", err)
+      alert("예약 상세를 불러올 수 없습니다.")
+    }
   }
-}
 
   // 기프트샵 주문 상세 정보 보기
   const viewGiftShopOrderDetails = (order: GiftShopOrder) => {
@@ -257,16 +276,16 @@ const viewReservationDetails = async (reservationNum: string) => {
   }
 
   // 기프트샵 주문 상태 변경 처리
-  const handleGiftShopStatusChange = (orderId: string, newStatus: GiftShopOrder["status"]) => {
-    setGiftShopOrders((prev) => prev.map((order) => (order.id === orderId ? { ...order, status: newStatus } : order)))
+  const handleGiftShopStatusChange = (orderIdx: number, newStatus: string) => {
+    setGiftShopOrders((prev) => prev.map((order) => (order.orderIdx === orderIdx ? { ...order, orderStatus: newStatus } : order)));
 
-    if (selectedGiftShopOrder && selectedGiftShopOrder.id === orderId) {
+    if (selectedGiftShopOrder && selectedGiftShopOrder.orderIdx === orderIdx) {
       setSelectedGiftShopOrder({
         ...selectedGiftShopOrder,
-        status: newStatus,
-      })
+        orderStatus: newStatus,
+      });
     }
-  }
+  } // orderIdx, orderStatus 기준으로
 
   async function updateReservationStatus(reservationNum: string, newStatus: string) {
     const res = await fetch(`/api/admin/reservations/${reservationNum}/status`, {
@@ -353,7 +372,7 @@ const viewReservationDetails = async (reservationNum: string) => {
                 <SelectItem value="all">모든 객실</SelectItem>
                 {Array.isArray(rooms) && rooms.map((room) => (
                   <SelectItem key={room.roomIdx} value={room.roomNum}>
-                    {room.roomNum} ({room.roomTypeIdx})
+                    {room.roomNum} ({getroomTypeIdx(room.roomTypeIdx)})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -365,10 +384,10 @@ const viewReservationDetails = async (reservationNum: string) => {
               </SelectTrigger>
               <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-md text-sm">
                 <SelectItem value="all">모든 상태</SelectItem>
-                <SelectItem value="confirmed">예약 확정</SelectItem>
-                <SelectItem value="cancelled">취소됨</SelectItem>
-                <SelectItem value="checked-in">체크인</SelectItem>
-                <SelectItem value="checked-out">체크아웃</SelectItem>
+                <SelectItem value="CONFIRMED">예약 확정</SelectItem>
+                <SelectItem value="CANCELLED">취소됨</SelectItem>
+                <SelectItem value="CHECKED_IN">체크인</SelectItem>
+                <SelectItem value="COMPLETED">체크아웃</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -378,7 +397,7 @@ const viewReservationDetails = async (reservationNum: string) => {
               <CardTitle className="text-lg">객실 예약 현황</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-auto">
+              <div className="overflow-auto max-h-[600px] overflow-y-auto">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr>
@@ -396,7 +415,7 @@ const viewReservationDetails = async (reservationNum: string) => {
                       <React.Fragment key={category}>
                         <tr>
                           <td colSpan={daysToShow.length + 1} className="bg-gray-100 p-2 font-medium">
-                            {category}
+                            {getroomTypeIdx(Number(category))}
                           </td>
                         </tr>
                         {categoryRooms.map((room) => (
@@ -463,7 +482,7 @@ const viewReservationDetails = async (reservationNum: string) => {
               <CardTitle className="text-lg">예약 목록</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-auto">
+              <div className="overflow-auto max-h-[600px] overflow-y-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
@@ -488,12 +507,12 @@ const viewReservationDetails = async (reservationNum: string) => {
                         >
                           <td className="p-2">{reservation.reservationNum}</td>
                           <td className="p-2">
-                            {room?.roomNum} ({room?.roomTypeIdx})
+                            {room?.roomNum} ({getroomTypeIdx(room?.roomTypeIdx)})
                           </td>
                           <td className="p-2">{reservation.fullName}</td>
                           <td className="p-2">{reservation.checkIn}</td>
                           <td className="p-2">{reservation.checkOut}</td>
-                          <td className="p-2">{reservation.adultCount+reservation.childCount}명</td>
+                          <td className="p-2">{(reservation.adultCount ?? 0) + (reservation.childCount ?? 0)}명</td>
                           <td className="p-2">{getEditableStatusBadge(reservation)}</td>
                           <td className="p-2">{reservation.phone}</td>
                         </tr>
@@ -539,34 +558,27 @@ const viewReservationDetails = async (reservationNum: string) => {
               <CardTitle className="text-lg">기프트샵 주문 목록</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-auto">
+              <div className="overflow-auto max-h-[600px] overflow-y-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
                       <th className="text-left p-2">주문 번호</th>
                       <th className="text-left p-2">주문자</th>
-                      <th className="text-left p-2">객실</th>
                       <th className="text-left p-2">주문일</th>
                       <th className="text-left p-2">금액</th>
-                      <th className="text-left p-2">배송 옵션</th>
                       <th className="text-left p-2">상태</th>
                       <th className="text-left p-2">관리</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredGiftShopOrders.map((order) => {
-                      const room = order.roomId ? rooms.find((r) => r.id === order.roomId) : null
                       return (
-                        <tr key={order.id} className="border-b hover:bg-gray-50">
-                          <td className="p-2">{order.orderId}</td>
-                          <td className="p-2">{order.fullName}</td>
-                          <td className="p-2">{room ? `${room.number} (${room.type})` : "-"}</td>
+                        <tr key={order.orderIdx} className="border-b hover:bg-gray-50">
+                          <td className="p-2">{order.orderIdx}</td>
+                          <td className="p-2">{order.userName}</td>
                           <td className="p-2">{order.orderDate}</td>
                           <td className="p-2">{order.totalAmount.toLocaleString()}원</td>
-                          <td className="p-2">
-                            {order.deliveryOption === "room-delivery" ? "객실 배송" : "직접 수령"}
-                          </td>
-                          <td className="p-2">{getGiftShopStatusBadge(order.status)}</td>
+                          <td className="p-2">{getGiftShopStatusBadge(order.orderStatus)}</td>
                           <td className="p-2">
                             <div className="flex gap-2">
                               <Button
@@ -579,12 +591,12 @@ const viewReservationDetails = async (reservationNum: string) => {
                                 <span className="sr-only">상세보기</span>
                               </Button>
 
-                              {order.status === "ready" && (
+                              {order.orderStatus ==="PAID" && (
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                                  onClick={() => handleGiftShopStatusChange(order.id, "delivered")}
+                                  onClick={() => handleGiftShopStatusChange(order.orderIdx, "DELIVERED")}
                                 >
                                   <Check className="h-4 w-4" />
                                   <span className="sr-only">수령 완료</span>
@@ -619,9 +631,9 @@ const viewReservationDetails = async (reservationNum: string) => {
                 <div>
                   <p className="text-sm text-gray-500">상태</p>
                 <div className="flex items-center gap-2">
-                <p className="text-base font-semibold">
+                <span className="text-base font-semibold">
                   {getStatusBadge(selectedReservation.status)}
-                </p>
+                </span>
               </div>
                 </div>
               </div>
@@ -700,67 +712,69 @@ const viewReservationDetails = async (reservationNum: string) => {
           <DialogFooter className="flex justify-between items-center">
             <div className="flex gap-2">
               {selectedReservation &&
-  selectedReservation.status !== "checked-in" &&
-  selectedReservation.status !== "checked-out" &&
-  selectedReservation.status !== "cancelled" && (
+  selectedReservation.status !== "CHECKED_IN" &&
+  selectedReservation.status !== "COMPLETED" &&
+  selectedReservation.status !== "CANCELLED" && (
     <Button
       variant="default"
       onClick={async () => {
-        await updateReservationStatus(selectedReservation.reservationNum, "checked-in");
-        setReservations((prev) =>
-          prev.map((res) =>
-            res.reservationNum === selectedReservation.reservationNum
-              ? { ...res, status: "checked-in" }
-              : res,
-          ),
-        );
-        setSelectedReservation({
-          ...selectedReservation,
-          status: "checked-in",
-        });
+        await updateReservationStatus(selectedReservation.reservationNum, "CHECKED_IN");
+setReservations((prev) =>
+  prev.map((res) =>
+    res.reservationNum === selectedReservation.reservationNum
+      ? { ...res, status: "CHECKED_IN" }
+      : res,
+  ),
+);
+setSelectedReservation({
+  ...selectedReservation,
+  status: "CHECKED_IN",
+});
+setIsDetailDialogOpen(false);
       }}
     >
       체크인 처리
     </Button>
   )}
 
-{selectedReservation && selectedReservation.status === "cancelled" && (
+{selectedReservation && selectedReservation.status === "CANCELLED" && (
   <Button
     variant="default"
     onClick={async () => {
       await updateReservationStatus(selectedReservation.reservationNum, "CONFIRMED");
-      setReservations((prev) =>
-        prev.map((res) =>
-          res.reservationNum === selectedReservation.reservationNum
-            ? { ...res, status: "confirmed" }
-            : res,
-        ),
-      );
-      setSelectedReservation({
-        ...selectedReservation,
-        status: "confirmed",
-      });
+setReservations((prev) =>
+  prev.map((res) =>
+    res.reservationNum === selectedReservation.reservationNum
+      ? { ...res, status: "CONFIRMED" }
+      : res,
+  ),
+);
+setSelectedReservation({
+  ...selectedReservation,
+  status: "CONFIRMED",
+});
+setIsDetailDialogOpen(false);
     }}
   >
     예약 확정
   </Button>
 )}
 
-{selectedReservation && selectedReservation.status === "checked-out" && (
+{selectedReservation && selectedReservation.status === "COMPLETED" && (
   <Button
     variant="default"
     onClick={async () => {
-      await updateReservationStatus(selectedReservation.reservationNum, "checked-in");
+      await updateReservationStatus(selectedReservation.reservationNum, "CHECKED_IN");
       setReservations((prev) =>
         prev.map((res) =>
           res.reservationNum === selectedReservation.reservationNum
-            ? { ...res, status: "checked-in" }
+            ? { ...res, status: "CHECKED_IN" }
             : res,
         ),
       );
       setSelectedReservation({
         ...selectedReservation,
-        status: "checked-in",
+        status: "CHECKED_IN",
       });
     }}
   >
@@ -768,21 +782,21 @@ const viewReservationDetails = async (reservationNum: string) => {
   </Button>
 )}
 
-              {selectedReservation && selectedReservation.status === "checked-in" && (
+              {selectedReservation && selectedReservation.status === "CHECKED_IN" && (
                 <Button
                   variant="default"
                   onClick={async () => {
-                    await updateReservationStatus(selectedReservation.reservationNum, "CHECKED_OUT");
+                    await updateReservationStatus(selectedReservation.reservationNum, "COMPLETED");
                     setReservations((prev) =>
                       prev.map((res) =>
                         res.reservationNum === selectedReservation.reservationNum
-                          ? { ...res, status: "checked-out" }
+                          ? { ...res, status: "COMPLETED" }
                           : res,
                       ),
                     );
                     setSelectedReservation({
                       ...selectedReservation,
-                      status: "checked-out",
+                      status: "COMPLETED",
                     });
                   }}
                 >
@@ -791,24 +805,24 @@ const viewReservationDetails = async (reservationNum: string) => {
               )}
 
               {selectedReservation &&
-  selectedReservation.status !== "cancelled" &&
-  selectedReservation.status !== "checked-out" && (
+  selectedReservation.status !== "CANCELLED" &&
+  selectedReservation.status !== "COMPLETED" && (
     <Button
       variant="destructive"
       onClick={async () => {
         if (window.confirm("정말로 이 예약을 취소하시겠습니까?")) {
           await updateReservationStatus(selectedReservation.reservationNum, "CANCELLED");
-          setReservations((prev) =>
-            prev.map((res) =>
-              res.reservationNum === selectedReservation.reservationNum
-                ? { ...res, status: "cancelled" }
-                : res,
-            ),
-          );
-          setSelectedReservation({
-            ...selectedReservation,
-            status: "cancelled",
-          });
+setReservations((prev) =>
+  prev.map((res) =>
+    res.reservationNum === selectedReservation.reservationNum
+      ? { ...res, status: "CANCELLED" }
+      : res,
+  ),
+);
+setSelectedReservation({
+  ...selectedReservation,
+  status: "CANCELLED",
+});
         }
       }}
     >
