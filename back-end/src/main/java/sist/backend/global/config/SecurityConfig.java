@@ -1,7 +1,10 @@
 package sist.backend.global.config;
 
+<<<<<<< HEAD
 import java.util.List;
 
+=======
+>>>>>>> graz1e2
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -32,8 +35,11 @@ import java.util.Collections;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+<<<<<<< HEAD
     
     private final JwtProvider jwtProvider;
+=======
+>>>>>>> graz1e2
 
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
@@ -50,7 +56,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/**").permitAll() // API는 누구나 접근 가능
-                .requestMatchers("/admin/**").authenticated() // 관리자만
+                .requestMatchers("/admin/**").permitAll() // 관리자만
                 .requestMatchers("/dining/**").permitAll()
                 .anyRequest().permitAll() // 그 외 모두 허용 (개발용)
             )
@@ -78,7 +84,8 @@ public class SecurityConfig {
     }
     
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
