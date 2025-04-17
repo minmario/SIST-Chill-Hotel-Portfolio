@@ -13,7 +13,7 @@ import java.time.LocalTime;
 @Table(name = "dining_reservation")
 @Getter
 @Setter
-// @NoArgsConstructor
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class DiningReservation {
@@ -56,15 +56,23 @@ public class DiningReservation {
     @Size(max = 300)
     private String request;
 
-    @Builder.Default
     @Column(length = 20)
-    private String status = "PENDING";
+    private String status;
 
-    @Builder.Default
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    /**
+     * 예약 엔티티 저장 전 기본값 설정
+     */
+    @PrePersist
+    public void prePersist() {
+        if (this.status == null) {
+            this.status = "PENDING";
+        }
+    }
 }

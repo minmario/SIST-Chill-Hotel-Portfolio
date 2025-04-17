@@ -87,4 +87,8 @@ public class DiningReservationService {
                 .map(DiningReservationResponse::fromEntity)
                 .collect(Collectors.toList());
     }
+
+    public List<DiningReservation> findAll() {
+        return reservationRepository.findAll();
+    }
 }

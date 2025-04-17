@@ -23,4 +23,5 @@ public interface DiningReservationRepository extends JpaRepository<DiningReserva
 
         List<DiningReservation> findByReservationDate(LocalDate reservationDate);
 
+        
 }

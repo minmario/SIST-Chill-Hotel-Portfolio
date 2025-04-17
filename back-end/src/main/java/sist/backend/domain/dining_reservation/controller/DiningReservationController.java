@@ -7,6 +7,7 @@ import sist.backend.domain.dining_reservation.service.interfaces.DiningReservati
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.context.annotation.Bean;
@@ -60,4 +61,10 @@ public class DiningReservationController {
         return ResponseEntity.ok(Map.of("totalPeople", totalPeople));
     }
 
+    // 전체 다이닝 예약 목록 조회
+    @GetMapping
+    public ResponseEntity<List<DiningReservation>> getAllReservations() {
+        List<DiningReservation> reservations = reservationService.findAll();
+        return ResponseEntity.ok(reservations);
+    }
 }
