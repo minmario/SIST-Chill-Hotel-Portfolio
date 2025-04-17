@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "dining_reservation")
@@ -33,8 +34,8 @@ public class DiningReservation {
     @Column(name = "meal_time", length = 10)
     private String mealTime;
 
-    @Column(name = "reservation_time", length = 20)
-    private String reservationTime;
+    @Column(name = "reservation_time", length = 10)
+    private LocalTime reservationTime;
 
     private int adults;
     private int children;
@@ -63,4 +64,7 @@ public class DiningReservation {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

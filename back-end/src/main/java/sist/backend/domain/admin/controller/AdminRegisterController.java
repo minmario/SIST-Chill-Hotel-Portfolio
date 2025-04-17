@@ -11,8 +11,6 @@ import sist.backend.domain.user.entity.UserRole;
 import sist.backend.domain.user.entity.UserStatus;
 import sist.backend.domain.admin.repository.AdminUserRepository;
 
-import java.time.LocalDateTime;
-
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor

@@ -1,7 +1,6 @@
 package sist.backend.domain.reservation.dto.response;
 
 import lombok.*;
-import sist.backend.domain.payment.entity.PaymentMethod;
 import sist.backend.domain.reservation.entity.Reservation;
 import sist.backend.domain.reservation.entity.ReservationStatus;
 import sist.backend.domain.room.entity.Room;
@@ -19,8 +18,8 @@ public class ReservationResponse {
     private Long reservationIdx;
     private User user;
     private Room room;
-    private LocalDate checkInDate;
-    private LocalDate checkOutDate;
+    private LocalDate checkIn;
+    private LocalDate checkOut;
     private int adults;
     private int children;
     private ReservationStatus status;
@@ -34,8 +33,8 @@ public class ReservationResponse {
                 .reservationIdx(entity.getReservationIdx())
                 .user(entity.getUser())
                 .room(entity.getRoom())
-                .checkInDate(entity.getCheckIn())
-                .checkOutDate(entity.getCheckOut())
+                .checkIn(entity.getCheckIn())
+                .checkOut(entity.getCheckOut())
                 .adults(entity.getAdultCount())
                 .children(entity.getChildCount())
                 .status(entity.getStatus())

@@ -22,8 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import sist.backend.domain.shop.dto.request.GiftShopRequestDTO;
 import sist.backend.domain.shop.dto.response.GiftShopResponseDTO;
 import sist.backend.domain.shop.service.interfaces.GiftShopService;
-import sist.backend.domain.user.entity.ActivityType;
-import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.repository.UserRepository;
 import sist.backend.domain.user.service.interfaces.UserActivityLogService;
 import sist.backend.domain.admin.service.AdminActivityLogService;
@@ -38,8 +36,6 @@ import sist.backend.domain.admin.service.AdminActivityLogService;
 public class AdminGiftShopController {
 
     private final GiftShopService giftShopService;
-    private final UserActivityLogService userActivityLogService;
-    private final UserRepository userRepository;
     private final AdminActivityLogService adminActivityLogService;
 
     private String extractClientIp(HttpServletRequest request) {

@@ -6,6 +6,7 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -66,7 +67,7 @@ public class RoomType  {
     @Column(nullable = false, length = 100)
     private String roomImage;
 
-    @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "roomType",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Room> rooms = new ArrayList<>();
 
     // 비즈니스 메서드

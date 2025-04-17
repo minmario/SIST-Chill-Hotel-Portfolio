@@ -10,49 +10,53 @@ import styles from "./booking-check.module.css"
 
 export default function BookingCheckPage() {
   const router = useRouter()
-  const [searchType, setSearchType] = useState("bookingNumber")
+  const [searchType, setSearchType] = useState("bookingNumber") // "bookingNumber" or "guestInfo"
   const [bookingNumber, setBookingNumber] = useState("")
-  const [name, setName] = useState("")
-  const [phone, setPhone] = useState("")
+  const [lastName, setLastName] = useState("")      // 성
+  const [firstName, setFirstName] = useState("")    // 이름
+  const [phone, setPhone] = useState("")            // 연락처
+  
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
     setIsClient(true)
   }, [])
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-
+  
     if (!isClient) return
-
-    // 실제 구현에서는 API 호출로 예약 정보 조회
-    // 여기서는 로컬 스토리지에 예약 정보 저장
-    const mockBookingData = {
-      bookingNumber:
-        bookingNumber ||
-        "BK" +
-          Math.floor(Math.random() * 1000000)
-            .toString()
-            .padStart(6, "0"),
-      name: name || "홍길동",
-      phone: phone || "010-1234-5678",
-      email: "example@email.com",
-      roomType: "Chill Harmony Room",
-      checkIn: "2023-12-15",
-      checkOut: "2023-12-17",
-      guests: "성인 2인",
-      price: "₩450,000",
-    }
-
+  
     try {
-      localStorage.setItem("bookingData", JSON.stringify(mockBookingData))
+      let url = ""
+
+      if (searchType === "bookingNumber") {
+        if (!bookingNumber) {
+          alert("예약 번호를 입력해주세요.")
+          return
+        }
+
+        url = `/api/reservations/check-by-num?reservationNum=${bookingNumber}`
+      } else {
+        if (!lastName || !firstName || !phone) {
+          alert("성, 이름, 연락처를 모두 입력해주세요.")
+          return
+        }
+
+        url = `/api/reservations/check/guest?lastName=${lastName}&firstName=${firstName}&phone=${phone}`
+      }
+  
+      const res = await fetch(url)
+      if (!res.ok) throw new Error("예약 정보를 찾을 수 없습니다.")
+  
+      const data = await res.json()
+      localStorage.setItem("bookingData", JSON.stringify(data))
       router.push("/booking/check/detail")
     } catch (error) {
-      console.error("예약 정보를 저장하는 중 오류가 발생했습니다:", error)
-      alert("예약 정보 조회에 실패했습니다. 다시 시도해주세요.")
+      console.error("예약 조회 실패:", error)
+      alert("예약 정보를 조회하지 못했습니다.")
     }
   }
-
   return (
     <div className="container mx-auto py-20 px-4">
       <div className={styles.header || "mb-8 text-center"}>
@@ -101,33 +105,49 @@ export default function BookingCheckPage() {
             </div>
           ) : (
             <>
-              <div className="mb-4">
-                <label htmlFor="name" className="block mb-2 font-medium">
-                  예약자 이름
+            <div className="mb-4 flex gap-4">
+              <div className="w-1/2">
+                <label htmlFor="lastName" className="block mb-2 font-medium">
+                  성
                 </label>
                 <input
                   type="text"
-                  id="name"
+                  id="lastName"
                   className="w-full p-3 border border-gray-300 rounded"
-                  placeholder="예약자 이름을 입력하세요"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  placeholder="성을 입력하세요"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
                 />
               </div>
-              <div className="mb-6">
-                <label htmlFor="phone" className="block mb-2 font-medium">
-                  연락처
+
+              <div className="w-1/2">
+                <label htmlFor="firstName" className="block mb-2 font-medium">
+                  이름
                 </label>
                 <input
-                  type="tel"
-                  id="phone"
+                  type="text"
+                  id="firstName"
                   className="w-full p-3 border border-gray-300 rounded"
-                  placeholder="예약 시 입력한 연락처를 입력하세요"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="이름을 입력하세요"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                 />
               </div>
-            </>
+            </div>
+            <div className="mb-6">
+              <label htmlFor="phone" className="block mb-2 font-medium">
+                연락처
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                className="w-full p-3 border border-gray-300 rounded"
+                placeholder="예약 시 입력한 연락처를 입력하세요"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+          </>
           )}
 
           <button

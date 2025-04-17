@@ -1,6 +1,10 @@
 package sist.backend.global.config;
+
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -13,6 +17,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
 import lombok.RequiredArgsConstructor;
 import sist.backend.global.security.JwtAuthenticationFilter;
@@ -27,6 +34,8 @@ import java.util.Collections;
 public class SecurityConfig {
     
     private final JwtProvider jwtProvider;
+
+    
     private final UserDetailsService userDetailsService;
 
     @Bean
@@ -36,13 +45,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/**").permitAll() // API는 누구나 접근 가능
-                .requestMatchers("/admin/**").authenticated() // 관리자만
+                .requestMatchers("/admin/**").permitAll() // 관리자만
                 .requestMatchers("/dining/**").permitAll()
                 .anyRequest().permitAll() // 그 외 모두 허용 (개발용)
             )
@@ -50,11 +58,12 @@ public class SecurityConfig {
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/")
-            );
+            )
+            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-    
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -69,7 +78,8 @@ public class SecurityConfig {
     }
     
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 

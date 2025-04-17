@@ -53,7 +53,7 @@ export default function AdminHeader() {
           {isLoggedIn ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant={scrolled ? "outline" : "secondary"} size="sm" className="flex items-center gap-2">
+                <Button variant={scrolled ? "outline" : "secondary"} size="sm" className={`flex items-center gap-2 border ${scrolled ? "border-black" : "border-white"}`}>
                   <User size={16} />
                   <span className="hidden sm:inline">{user?.name || user?.userId}</span>
                 </Button>

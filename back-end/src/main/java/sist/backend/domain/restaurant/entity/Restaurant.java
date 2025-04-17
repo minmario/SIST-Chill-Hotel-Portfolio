@@ -1,57 +1,80 @@
 package sist.backend.domain.restaurant.entity;
 
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalTime;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import sist.backend.global.common.BaseTimeEntity;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "restaurants")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Restaurant extends BaseTimeEntity {
+public class Restaurant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "restaurants_idx")
     private Long restaurantsIdx;
 
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false)
-    private Integer capacity;
+    @Column(length = 255)
+    private String type;
 
-    @Column(nullable = false)
-    private LocalTime open;
+    @Column(length = 255)
+    private String description;
 
-    @Column(nullable = false)
-    private LocalTime close;
+    @Column(length = 255)
+    private String image;
 
-    @Column(nullable = false)
+    @Column(length = 255)
     private String location;
 
-    // 비즈니스 메서드
-    public void updateHours(LocalTime open, LocalTime close) {
-        this.open = open;
-        this.close = close;
-    }
+    @Column(name = "breakfast_open")
+    private LocalTime breakfastOpen;
 
-    public void updateCapacity(Integer capacity) {
-        this.capacity = capacity;
-    }
+    @Column(name = "breakfast_close")
+    private LocalTime breakfastClose;
 
-    public boolean isOpenAt(LocalTime time) {
-        return !time.isBefore(open) && !time.isAfter(close);
-    }
+    @Column(name = "lunch_open")
+    private LocalTime lunchOpen;
+
+    @Column(name = "lunch_close")
+    private LocalTime lunchClose;
+
+    @Column(name = "dinner_open")
+    private LocalTime dinnerOpen;
+
+    @Column(name = "dinner_close")
+    private LocalTime dinnerClose;
+
+    @Column
+    private LocalTime open;
+
+    @Column
+    private LocalTime close;
+
+    @Column(name = "price_adult")
+    private Integer priceAdult;
+
+    @Column(name = "price_child")
+    private Integer priceChild;
+
+    @Column
+    private Integer capacity;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

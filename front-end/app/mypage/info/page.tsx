@@ -32,6 +32,7 @@ export default function UserInfo() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [formErrors, setFormErrors] = useState({
     email: "",
     currentPassword: "",
@@ -41,38 +42,84 @@ export default function UserInfo() {
   })
 
   useEffect(() => {
-    // 로그인 상태 확인
     const loggedIn = localStorage.getItem("isLoggedIn") === "true"
     setIsLoggedIn(loggedIn)
-
+  
     if (!loggedIn) {
       router.push("/login")
+      return
     }
-
-    // 실제로는 API에서 사용자 정보를 가져와야 함
-    const userEmail = localStorage.getItem("userEmail")
-    if (userEmail) {
-      setFormData((prev) => ({
-        ...prev,
-        email: userEmail,
-      }))
+  
+    const token = localStorage.getItem("token")
+    console.log("[token]", token)
+    if (!token) {
+      router.push("/login")
+      return
     }
-  }, [router])
+  
+    // 사용자 정보 불러오기
+    fetch("http://localhost:8080/api/user/me", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((res) => res.json())
+    .then((data) => {
+      setFormData({
+        userId: data.id,
+        email: data.email,
+        phone: data.phone,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        englishFirstName: data.englishFirstName || "",
+        englishLastName: data.englishLastName || "",
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      })
+      setIsLoading(false)
+    })
+    .catch(() => setIsLoading(false))
+}, [])
+if (isLoading) return <p>로딩 중...</p>
 
   const handleVerificationInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setVerificationPassword(e.target.value)
     setVerificationError("")
   }
 
-  const handleVerification = (e: React.FormEvent) => {
+  const handleVerification = async (e: React.FormEvent) => {
     e.preventDefault()
+  
+    try {
+      const token = localStorage.getItem("token")
 
-    // 실제로는 API를 통해 비밀번호 검증이 필요함
-    // 여기서는 간단히 "password"라는 값으로 검증
-    if (verificationPassword === "password") {
+      if (!token) {
+        alert("로그인이 필요합니다.")
+        router.push("/login")
+        return
+      }
+      
+      const response = await fetch("http://localhost:8080/api/user/verify-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // JWT 요구
+        },
+        body: JSON.stringify({
+          password: verificationPassword,
+        }),
+      })
+  
+      if (!response.ok) {
+        throw new Error("비밀번호 검증 실패")
+      }
+  
+      // 검증 성공
       setIsVerified(true)
       setVerificationError("")
-    } else {
+    } catch (err) {
       setVerificationError("비밀번호가 일치하지 않습니다.")
     }
   }
@@ -85,10 +132,13 @@ export default function UserInfo() {
     }))
 
     // 입력값 변경 시 해당 필드의 에러 메시지 초기화
-    if (formErrors[name]) {
+    
+  // 이름이 formErrors의 key 중 하나일 때만 처리
+    const key = name as keyof typeof formErrors
+    if (key in formErrors) {
       setFormErrors((prev) => ({
         ...prev,
-        [name]: "",
+        [key]: "",
       }))
     }
   }
@@ -139,23 +189,57 @@ export default function UserInfo() {
     return isValid
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!validateForm()) {
+  
+    if (!validateForm()) return
+  
+    const token = localStorage.getItem("token")
+    if (!token) {
+      alert("로그인이 필요합니다.")
+      router.push("/login")
       return
     }
-
-    // 정보 업데이트 처리 (실제로는 API 호출)
-    alert("회원 정보가 성공적으로 업데이트되었습니다.")
-
-    // 비밀번호 필드 초기화
-    setFormData((prev) => ({
-      ...prev,
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    }))
+  
+    try {
+      const response = await fetch("http://localhost:8080/api/user/update", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          phone: formData.phone,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          name: formData.lastName + formData.firstName, // ✅ 핵심 포인트
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword,
+        }),
+      })
+  
+      if (!response.ok) {
+        const message = await response.text()
+        throw new Error(message || "정보 수정 실패")
+      }
+  
+      const result = await response.json()
+      console.log("[정보 수정 성공]", result)
+  
+      alert("회원 정보가 성공적으로 업데이트되었습니다.")
+  
+      // 비밀번호 필드 초기화
+      setFormData((prev) => ({
+        ...prev,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      }))
+    } catch (err: any) {
+      console.error("[정보 수정 오류]", err)
+      alert(err.message || "정보 수정 중 오류가 발생했습니다.")
+    }
   }
 
   if (!isLoggedIn) {
@@ -405,7 +489,7 @@ export default function UserInfo() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <label htmlFor="lastName" className="block mb-2 font-medium">
-                            이름
+                            성
                           </label>
                           <input
                             type="text"
@@ -419,20 +503,22 @@ export default function UserInfo() {
                         </div>
 
                         <div>
-                          <label htmlFor="englishFirstName" className="block mb-2 font-medium">
-                            영문 이름
+                          <label htmlFor="firstName" className="block mb-2 font-medium">
+                            이름
                           </label>
                           <input
                             type="text"
-                            id="englishFirstName"
-                            name="englishFirstName"
+                            id="firstName"
+                            name="firstName"
                             className="w-full p-3 border border-gray-300 rounded-md"
-                            value={formData.englishFirstName}
+                            value={formData.firstName}
                             onChange={handleInputChange}
+                            required
                           />
                         </div>
                       </div>
                     </div>
+
 
                     <div className="mb-8">
                       <label htmlFor="phone" className="block mb-2 font-medium">

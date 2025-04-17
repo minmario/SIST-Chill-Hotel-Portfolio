@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import sist.backend.domain.user.repository.UserRepository;
-import sist.backend.domain.user.entity.User;
 
 @Service
 @RequiredArgsConstructor

@@ -1,17 +1,23 @@
 package sist.backend.domain.auth.service.impl;
 
 import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDate;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
+import sist.backend.domain.auth.dto.request.PaymentMethodRequest;
 import sist.backend.domain.auth.dto.request.UserLoginRequest;
 import sist.backend.domain.auth.dto.request.UserRegisterRequest;
 import sist.backend.domain.auth.dto.response.UserLoginResponse;
 import sist.backend.domain.auth.dto.response.UserRegisterResponse;
 import sist.backend.domain.auth.service.service.UserAuthService;
+import sist.backend.domain.payment.entity.PaymentMethod;
+import sist.backend.domain.payment.repository.PaymentMethodRepository;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.entity.UserRole;
 import sist.backend.domain.user.entity.UserStatus;
@@ -27,6 +33,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final UserActivityLogService userActivityLogService;
+    private final PaymentMethodRepository paymentMethodRepository;
 
     @Override
     public UserLoginResponse login(UserLoginRequest request) {
@@ -54,19 +61,19 @@ String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
 
         return new UserLoginResponse(token, user.getRole().name());
     }
-    
+
     @Override
     public UserRegisterResponse register(UserRegisterRequest request) {
         // 아이디 중복 확인
         if (userRepository.existsById(request.getId())) {
             throw new RuntimeException("이미 사용 중인 아이디입니다.");
         }
-        
+
         // 이메일 중복 확인
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("이미 사용 중인 이메일입니다.");
         }
-        
+
         // 사용자 엔티티 생성
         User user = User.builder()
                 .id(request.getId())
@@ -79,14 +86,32 @@ String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
                 .status(UserStatus.ACTIVE)
                 .role(UserRole.USER)
                 .build();
-        
+
         // 사용자 저장
         userRepository.save(user);
-        
+
         // JWT 토큰 생성
-        // user.getId()를 JWT subject로 사용
-String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
-        
+        String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
+        // 사용자 저장 후 결제 수단 등록
+        if (request.getPaymentMethod() != null) {
+            PaymentMethodRequest pm = request.getPaymentMethod();
+
+            String lastFour = pm.getCardNumber().replaceAll("\\s", "");
+            lastFour = lastFour.substring(lastFour.length() - 4);
+
+            PaymentMethod paymentMethod = PaymentMethod.builder()
+                    .user(user)
+                    .cardType(pm.getCardCompany())
+                    .lastFourDigits(lastFour)
+                    .ownerName(pm.getCardHolder())
+                    .expireDate(LocalDate.parse(
+                            "20" + pm.getCardExpiry().substring(3) + "-" + pm.getCardExpiry().substring(0, 2) + "-01"))
+                    .token("TEMP_TOKEN")
+                    .build();
+
+            paymentMethodRepository.save(paymentMethod);
+        }
+
         // 응답 반환
         return UserRegisterResponse.builder()
                 .message("회원가입이 완료되었습니다.")
@@ -99,7 +124,8 @@ String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
     private String getClientIp() {
         String ipAddress = "0.0.0.0"; // 기본값
         try {
-            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder
+                    .getRequestAttributes();
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
                 ipAddress = getIpFromRequest(request);
@@ -113,7 +139,7 @@ String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
     // 요청에서 실제 IP 주소 추출
     private String getIpFromRequest(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
-        
+
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
         }
@@ -129,12 +155,12 @@ String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
-        
+
         // 쉼표로 구분된 여러 IP가 있을 경우 첫 번째 IP 사용
         if (ip != null && ip.contains(",")) {
             ip = ip.split(",")[0].trim();
         }
-        
+
         return ip;
     }
 }

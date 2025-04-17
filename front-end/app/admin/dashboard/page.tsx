@@ -8,6 +8,14 @@ export default function AdminDashboard() {
   const [totalUsers, setTotalUsers] = useState<number | null>(null)
   const [recentUsers, setRecentUsers] = useState<RecentUser[]>([])
   const [staffCount, setStaffCount] = useState<number | null>(null)
+
+  // 최근 가입 회원 페이지네이션 상태
+  const [recentCurrentPage, setRecentCurrentPage] = useState(1);
+  const recentItemsPerPage = 3;
+  const recentIndexOfLast = recentCurrentPage * recentItemsPerPage;
+  const recentIndexOfFirst = recentIndexOfLast - recentItemsPerPage;
+  const recentCurrentUsers = recentUsers.slice(recentIndexOfFirst, recentIndexOfLast);
+  const recentTotalPages = Math.max(1, Math.ceil(recentUsers.length / recentItemsPerPage));
   const [newUserStats, setNewUserStats] = useState<{ today: number; changeRate: string } | null>(null)
   const [totalUserChange, setTotalUserChange] = useState<TotalUserChange | null>(null)
   // API 호출: 총 회원 수
@@ -148,32 +156,34 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {stats.map((stat, index) => (
-          <Card key={index}>
-            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <div className={`${stat.color} p-2 rounded-full`}>
-                <stat.icon className="h-4 w-4 text-white" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="flex items-center text-xs mt-1">
-                {stat.trend === "up" ? (
-                  <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
-                ) : stat.trend === "down" ? (
-                  <ArrowDownRight className="h-3 w-3 text-red-500 mr-1" />
-                ) : (
-                  <TrendingUp className="h-3 w-3 text-gray-500 mr-1" />
-                )}
-                <span
-                  className={
-                    stat.trend === "up" ? "text-green-500" : stat.trend === "down" ? "text-red-500" : "text-gray-500"
-                  }
-                >
-                  {stat.change} 지난달 대비
-                </span>
-              </div>
-            </CardContent>
+          <Card key={index} className="border-none shadow-none bg-transparent">
+            <div className="bg-gray-50 rounded-md p-4">
+              <CardHeader className="pb-2 pt-4 flex flex-row items-center justify-between space-y-0 p-0">
+                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                <div className={`${stat.color} p-2 rounded-full`}>
+                  <stat.icon className="h-4 w-4 text-white" />
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="flex items-center text-xs mt-1">
+                  {stat.trend === "up" ? (
+                    <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
+                  ) : stat.trend === "down" ? (
+                    <ArrowDownRight className="h-3 w-3 text-red-500 mr-1" />
+                  ) : (
+                    <TrendingUp className="h-3 w-3 text-gray-500 mr-1" />
+                  )}
+                  <span
+                    className={
+                      stat.trend === "up" ? "text-green-500" : stat.trend === "down" ? "text-red-500" : "text-gray-500"
+                    }
+                  >
+                    {stat.change} 지난달 대비
+                  </span>
+                </div>
+              </CardContent>
+            </div>
           </Card>
         ))}
       </div>
@@ -186,25 +196,51 @@ export default function AdminDashboard() {
           </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentUsers.length > 0 ? (
-                recentUsers.map((user, index) => (
-                <div
-                    key={index}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-md"
-                >
-                <div>
-                    <div className="font-medium">{user.name}</div>
-                    <div className="text-sm text-gray-500">{user.email}</div>
-                </div>
-                <div className="text-sm text-gray-500">
-                  {new Date(user.createdAt).toLocaleDateString("ko-KR")}
-                </div>
+                {recentCurrentUsers.length > 0 ? (
+                  recentCurrentUsers.map((user, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center p-3 bg-gray-50 rounded-md"
+                    >
+                      <div>
+                        <div className="font-medium">{user.name}</div>
+                        <div className="text-sm text-gray-500">{user.email}</div>
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {new Date(user.createdAt).toLocaleDateString("ko-KR")}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-sm text-gray-400">최근 가입한 회원이 없습니다.</div>
+                )}
               </div>
-      ))
-    ) : (
-          <div className="text-sm text-gray-400">최근 가입한 회원이 없습니다.</div>
-    )}
-  </div>
+              {/* 페이지네이션 버튼 */}
+              <div className="flex justify-center mt-4 gap-2 items-center">
+                <button
+                  onClick={() => setRecentCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={recentCurrentPage === 1}
+                  className="px-2 py-1 border rounded disabled:opacity-50"
+                >
+                  이전
+                </button>
+                {Array.from({ length: recentTotalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    className={`px-2 py-1 border rounded text-sm font-medium transition-colors duration-150 ${pageNum === recentCurrentPage ? "bg-black text-white" : "bg-white text-black"}`}
+                    onClick={() => setRecentCurrentPage(pageNum)}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setRecentCurrentPage((p) => Math.min(recentTotalPages, p + 1))}
+                  disabled={recentCurrentPage === recentTotalPages}
+                  className="px-2 py-1 border rounded disabled:opacity-50"
+                >
+                  다음
+                </button>
+              </div>
 </CardContent>
         </Card>
 

@@ -13,7 +13,7 @@ import sist.backend.domain.admin.dto.request.UserRegisterRequest;
 import sist.backend.domain.admin.dto.response.UserDailyChangeResponse;
 import sist.backend.domain.admin.dto.response.UserResponse;
 import sist.backend.domain.admin.repository.AdminUserRepository;
-import sist.backend.domain.admin.service.service.UserService;
+import sist.backend.domain.admin.service.service.UserAdminService;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.entity.UserRole;
 import sist.backend.domain.user.entity.UserStatus;
@@ -21,7 +21,7 @@ import sist.backend.domain.admin.dto.response.TotalUserDailyChangeResponse;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserAdminServiceImpl implements UserAdminService {
 
     private final AdminUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;

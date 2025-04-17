@@ -1,8 +1,12 @@
-let userConfig = undefined
-try {
-  userConfig = await import('./v0-user-next.config')
-} catch (e) {
-  // ignore error
+import fs from 'fs';
+import path from 'path';
+
+let userConfig = {};
+const userConfigPath = path.resolve('./v0-user-next.config.js'); // 또는 .mjs
+
+if (fs.existsSync(userConfigPath)) {
+  const mod = await import(userConfigPath);
+  userConfig = mod.default || {};
 }
 
 // 개발 모드에서 모의 API 사용 여부 (true: 모의 API 사용, false: 실제 백엔드 API 사용)
@@ -39,7 +43,7 @@ const nextConfig = {
       },
     ];
   },
-}
+};
 
 mergeConfig(nextConfig, userConfig)
 
@@ -58,10 +62,10 @@ function mergeConfig(nextConfig, userConfig) {
         ...userConfig[key],
       };
     } else {
-      nextConfig[key] = userConfig[key];
+      base[key] = user[key];
     }
   }
-  return nextConfig;
+  return base;
 }
 
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
