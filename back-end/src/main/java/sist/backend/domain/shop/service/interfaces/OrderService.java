@@ -8,7 +8,7 @@ import sist.backend.domain.shop.dto.response.*;
 import sist.backend.domain.shop.entity.*;
 
 public interface OrderService {
-    OrderResponseDTO createOrder(Long userIdx, OrderRequestDTO requestDto);
+    OrderResponseDTO createOrder(OrderRequestDTO requestDto);
     OrderResponseDTO getOrderById(Long orderIdx);
     List<OrderResponseDTO> getOrdersByUser(Long userIdx);
     OrderResponseDTO updateOrderStatus(Long orderIdx, OrderStatus status);

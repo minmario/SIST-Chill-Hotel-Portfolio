@@ -15,12 +15,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import sist.backend.domain.shop.dto.request.GiftShopRequestDTO;
 import sist.backend.domain.shop.dto.response.GiftShopResponseDTO;
 import sist.backend.domain.shop.service.interfaces.GiftShopService;
+import sist.backend.domain.user.entity.ActivityType;
+import sist.backend.domain.user.entity.User;
+import sist.backend.domain.user.repository.UserRepository;
+import sist.backend.domain.user.service.interfaces.UserActivityLogService;
+import sist.backend.domain.admin.service.AdminActivityLogService;
+
+
 
 @Slf4j
 @RestController
@@ -30,6 +38,17 @@ import sist.backend.domain.shop.service.interfaces.GiftShopService;
 public class AdminGiftShopController {
 
     private final GiftShopService giftShopService;
+    private final UserActivityLogService userActivityLogService;
+    private final UserRepository userRepository;
+    private final AdminActivityLogService adminActivityLogService;
+
+    private String extractClientIp(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null) {
+            return request.getRemoteAddr();
+        }
+        return xfHeader.split(",")[0];
+    }
 
     @GetMapping
     public ResponseEntity<List<GiftShopResponseDTO>> getAllItems() {
@@ -48,35 +67,51 @@ public class AdminGiftShopController {
     }
 
     @PostMapping
-    public ResponseEntity<GiftShopResponseDTO> createItem(@Valid @RequestBody GiftShopRequestDTO requestDto) {
+    public ResponseEntity<GiftShopResponseDTO> createItem(@Valid @RequestBody GiftShopRequestDTO requestDto, HttpServletRequest request) {
         log.info("관리자: 상품 생성 요청 - {}", requestDto.getItemName());
         GiftShopResponseDTO createdProduct = giftShopService.createItem(requestDto);
         log.info("관리자: 상품 생성 완료 - ID: {}", createdProduct.getItemIdx());
+        // 관리자 활동 로그 기록
+        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String adminId = authentication.getName();
+        String ip = extractClientIp(request);
+        adminActivityLogService.logActivity(adminId, sist.backend.infrastructure.logging.ActivityType.ADMIN_GIFT_CREATE, "상품 생성: " + createdProduct.getItemName(), ip);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
     }
 
     @PutMapping("/{itemIdx}")
     public ResponseEntity<GiftShopResponseDTO> updateItem(
-            @PathVariable Long itemIdx,
-            @Valid @RequestBody GiftShopRequestDTO requestDto) {
+            @PathVariable("itemIdx") Long itemIdx,
+            @Valid @RequestBody GiftShopRequestDTO requestDto,
+            HttpServletRequest request) {
         log.info("관리자: 상품 수정 요청 - ID: {}, 이름: {}", itemIdx, requestDto.getItemName());
         GiftShopResponseDTO updatedProduct = giftShopService.updateItem(itemIdx, requestDto);
         log.info("관리자: 상품 수정 완료 - ID: {}", updatedProduct.getItemIdx());
+        // 관리자 활동 로그 기록
+        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String adminId = authentication.getName();
+        String ip = extractClientIp(request);
+        adminActivityLogService.logActivity(adminId, sist.backend.infrastructure.logging.ActivityType.ADMIN_GIFT_UPDATE, "상품 수정: " + updatedProduct.getItemName(), ip);
         return ResponseEntity.ok(updatedProduct);
     }
 
     @DeleteMapping("/{itemIdx}")
-    public ResponseEntity<Void> deleteItem(@PathVariable Long itemIdx) {
+    public ResponseEntity<Void> deleteItem(@PathVariable("itemIdx") Long itemIdx, HttpServletRequest request) {
         log.info("관리자: 상품 삭제 요청 - ID: {}", itemIdx);
         try {
             giftShopService.deleteItem(itemIdx);
             log.info("관리자: 상품 삭제 완료 - ID: {}", itemIdx);
+            // 관리자 활동 로그 기록
+            org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            String adminId = authentication.getName();
+            String ip = extractClientIp(request);
+            adminActivityLogService.logActivity(adminId, sist.backend.infrastructure.logging.ActivityType.ADMIN_GIFT_DELETE, "상품 삭제: ID=" + itemIdx, ip);
             return ResponseEntity.noContent().build();
         } catch (IllegalStateException e) {
             // 주문에 포함된 상품 삭제 시도 시
             log.warn("관리자: 상품 삭제 실패 (주문 내역에 포함됨) - ID: {}, 오류: {}", itemIdx, e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(null); // 409 Conflict 상태 코드 반환
+                    .body(null); // 409 Conflict 상태 코드 반환
         } catch (Exception e) {
             log.error("관리자: 상품 삭제 중 오류 발생 - ID: {}, 오류: {}", itemIdx, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

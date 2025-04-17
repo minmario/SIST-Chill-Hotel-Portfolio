@@ -65,7 +65,7 @@ export default function Checkout() {
 
     try {
       // 주문 생성 API 호출
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("accessToken")
       const orderData = {
         amount: totalPrice, // 결제 금액
         paymentMethod: paymentMethod,

@@ -216,10 +216,12 @@ export default function ItemsPage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
       
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(API_URL, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         credentials: 'include', // 쿠키를 포함하여 요청
         cache: 'no-cache',
@@ -312,10 +314,12 @@ export default function ItemsPage() {
   // 물품 추가 핸들러
   const handleAddItem = async () => {
     try {
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         credentials: 'include', // 쿠키를 포함하여 요청
         body: JSON.stringify({
@@ -332,17 +336,17 @@ export default function ItemsPage() {
       }
 
       const newItem = await response.json()
-    setItems([...items, newItem])
-    setCurrentItem({
+      setItems([...items, newItem])
+      setCurrentItem({
         itemName: "",
-      price: 0,
+        price: 0,
         stockQuantity: 0,
         createdAt: "",
         updatedAt: "",
-      category: "",
-      description: "",
-    })
-    setIsAddModalOpen(false)
+        category: "",
+        description: "",
+      })
+      setIsAddModalOpen(false)
       toast.success('상품이 추가되었습니다')
     } catch (error: unknown) {
       console.error('Error adding item:', error)
@@ -357,10 +361,12 @@ export default function ItemsPage() {
   // 물품 편집 핸들러
   const handleEditItem = async () => {
     try {
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(`${API_URL}/${currentItem.itemIdx}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         credentials: 'include', // 쿠키를 포함하여 요청
         body: JSON.stringify({
@@ -377,12 +383,12 @@ export default function ItemsPage() {
       }
 
       const updatedItem = await response.json()
-    const updatedItems = items.map((item) =>
+      const updatedItems = items.map((item) =>
         item.itemIdx === currentItem.itemIdx ? updatedItem : item
-    )
+      )
 
-    setItems(updatedItems)
-    setIsEditModalOpen(false)
+      setItems(updatedItems)
+      setIsEditModalOpen(false)
       toast.success('상품이 수정되었습니다')
     } catch (error: unknown) {
       console.error('Error updating item:', error)
@@ -397,8 +403,12 @@ export default function ItemsPage() {
   // 물품 삭제 핸들러
   const handleDeleteItem = async () => {
     try {
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(`${API_URL}/${currentItem.itemIdx}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include', // 쿠키를 포함하여 요청
       })
 
@@ -412,8 +422,8 @@ export default function ItemsPage() {
       }
 
       const updatedItems = items.filter((item) => item.itemIdx !== currentItem.itemIdx)
-    setItems(updatedItems)
-    setIsDeleteModalOpen(false)
+      setItems(updatedItems)
+      setIsDeleteModalOpen(false)
       toast.success('상품이 삭제되었습니다')
     } catch (error: unknown) {
       console.error('Error deleting item:', error)
@@ -432,8 +442,12 @@ export default function ItemsPage() {
       const queryParams = new URLSearchParams();
       selectedItems.forEach(id => queryParams.append('itemIds', id.toString()));
       
+      const token = localStorage.getItem("accessToken");
       const response = await fetch(`${API_URL}/bulk?${queryParams.toString()}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         credentials: 'include', // 쿠키를 포함하여 요청
       });
 
