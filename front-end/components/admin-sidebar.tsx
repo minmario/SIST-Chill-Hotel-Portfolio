@@ -102,8 +102,8 @@ export default function AdminSidebar() {
   )
 
   return (
-    <div className="w-full min-h-screen bg-[#0f172a] text-white">
-      <div className="p-6 flex flex-col h-full">
+    <div className="w-full min-h-screen bg-[#0f172a] text-white flex flex-col">
+      <div className="p-6 flex-1 flex flex-col overflow-y-auto">
         <nav className="space-y-5">
           {Object.entries(sections).map(([sectionName, items]) => (
             <div key={sectionName}>

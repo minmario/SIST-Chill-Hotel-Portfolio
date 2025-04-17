@@ -7,8 +7,17 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { User, CreditCard, LogOut, Award, Gift, AlertTriangle, Eye, EyeOff, Home } from "lucide-react"
 import styles from "../mypage.module.css"
+import { jwtDecode } from "jwt-decode"
+import { useAuth } from "@/context/auth-context"
+
+type JwtPayload = {
+  sub: string
+  role: string
+  exp: number
+}
 
 export default function Withdraw() {
+  const { logout } = useAuth();
   const router = useRouter()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [formData, setFormData] = useState({
@@ -23,19 +32,25 @@ export default function Withdraw() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
 
   useEffect(() => {
-    // 로그인 상태 확인
     const loggedIn = localStorage.getItem("isLoggedIn") === "true"
     setIsLoggedIn(loggedIn)
-
+  
     if (!loggedIn) {
       router.push("/login")
     } else {
-      // 사용자 ID 가져오기 (실제로는 API에서 가져와야 함)
-      const storedUserId = "hello" // 테스트용 ID
-      setFormData((prev) => ({
-        ...prev,
-        userId: storedUserId,
-      }))
+      const token = localStorage.getItem("accessToken")
+      if (token) {
+        try {
+          const decoded = jwtDecode<JwtPayload>(token)
+          setFormData((prev) => ({
+            ...prev,
+            userId: decoded.sub,  // ← 여기서 로그인한 유저 ID가 들어감
+          }))
+        } catch (error) {
+          console.error("JWT 디코딩 실패:", error)
+          router.push("/login")
+        }
+      }
     }
   }, [router])
 
@@ -47,12 +62,7 @@ export default function Withdraw() {
     }))
 
     // 입력값 변경 시 해당 필드의 에러 메시지 초기화
-    if (formErrors[name]) {
-      setFormErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }))
-    }
+    
   }
 
   const validateForm = () => {
@@ -76,25 +86,62 @@ export default function Withdraw() {
     return isValid
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!validateForm()) {
-      return
+  
+    if (!validateForm()) return
+  
+    try {
+      const token = localStorage.getItem("accessToken")
+      const res = await fetch("http://localhost:8080/api/user/verify-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // 백엔드에서 JWT 인증 사용 시
+        },
+        body: JSON.stringify({ password: formData.password }),
+      })
+  
+      if (!res.ok) {
+        const message = await res.text()
+        alert(message)
+        return
+      }
+  
+      setIsConfirmModalOpen(true)
+    } catch (error) {
+      console.error("비밀번호 확인 오류:", error)
+      alert("비밀번호 확인 중 오류가 발생했습니다.")
     }
-
-    // 확인 모달 열기
-    setIsConfirmModalOpen(true)
   }
 
-  const handleConfirmWithdrawal = () => {
-    // 회원 탈퇴 처리 (실제로는 API 호출)
-    localStorage.removeItem("isLoggedIn")
-    localStorage.removeItem("userEmail")
-    localStorage.removeItem("userName")
+   // ← 이거 위에 import 되어 있어야 함
 
-    alert("회원 탈퇴가 완료되었습니다. 그동안 이용해 주셔서 감사합니다.")
-    router.push("/")
+   const handleConfirmWithdrawal = async () => {
+    try {
+      const token = localStorage.getItem("accessToken")
+  
+      const res = await fetch("http://localhost:8080/api/user/withdraw", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+  
+      if (!res.ok) {
+        const message = await res.text()
+        alert(`탈퇴 실패: ${message}`)
+        return
+      }
+  
+      await logout();           // ✅ 반드시 await
+      router.push("/")          // ✅ 리디렉션
+      router.refresh();         // ✅ 상태 강제 재반영
+  
+    } catch (err) {
+      console.error("탈퇴 요청 중 오류 발생:", err)
+      alert("알 수 없는 오류가 발생했습니다.")
+    }
   }
 
   if (!isLoggedIn) {

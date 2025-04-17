@@ -7,8 +7,11 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Component
 public class JwtProvider {
@@ -16,11 +19,9 @@ public class JwtProvider {
     private final Key key;
     private final long EXPIRATION_TIME = 1000 * 60 * 60; // 1시간
 
-    // application.yml에 있는 secretKey 값을 주입
     public JwtProvider(@Value("${custom.jwt.secretKey}") String secretKey) {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
-    // 역할에 따라서 다른 토큰을 발급할 수 있도록 수정
 
     // userId를 JWT의 subject로 사용
     public String generateToken(String userId, String role) {
@@ -58,5 +59,26 @@ public class JwtProvider {
                 .getBody()
                 .getExpiration();
         return expiration.before(new Date());
+    }
+
+    // ✅ 사용자 ID 추출용 (subject에 저장된 값)
+    public String extractUserId(HttpServletRequest request) {
+        String token = resolveToken(request);
+        if (token != null) {
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+            return claims.getBody().getSubject();
+        }
+        return null;
+    }
+
+    private String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }

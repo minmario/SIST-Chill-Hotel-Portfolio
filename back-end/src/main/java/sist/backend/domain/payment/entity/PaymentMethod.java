@@ -50,6 +50,10 @@ public class PaymentMethod extends BaseTimeEntity {
     @Column(nullable = false)
     private String token;
 
+    // ✅ 기본 결제 수단 여부
+    @Column(name = "is_default", nullable = false)
+    private Long isDefault;
+
     // 비즈니스 메서드
     public boolean isExpired() {
         return LocalDate.now().isAfter(expireDate);

@@ -135,7 +135,7 @@ export default function MyPage() {
                   <div className={styles.membershipName}>
                     테스트 사용자님은{" "}
                     <span className="text-primary-color font-bold" style={{ color: "var(--primary-color)" }}>
-                      BROWN
+                      BRONZE
                     </span>{" "}
                     회원입니다.
                   </div>

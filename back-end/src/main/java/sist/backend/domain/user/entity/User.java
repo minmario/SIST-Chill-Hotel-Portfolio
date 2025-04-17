@@ -7,15 +7,17 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import java.time.LocalDateTime;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -26,8 +28,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import sist.backend.domain.shop.entity.Order;
-import sist.backend.domain.shop.entity.Cart;
 import sist.backend.global.common.BaseTimeEntity;
+import sist.backend.domain.membership.entity.Membership;
+import sist.backend.domain.shop.entity.Cart;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
@@ -65,15 +69,12 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
-    
+
     @Column(length = 20)
     private String firstName;
-    
+
     @Column(length = 50)
     private String lastName;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
 
     @Column(name = "membership_idx")
     private Long membershipIdx;
@@ -125,4 +126,15 @@ public class User extends BaseTimeEntity implements UserDetails {
     public boolean isEnabled() {
         return status == UserStatus.ACTIVE;
     }
+
+    @Column(length = 50)
+    private String englishFirstName;
+
+    @Column(length = 50)
+    private String englishLastName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "membership_idx") // FK 컬럼 명시
+    private Membership membership;
+
 }

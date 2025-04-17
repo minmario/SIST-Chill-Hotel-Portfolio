@@ -30,7 +30,6 @@ public class Membership extends BaseTimeEntity {
 
     @Column(unique = true, nullable = false, length = 20)
     private String membershipNumber;
-    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MembershipTier tier;

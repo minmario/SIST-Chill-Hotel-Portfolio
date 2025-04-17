@@ -44,7 +44,7 @@ public class UserAuthController {
         UserRegisterResponse response = userAuthService.register(request);
         return ResponseEntity.ok(response);
     }
-    
+
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout() {
         // 현재 로그인한 사용자 정보 가져오기
@@ -57,18 +57,19 @@ public class UserAuthController {
                 userActivityLogService.logLogout(user, ipAddress);
             });
         }
-        
+
         // 응답 반환
         Map<String, String> response = new HashMap<>();
         response.put("message", "로그아웃 되었습니다.");
         return ResponseEntity.ok(response);
     }
-    
+
     // 클라이언트 IP 주소 가져오기
     private String getClientIp() {
         String ipAddress = "0.0.0.0"; // 기본값
         try {
-            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder
+                    .getRequestAttributes();
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
                 ipAddress = getIpFromRequest(request);
@@ -82,7 +83,7 @@ public class UserAuthController {
     // 요청에서 실제 IP 주소 추출
     private String getIpFromRequest(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
-        
+
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");
         }
@@ -98,12 +99,13 @@ public class UserAuthController {
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getRemoteAddr();
         }
-        
+
         // 쉼표로 구분된 여러 IP가 있을 경우 첫 번째 IP 사용
         if (ip != null && ip.contains(",")) {
             ip = ip.split(",")[0].trim();
         }
-        
+
         return ip;
     }
-} 
+
+}

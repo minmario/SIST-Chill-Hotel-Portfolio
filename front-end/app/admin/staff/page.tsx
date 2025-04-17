@@ -19,46 +19,29 @@ import { Label } from "@/components/ui/label"
 
 // 스태프 타입 정의
 type Staff = {
+  userIdx: number
   id: string
   name: string
-  email: string
   phone: string
-  position: string
-  department: string
-  joinDate: string
-  status: "active" | "inactive"
-  role: "admin" | "staff"
+  email: string
+  role: string
+  status: string
+  createdAt: string
+  updatedAt: string
+    // ✅ 추가
+  
 }
 
-// 직책 목록
-const positions = [
-  "총괄 매니저",
-  "프론트 매니저",
-  "하우스키핑 매니저",
-  "레스토랑 매니저",
-  "스파 테라피스트",
-  "시설 관리자",
-  "인사 담당자",
-  "마케팅 담당자",
-  "회계 담당자",
-  "예약 담당자",
-]
+
 
 // 부서 목록
-const departments = [
-  "경영관리",
-  "프론트 데스크",
-  "하우스키핑",
-  "F&B",
-  "스파 & 웰니스",
-  "시설관리",
-  "인사",
-  "마케팅",
-  "재무",
-  "IT",
-]
+
 
 export default function StaffPage() {
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 7
+
   // 스태프 목록 상태
   const [staffList, setStaffList] = useState<Staff[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -68,77 +51,23 @@ export default function StaffPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false)
   const [staffForm, setStaffForm] = useState({
+    id: "",                // ✅ ID 추가
     name: "",
     email: "",
     phone: "",
-    position: "",
-    department: "",
     status: "active",
-    role: "staff",
-  })
-
-  // 스태프 데이터 로드 (실제로는 API에서 가져와야 함)
+    role: "ADMIN",         // 관리자 추가용이면 기본 admin
+    password: "",          // ✅ 비밀번호 추가
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  // 스태프 데이터 로드 (API에서 가져옴)
   useEffect(() => {
-    // 더미 데이터
-    const dummyStaff: Staff[] = [
-      {
-        id: "1",
-        name: "김관리",
-        email: "kim.admin@chillhaven.com",
-        phone: "010-1111-2222",
-        position: "총괄 매니저",
-        department: "경영관리",
-        joinDate: "2022-01-10",
-        status: "active",
-        role: "admin",
-      },
-      {
-        id: "2",
-        name: "이프론트",
-        email: "lee.front@chillhaven.com",
-        phone: "010-2222-3333",
-        position: "프론트 매니저",
-        department: "프론트 데스크",
-        joinDate: "2022-03-15",
-        status: "active",
-        role: "staff",
-      },
-      {
-        id: "3",
-        name: "박하우스",
-        email: "park.house@chillhaven.com",
-        phone: "010-3333-4444",
-        position: "하우스키핑 매니저",
-        department: "하우스키핑",
-        joinDate: "2022-05-20",
-        status: "active",
-        role: "staff",
-      },
-      {
-        id: "4",
-        name: "최레스토랑",
-        email: "choi.restaurant@chillhaven.com",
-        phone: "010-4444-5555",
-        position: "레스토랑 매니저",
-        department: "F&B",
-        joinDate: "2022-07-25",
-        status: "active",
-        role: "staff",
-      },
-      {
-        id: "5",
-        name: "정스파",
-        email: "jung.spa@chillhaven.com",
-        phone: "010-5555-6666",
-        position: "스파 테라피스트",
-        department: "스파 & 웰니스",
-        joinDate: "2022-09-30",
-        status: "inactive",
-        role: "staff",
-      },
-    ]
-
-    setStaffList(dummyStaff)
+    fetch("http://localhost:8080/admin/staff")
+      .then(res => res.json())
+      .then((data: Staff[]) => setStaffList(data))
+      .catch(() => setStaffList([]))
   }, [])
 
   // 검색 필터링된 스태프 목록
@@ -146,39 +75,55 @@ export default function StaffPage() {
     (staff) =>
       staff.name.includes(searchTerm) ||
       staff.email.includes(searchTerm) ||
-      staff.phone.includes(searchTerm) ||
-      staff.position.includes(searchTerm) ||
-      staff.department.includes(searchTerm),
+      staff.phone.includes(searchTerm)
   )
+  // 페이지네이션 계산
+  const totalPages = Math.ceil(filteredStaff.length / pageSize)
+  const paginatedStaff = filteredStaff.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  // 검색어나 데이터 변경 시 페이지 리셋
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, staffList])
 
   // 스태프 추가 다이얼로그 열기
-  const openAddDialog = () => {
+  const openAddDialog = (role: "ADMIN" | "staff" = "staff") => {
     setStaffForm({
+      id: "",
+      password: "",
       name: "",
       email: "",
       phone: "",
-      position: "스태프",
-      department: "일반",
       status: "active",
-      role: "staff",
-    })
-    setIsAddDialogOpen(true)
-  }
-
-  // 스태프 수정 다이얼로그 열기
+      role, // ✅ 동적으로 설정
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setIsAddDialogOpen(true);
+  };
   const openEditDialog = (staff: Staff) => {
-    setSelectedStaff(staff)
+    setSelectedStaff(staff);
     setStaffForm({
+      id: staff.id,         // ✅ 추가
+      password: "",         // ✅ 초기화
       name: staff.name,
       email: staff.email,
       phone: staff.phone,
-      position: staff.position,
-      department: staff.department,
+      
+    
       status: staff.status,
       role: staff.role,
-    })
-    setIsEditDialogOpen(true)
-  }
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+
+
+
 
   // 스태프 삭제 다이얼로그 열기
   const openDeleteDialog = (staff: Staff) => {
@@ -193,63 +138,112 @@ export default function StaffPage() {
   }
 
   // 스태프 추가 처리
-  const handleAddStaff = () => {
-    // 새 스태프 ID 생성 (실제로는 백엔드에서 처리)
-    const newId = (staffList.length + 1).toString()
-
-    // 현재 날짜를 가입일로 설정
-    const joinDate = new Date().toISOString().split("T")[0]
-
-    // 새 스태프 객체 생성
-    const newStaff: Staff = {
-      id: newId,
-      name: staffForm.name,
-      email: staffForm.email,
-      phone: staffForm.phone,
-      position: staffForm.position,
-      department: staffForm.department,
-      joinDate,
-      status: "active", // Always set to active
-      role: "staff", // Always set to staff
+  const handleAddStaff = async () => {
+    try {
+      await fetch("http://localhost:8080/admin/staff", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id: staffForm.email.split("@")[0],
+          pwd: "default1234",
+          name: staffForm.name,
+          email: staffForm.email,
+          phone: staffForm.phone,
+          role: staffForm.role,
+          status: staffForm.status,
+        }),
+      });
+  
+      // 추가 성공 후 목록 다시 불러오기
+      const res = await fetch("http://localhost:8080/admin/staff");
+      const data = await res.json();
+      setStaffList(data);
+      setIsAddDialogOpen(false);
+    } catch (err) {
+      console.error("스태프 추가 실패", err);
+      alert("스태프 추가 중 오류가 발생했습니다.");
     }
-
-    // 스태프 목록에 추가
-    setStaffList([...staffList, newStaff])
-    setIsAddDialogOpen(false)
-  }
-
+  };
   // 스태프 정보 수정 처리
-  const handleUpdateStaff = () => {
-    if (!selectedStaff) return
-
-    // 스태프 정보 업데이트 - 이름, 이메일, 전화번호만 업데이트
-    const updatedStaffList = staffList.map((staff) =>
-      staff.id === selectedStaff.id
-        ? {
-            ...staff,
-            name: staffForm.name,
-            email: staffForm.email,
-            phone: staffForm.phone,
-          }
-        : staff,
-    )
-
-    setStaffList(updatedStaffList)
-    setIsEditDialogOpen(false)
-    setSelectedStaff(null)
-  }
+  const handleUpdateStaff = async () => {
+    if (!selectedStaff) return;
+  
+    if (staffForm.newPassword || staffForm.confirmPassword) {
+      if (!staffForm.currentPassword) {
+        alert("기존 비밀번호를 입력하세요.");
+        return;
+      }
+      if (staffForm.newPassword !== staffForm.confirmPassword) {
+        alert("새 비밀번호가 일치하지 않습니다.");
+        return;
+      }
+    }
+  
+    try {
+      // 일반 정보 업데이트
+      const updateInfoRes = await fetch(`http://localhost:8080/admin/staff/${selectedStaff.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: staffForm.name,
+          email: staffForm.email,
+          phone: staffForm.phone,
+       
+          status: staffForm.status,
+          role: staffForm.role
+        }),
+      });
+  
+      // 비밀번호 변경
+      if (staffForm.newPassword) {
+        const passwordChangeRes = await fetch(`http://localhost:8080/admin/staff/${selectedStaff.id}/password`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            currentPassword: staffForm.currentPassword,
+            newPassword: staffForm.newPassword,
+          }),
+        });
+  
+        if (!passwordChangeRes.ok) {
+          alert("비밀번호 변경 실패");
+          return;
+        }
+      }
+  
+      // 성공 후 UI 업데이트
+      const refreshedList = await fetch("http://localhost:8080/admin/staff").then(res => res.json());
+      setStaffList(refreshedList);
+      setIsEditDialogOpen(false);
+      setSelectedStaff(null);
+    } catch (err) {
+      console.error("스태프 정보 수정 실패", err);
+      alert("수정 중 오류가 발생했습니다.");
+    }
+  };
 
   // 스태프 삭제 처리
-  const handleDeleteStaff = () => {
-    if (!selectedStaff) return
-
-    // 스태프 삭제
-    const updatedStaffList = staffList.filter((staff) => staff.id !== selectedStaff.id)
-    setStaffList(updatedStaffList)
-    setIsDeleteDialogOpen(false)
-    setSelectedStaff(null)
-  }
-
+  const handleDeleteStaff = async () => {
+    if (!selectedStaff) return;
+  
+    try {
+      const res = await fetch(`http://localhost:8080/admin/staff/${selectedStaff.userIdx}`, {
+        method: "DELETE",
+      });
+  
+      if (!res.ok) throw new Error("삭제 실패");
+  
+      const updatedList = staffList.filter((staff) => staff.userIdx !== selectedStaff.userIdx);
+      setStaffList(updatedList);
+      setIsDeleteDialogOpen(false);
+      setSelectedStaff(null);
+    } catch (err) {
+      alert("삭제 중 오류 발생");
+      console.error(err);
+    }
+  };
   // 비밀번호 초기화 처리
   const handleResetPassword = () => {
     // 실제로는 API를 통해 비밀번호 초기화 처리
@@ -260,22 +254,28 @@ export default function StaffPage() {
 
   // 역할에 따른 배지 색상
   const getRoleBadge = (role: string) => {
-    switch (role) {
+    switch (role.toLowerCase()) {
       case "admin":
-        return <Badge className="bg-purple-500">관리자</Badge>
+        return <Badge className="bg-red-500 text-white hover:bg-red-600">관리자</Badge>
       case "staff":
-        return <Badge className="bg-green-500">스태프</Badge>
+        return <Badge className="bg-blue-500 text-white hover:bg-blue-600">스태프</Badge>
       default:
         return <Badge>알 수 없음</Badge>
     }
   }
 
+  // 날짜 포맷 함수
+  function formatDate(dateStr?: string) {
+    if (!dateStr) return "없음"
+    return new Date(dateStr).toLocaleString("ko-KR")
+  }
+
   // 상태에 따른 배지 색상
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "active":
+      case "ACTIVE":
         return <Badge className="bg-green-500">활성</Badge>
-      case "inactive":
+      case "INACTIVE":
         return <Badge className="bg-gray-500">비활성</Badge>
       default:
         return <Badge>알 수 없음</Badge>
@@ -296,9 +296,9 @@ export default function StaffPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button onClick={openAddDialog}>
+          <Button onClick={() => openAddDialog("ADMIN")}>
             <UserPlus className="mr-2 h-4 w-4" />
-            스태프 추가
+            관리자 추가
           </Button>
         </div>
       </div>
@@ -311,55 +311,79 @@ export default function StaffPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>ID</TableHead>
                 <TableHead>이름</TableHead>
-                <TableHead>이메일</TableHead>
                 <TableHead>전화번호</TableHead>
-                <TableHead>가입일</TableHead>
+                <TableHead>이메일</TableHead>
                 <TableHead>역할</TableHead>
                 <TableHead>상태</TableHead>
+                <TableHead>가입일</TableHead>
+                <TableHead>수정일</TableHead>
                 <TableHead>관리</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStaff.length > 0 ? (
-                filteredStaff.map((staff) => (
-                  <TableRow key={staff.id}>
-                    <TableCell className="font-medium">{staff.name}</TableCell>
-                    <TableCell>{staff.email}</TableCell>
-                    <TableCell>{staff.phone}</TableCell>
-                    <TableCell>{staff.joinDate}</TableCell>
-                    <TableCell>{getRoleBadge(staff.role)}</TableCell>
+              {paginatedStaff.length > 0 ? (
+                paginatedStaff.map((staff) => (
+                  <TableRow key={staff.userIdx}>
+                    <TableCell>{staff.id ?? "없음"}</TableCell>
+                    <TableCell>{staff.name ?? "없음"}</TableCell>
+                    <TableCell>{staff.phone ?? "없음"}</TableCell>
+                    <TableCell>{staff.email ?? "없음"}</TableCell>
+                    <TableCell>{getRoleBadge(staff.role) ?? "없음"}</TableCell>
                     <TableCell>
-                      {staff.status === "active" ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200"
-                          onClick={() => {
-                            const updatedStaffList = staffList.map((s) =>
-                              s.id === staff.id ? { ...s, status: "inactive" as const } : s,
-                            )
-                            setStaffList(updatedStaffList)
-                          }}
-                        >
-                          활성
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
-                          onClick={() => {
-                            const updatedStaffList = staffList.map((s) =>
-                              s.id === staff.id ? { ...s, status: "active" as const } : s,
-                            )
-                            setStaffList(updatedStaffList)
-                          }}
-                        >
-                          비활성
-                        </Button>
-                      )}
-                    </TableCell>
+  {staff.status === "active" ? (
+    <Button
+      variant="outline"
+      size="sm"
+      className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200"
+      onClick={async () => {
+        try {
+          const response = await fetch(`http://localhost:8080/admin/staff/${staff.userIdx}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "INACTIVE" }),
+          });
+          if (!response.ok) throw new Error("상태 변경 실패");
+          const updatedStaff = staffList.map((s) =>
+            s.userIdx === staff.userIdx ? { ...s, status: "INACTIVE" as const } : s
+          );
+          setStaffList(updatedStaff);
+        } catch (err) {
+          alert("상태 변경에 실패했습니다.");
+        }
+      }}
+    >
+      활성
+    </Button>
+  ) : (
+    <Button
+      variant="outline"
+      size="sm"
+      className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
+      onClick={async () => {
+        try {
+          const response = await fetch(`http://localhost:8080/admin/staff/${staff.userIdx}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "active" }),
+          });
+          if (!response.ok) throw new Error("상태 변경 실패");
+          const updatedStaff = staffList.map((s) =>
+            s.userIdx === staff.userIdx ? { ...s, status: "active" as const } : s
+          );
+          setStaffList(updatedStaff);
+        } catch (err) {
+          alert("상태 변경에 실패했습니다.");
+        }
+      }}
+    >
+      비활성
+    </Button>
+  )}
+</TableCell>
+                    <TableCell>{formatDate(staff.createdAt )?? "없음"}</TableCell>
+                    <TableCell>{formatDate(staff.updatedAt )?? "없음"}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button
@@ -386,15 +410,45 @@ export default function StaffPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                     검색 결과가 없습니다.
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        {/* 페이지네이션 UI */}
+        <div className="flex justify-center items-center gap-2 mt-6">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          >
+            이전
+          </Button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <Button
+              key={i + 1}
+              className={currentPage === i + 1 ? "bg-black text-white hover:bg-black" : ""}
+              variant={currentPage === i + 1 ? "default" : "outline"}
+              size="sm"
+              onClick={() => setCurrentPage(i + 1)}
+            >
+              {i + 1}
+            </Button>
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage === totalPages || totalPages === 0}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          >
+            다음
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
 
       {/* 스태프 추가 다이얼로그 */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -403,6 +457,25 @@ export default function StaffPage() {
             <DialogTitle>스태프 추가</DialogTitle>
             <DialogDescription>새 스태프 정보를 입력하세요. 모든 필드를 올바르게 입력해주세요.</DialogDescription>
           </DialogHeader>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="add-id" className="text-right">ID</Label>
+            <Input
+              id="add-id"
+              value={staffForm.id}
+              onChange={(e) => setStaffForm({ ...staffForm, id: e.target.value })}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="add-password" className="text-right">비밀번호</Label>
+            <Input
+              id="add-password"
+              type="password"
+              value={staffForm.password}
+              onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
+              className="col-span-3"
+            />
+          </div>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="add-name" className="text-right">
@@ -443,7 +516,7 @@ export default function StaffPage() {
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
               취소
             </Button>
-            <Button onClick={handleAddStaff}>추가</Button>
+            <Button className="bg-black text-white hover:bg-gray-900" onClick={handleAddStaff}>추가</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -490,6 +563,36 @@ export default function StaffPage() {
                 className="col-span-3"
               />
             </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="current-password" className="text-right">기존 비밀번호</Label>
+              <Input
+                id="current-password"
+                type="password"
+                value={staffForm.currentPassword}
+                onChange={(e) => setStaffForm({ ...staffForm, currentPassword: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="new-password" className="text-right">새 비밀번호</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={staffForm.newPassword}
+              onChange={(e) => setStaffForm({ ...staffForm, newPassword: e.target.value })}
+              className="col-span-3"
+              />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="confirm-password" className="text-right">새 비밀번호 확인</Label>
+            <Input
+              id="confirm-password"
+              type="password"
+              value={staffForm.confirmPassword}
+              onChange={(e) => setStaffForm({ ...staffForm, confirmPassword: e.target.value })}
+              className="col-span-3"
+              />
+          </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>

@@ -55,8 +55,9 @@ export default function Login() {
       const token = data.token || data.message
       const role = data.role
       
-      console.log('[Login] 추출한 토큰:', token)
-      console.log('[Login] 추출한 역할:', role)
+      localStorage.setItem("token", token)
+      localStorage.setItem("isLoggedIn", "true")
+      localStorage.setItem("userName", loginData.userId)
 
       // AuthContext의 login 함수 사용
       login(token, loginData.userId, role)
@@ -91,6 +92,7 @@ export default function Login() {
                   type="text"
                   id="userId"
                   name="userId"
+                  autoComplete="username"
                   className="w-full p-3 border border-gray-300 rounded"
                   value={loginData.userId}
                   onChange={handleInputChange}
