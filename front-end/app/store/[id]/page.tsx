@@ -123,6 +123,7 @@ export default function ProductDetailPage() {
     if (!product) return;
     
     addItem({
+      id : product.itemIdx,
       productIdx: product.itemIdx,
       productName: product.itemName,
       price: product.price,
