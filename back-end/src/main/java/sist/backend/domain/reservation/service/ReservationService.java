@@ -85,6 +85,41 @@ public class ReservationService {
         private String generateReservationCode() {
                 return "LX" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         }
+        
+    @Transactional(readOnly = true)
+    public ReservationLookupResponse getReservationByNumber(String reservationNum) {
+        Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
+                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+        return toLookupDto(reservation); // ✅ 이걸 내부 메서드로 처리
+    }
+
+    @Transactional(readOnly = true)
+    public ReservationLookupResponse getReservationByGuest(String lastName, String firstName, String phone) {
+        Reservation reservation = reservationRepository
+                .findByLastNameAndFirstNameAndPhone(lastName, firstName, phone)
+                .orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다."));
+        return toLookupDto(reservation);
+    }
+
+    private ReservationLookupResponse toLookupDto(Reservation r) {
+    int nights = (int) ChronoUnit.DAYS.between(r.getCheckIn(), r.getCheckOut());
+
+    return ReservationLookupResponse.builder()
+            .reservationNum(r.getReservationNum())
+            .fullName(r.getLastName() + r.getFirstName())
+            .phone(r.getPhone())
+            .email(r.getEmail())
+            .roomName(r.getRoom().getRoomType().getRoomName())
+            .roomGrade(r.getRoomType().getGrade())
+            .checkIn(r.getCheckIn())
+            .checkOut(r.getCheckOut())
+            .adultCount(r.getAdultCount())
+            .childCount(r.getChildCount())
+            .totalNights(nights)
+            .totalPrice(r.getTotal())
+            .status(r.getStatus().toString())
+            .build();
+        }
 
         @Transactional
         public void cancelReservation(String reservationNum) {
