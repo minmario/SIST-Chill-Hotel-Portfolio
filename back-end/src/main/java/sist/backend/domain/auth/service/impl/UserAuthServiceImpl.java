@@ -91,11 +91,6 @@ String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
         userRepository.save(user);
 
         // JWT 토큰 생성
-<<<<<<< HEAD
-        // user.getId()를 JWT subject로 사용
-String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
-        
-=======
         String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
         // 사용자 저장 후 결제 수단 등록
         if (request.getPaymentMethod() != null) {
@@ -117,7 +112,6 @@ String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
             paymentMethodRepository.save(paymentMethod);
         }
 
->>>>>>> minmario
         // 응답 반환
         return UserRegisterResponse.builder()
                 .message("회원가입이 완료되었습니다.")

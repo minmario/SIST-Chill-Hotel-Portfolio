@@ -86,26 +86,11 @@ public class ReservationService {
                 return "LX" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         }
 
-    return ReservationLookupResponse.builder()
-            .reservationNum(r.getReservationNum())
-            .fullName(r.getLastName() + r.getFirstName())
-            .phone(r.getPhone())
-            .email(r.getEmail())
-            .roomName(r.getRoom().getRoomType().getRoomName())
-            .roomGrade(r.getRoomType().getGrade())
-            .checkIn(r.getCheckIn())
-            .checkOut(r.getCheckOut())
-            .adultCount(r.getAdultCount())
-            .childCount(r.getChildCount())
-            .totalNights(nights)
-            .totalPrice(r.getTotal())
-            .status(r.getStatus().toString())
-            .build();
-        }
         @Transactional
-public void cancelReservation(String reservationNum) {
-    Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
+        public void cancelReservation(String reservationNum) {
+        Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
             .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
 
-    reservation.setStatus(ReservationStatus.CANCELLED); // ENUM 업데이트
+        reservation.setStatus(ReservationStatus.CANCELLED); // ENUM 업데이트
+        }
 }

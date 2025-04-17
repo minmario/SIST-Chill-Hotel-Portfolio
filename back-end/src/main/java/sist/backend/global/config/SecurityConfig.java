@@ -1,10 +1,7 @@
 package sist.backend.global.config;
 
-<<<<<<< HEAD
 import java.util.List;
 
-=======
->>>>>>> graz1e2
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -35,13 +32,10 @@ import java.util.Collections;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-<<<<<<< HEAD
     
     private final JwtProvider jwtProvider;
-=======
->>>>>>> graz1e2
 
-    private final JwtUtil jwtUtil;
+    
     private final UserDetailsService userDetailsService;
 
     @Bean
