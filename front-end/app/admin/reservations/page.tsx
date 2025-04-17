@@ -849,16 +849,16 @@ setSelectedReservation({
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-sm text-gray-500">주문 번호</p>
-                  <p className="font-medium">{selectedGiftShopOrder.orderId}</p>
+                  <p className="font-medium">{selectedGiftShopOrder.orderIdx}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">상태</p>
                   <div className="flex items-center gap-2">
                     <Select
-                      defaultValue={selectedGiftShopOrder.status}
+                      defaultValue={selectedGiftShopOrder.orderStatus}
                       onValueChange={(value) => {
                         // 주문 상태 변경 처리
-                        handleGiftShopStatusChange(selectedGiftShopOrder.id, value as GiftShopOrder["status"])
+                        handleGiftShopStatusChange(selectedGiftShopOrder.orderIdx, value as GiftShopOrder["orderStatus"])
                       }}
                     >
                       <SelectTrigger className="bg-white/90 backdrop-blur-md border border-gray-300 rounded-md">
@@ -879,53 +879,13 @@ setSelectedReservation({
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-500">주문자</p>
-                    <p className="font-medium">{selectedGiftShopOrder.fullName}</p>
+                    <p className="font-medium">{selectedGiftShopOrder.userName}</p>
                   </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500">연락처</p>
-                    <p className="font-medium">{selectedGiftShopOrder.contactNumber}</p>
-                  </div>
-
-                  {selectedGiftShopOrder.roomId && (
-                    <div>
-                      <p className="text-sm text-gray-500">객실</p>
-                      <p className="font-medium">
-                        {rooms.find((r) => r.id === selectedGiftShopOrder.roomId)?.number}(
-                        {rooms.find((r) => r.id === selectedGiftShopOrder.roomId)?.type})
-                      </p>
-                    </div>
-                  )}
 
                   <div>
                     <p className="text-sm text-gray-500">주문일</p>
                     <p className="font-medium">{selectedGiftShopOrder.orderDate}</p>
                   </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500">결제 방법</p>
-                    <p className="font-medium">
-                      {selectedGiftShopOrder.paymentMethod === "room-charge"
-                        ? "객실 청구"
-                        : selectedGiftShopOrder.paymentMethod === "credit-card"
-                          ? "신용카드"
-                          : "현금"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500">배송 옵션</p>
-                    <p className="font-medium">
-                      {selectedGiftShopOrder.deliveryOption === "room-delivery" ? "객실 배송" : "직접 수령"}
-                    </p>
-                  </div>
-
-                  {selectedGiftShopOrder.deliveryTime && (
-                    <div>
-                      <p className="text-sm text-gray-500">배송 시간</p>
-                      <p className="font-medium">{selectedGiftShopOrder.deliveryTime}</p>
-                    </div>
-                  )}
                 </div>
 
                 <div className="space-y-4">
@@ -933,18 +893,9 @@ setSelectedReservation({
                     <p className="text-sm text-gray-500 mb-2">주문 상품</p>
                     <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
                       {selectedGiftShopOrder.items.map((item) => (
-                        <div key={item.id} className="flex gap-3 bg-gray-50 p-3 rounded-md">
-                          {item.imageUrl && (
-                            <div className="w-16 h-16 flex-shrink-0 bg-gray-200 rounded-md overflow-hidden">
-                              <img
-                                src={item.imageUrl || "/placeholder.svg"}
-                                alt={item.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          )}
+                        <div key={item.itemName} className="flex gap-3 bg-gray-50 p-3 rounded-md">
                           <div className="flex-1">
-                            <p className="font-medium">{item.name}</p>
+                            <p className="font-medium">{item.itemName}</p>
                             <div className="flex justify-between text-sm text-gray-600 mt-1">
                               <span>
                                 {item.price.toLocaleString()}원 × {item.quantity}
@@ -963,42 +914,35 @@ setSelectedReservation({
                       <p className="font-bold text-lg">{selectedGiftShopOrder.totalAmount.toLocaleString()}원</p>
                     </div>
                   </div>
-
-                  {selectedGiftShopOrder.specialInstructions && (
-                    <div>
-                      <p className="text-sm text-gray-500">특별 요청사항</p>
-                      <p className="font-medium">{selectedGiftShopOrder.specialInstructions}</p>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
           )}
           <DialogFooter className="flex justify-between items-center">
             <div className="flex gap-2">
-              {selectedGiftShopOrder && selectedGiftShopOrder.status === "pending" && (
-                <Button variant="default" onClick={() => handleGiftShopStatusChange(selectedGiftShopOrder.id, "ready")}>
+              {selectedGiftShopOrder && selectedGiftShopOrder.orderStatus === "pending" && (
+                <Button variant="default" onClick={() => handleGiftShopStatusChange(selectedGiftShopOrder.orderIdx, "ready")}>
                   준비 완료
                 </Button>
               )}
 
-              {selectedGiftShopOrder && selectedGiftShopOrder.status === "ready" && (
+              {selectedGiftShopOrder && selectedGiftShopOrder.orderStatus === "ready" && (
                 <Button
                   variant="default"
-                  onClick={() => handleGiftShopStatusChange(selectedGiftShopOrder.id, "delivered")}
+                  onClick={() => handleGiftShopStatusChange(selectedGiftShopOrder.orderIdx, "delivered")}
                 >
                   수령 완료 처리
                 </Button>
               )}
 
               {selectedGiftShopOrder &&
-                (selectedGiftShopOrder.status === "pending" || selectedGiftShopOrder.status === "ready") && (
+                (selectedGiftShopOrder.orderStatus === "pending" || selectedGiftShopOrder.orderStatus === "ready") && (
                   <Button
                     variant="destructive"
                     onClick={() => {
                       // 주문 취소 처리
                       if (window.confirm("정말로 이 주문을 취소하시겠습니까?")) {
-                        handleGiftShopStatusChange(selectedGiftShopOrder.id, "cancelled")
+                        handleGiftShopStatusChange(selectedGiftShopOrder.orderIdx, "cancelled")
                       }
                     }}
                   >
