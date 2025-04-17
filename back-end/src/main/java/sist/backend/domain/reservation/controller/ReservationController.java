@@ -2,7 +2,6 @@ package sist.backend.domain.reservation.controller;
 
 import sist.backend.domain.reservation.dto.request.ReservationRequest;
 import sist.backend.domain.reservation.dto.response.ReservationLookupResponse;
-import sist.backend.domain.reservation.dto.response.ReservationResponse;
 import sist.backend.domain.reservation.service.ReservationService;
 
 
@@ -38,5 +37,12 @@ public ResponseEntity<ReservationLookupResponse> getReservationByNumber(@Request
         return ResponseEntity.ok(
             reservationService.getReservationByGuest(lastName, firstName, phone)
         );
+    }
+
+    @PostMapping("/cancel/{reservationNum}")
+public ResponseEntity<Void> cancelReservation(@PathVariable String reservationNum) {
+    reservationService.cancelReservation(reservationNum);
+    return ResponseEntity.ok().build();
+
     }
 }

@@ -7,11 +7,7 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,7 +19,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,7 +29,6 @@ import sist.backend.domain.shop.entity.Order;
 import sist.backend.domain.shop.entity.Cart;
 import sist.backend.global.common.BaseTimeEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import sist.backend.global.common.BaseTimeEntity;
 
 @Entity
 @Table(name = "users")
@@ -80,6 +75,9 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "membership_idx")
+    private Long membershipIdx;
+    
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Order> orders = new ArrayList<>();

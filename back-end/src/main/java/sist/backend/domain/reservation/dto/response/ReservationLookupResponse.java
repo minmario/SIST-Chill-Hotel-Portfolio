@@ -2,10 +2,9 @@ package sist.backend.domain.reservation.dto.response;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import sist.backend.domain.reservation.entity.Reservation;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+
 
 @Getter
 @Setter
@@ -20,8 +19,8 @@ public class ReservationLookupResponse {
     private String roomName;           // 객실 이름 (Room.roomName)
     private String roomGrade;          // 등급 (RoomType.grade)
     
-    private LocalDate checkInDate;
-    private LocalDate checkOutDate;
+    private LocalDate checkIn;
+    private LocalDate checkOut;
 
     private int adultCount;
     private int childCount;

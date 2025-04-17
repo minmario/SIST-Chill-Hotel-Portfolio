@@ -143,7 +143,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
         fetchUserCart();
       } catch (error) {
         console.error('장바구니 추가 실패:', error);
-        if (axios.isAxiosError(error) && error.response) {
+        if (isAxiosError(error) && error.response) {
           console.error('에러 상세:', error.response.data);
         }
         // 서버 추가 실패 시 로컬 데이터는 이미 업데이트되었으므로 무시
