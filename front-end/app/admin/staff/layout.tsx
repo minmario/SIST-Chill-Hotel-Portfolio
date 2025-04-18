@@ -16,14 +16,14 @@ export default function StaffLayout({
 
   useEffect(() => {
     // Check if the user is an admin
-    if (user?.userId !== "admin") {
+    if (user?.role !== "ADMIN") {
       // Redirect non-admin users to the dashboard
       router.push("/admin")
     }
   }, [user, router])
 
   // Don't render anything until we've checked permissions
-  if (user?.userId !== "admin") {
+  if (user?.role !== "ADMIN") {
     return null
   }
 

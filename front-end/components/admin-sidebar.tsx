@@ -32,7 +32,7 @@ export default function AdminSidebar() {
       section: "대시보드",
     },
     // Only show these items if the user is an admin
-    ...(user?.userId === "admin"
+    ...(user?.role.toUpperCase() === "ADMIN"
       ? [
           {
             title: "회원 관리",

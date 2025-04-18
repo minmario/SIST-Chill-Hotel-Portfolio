@@ -81,4 +81,8 @@ public class JwtProvider {
         }
         return null;
     }
+
+    public Key getKey() {
+        return this.key;
+    }
 }

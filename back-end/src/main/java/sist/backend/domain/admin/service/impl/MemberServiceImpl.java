@@ -3,6 +3,7 @@ package sist.backend.domain.admin.service.impl;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import sist.backend.domain.admin.dto.response.MemberResponse;
@@ -10,6 +11,8 @@ import sist.backend.domain.admin.service.service.MemberService;
 import sist.backend.domain.membership.entity.Membership;
 import sist.backend.domain.membership.repository.MembershipRepository;
 import sist.backend.domain.membership.repository.PointTransactionRepository;
+import sist.backend.domain.user.entity.User;
+import sist.backend.domain.user.entity.UserRole;
 import sist.backend.domain.user.entity.UserStatus;
 import sist.backend.domain.user.repository.UserRepository;
 
@@ -47,11 +50,17 @@ public class MemberServiceImpl implements MemberService {
     }
     
     @Override
-    public void updateUserStatus(String userId, String status) {
-    var user = userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-    user.setStatus(UserStatus.valueOf(status.toUpperCase()));
-    userRepository.save(user);
+    @Transactional
+public void updateUserStatus(String userId, String status) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+
+    if (user.getRole() == UserRole.ADMIN) {
+        throw new IllegalStateException("관리자 계정은 상태를 변경할 수 없습니다.");
     }
 
+    UserStatus newStatus = UserStatus.valueOf(status.toUpperCase());
+    user.setStatus(newStatus);
+    userRepository.save(user);
+}
 }
