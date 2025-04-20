@@ -15,9 +15,9 @@ const rooms = [
       "편안함과 실용성을 갖춘 객실로, 비즈니스와 레저 여행객 모두에게 적합합니다. 모던한 인테리어와 필수 편의시설을 갖추고 있어 편안한 휴식을 제공합니다.",
     price: 250000,
     images: [
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      "/main_room.png?height=600&width=800",
+      "/images/rooms/comfort/comfort1.png?height=600&width=800",
+      "/images/rooms/comfort/comfort2.png?height=600&width=800",
     ],
     details: {
       composition: "침실 1, 욕실 1",

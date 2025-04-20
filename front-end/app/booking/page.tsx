@@ -281,6 +281,7 @@ export default function Booking() {
                   value={searchParams.checkIn}
                   onChange={handleInputChange}
                   required
+                  min={new Date().toISOString().split('T')[0]}
                 />
               </div>
 
@@ -296,6 +297,14 @@ export default function Booking() {
                   value={searchParams.checkOut}
                   onChange={handleInputChange}
                   required
+                  min={searchParams.checkIn
+                    ? (() => {
+                        const nextDay = new Date(searchParams.checkIn);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        return nextDay.toISOString().split('T')[0];
+                      })()
+                    : new Date().toISOString().split('T')[0]
+                  }
                 />
               </div>
 

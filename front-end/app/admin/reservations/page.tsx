@@ -3,7 +3,7 @@
 import React, { useEffect } from "react"
 
 import { useState } from "react"
-import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns"
+import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval, parseISO } from "date-fns"
 import { ko } from "date-fns/locale"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -94,7 +94,14 @@ export default function ReservationsPage() {
   }, [])
   useEffect(() => {
     const fetchGiftShopOrders = async () => {
-      const res = await fetch("/api/admin/gift_shop/orders");
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const res = await fetch("/api/admin/gift_shop/orders", {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: "include",
+      });
       const data = await res.json();
       setGiftShopOrders(Array.isArray(data) ? data : []);
     };
@@ -241,7 +248,7 @@ export default function ReservationsPage() {
   }
 
   // 기프트샵 주문 상태에 따른 배지 컴포넌트
-  const getGiftShopStatusBadge = (status: string) => {
+  const getGiftShopStatusBadge = (status: string | undefined) => {
     switch (status) {
       case "PENDING":
         return <Badge className="bg-yellow-500">결제 대기</Badge>;
@@ -276,14 +283,28 @@ export default function ReservationsPage() {
   }
 
   // 기프트샵 주문 상태 변경 처리
-  const handleGiftShopStatusChange = (orderIdx: number, newStatus: string) => {
-    setGiftShopOrders((prev) => prev.map((order) => (order.orderIdx === orderIdx ? { ...order, orderStatus: newStatus } : order)));
-
-    if (selectedGiftShopOrder && selectedGiftShopOrder.orderIdx === orderIdx) {
-      setSelectedGiftShopOrder({
-        ...selectedGiftShopOrder,
-        orderStatus: newStatus,
+  const handleGiftShopStatusChange = async (orderIdx: number, newStatus: string) => {
+    try {
+      const res = await fetch(`/api/admin/gift_shop/orders/${orderIdx}/status`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ status: newStatus }),
       });
+      if (!res.ok) {
+        throw new Error("주문 상태 변경 실패");
+      }
+      setGiftShopOrders((prev) => prev.map((order) => (order.orderIdx === orderIdx ? { ...order, orderStatus: newStatus } : order)));
+      if (selectedGiftShopOrder && selectedGiftShopOrder.orderIdx === orderIdx) {
+        setSelectedGiftShopOrder({
+          ...selectedGiftShopOrder,
+          orderStatus: newStatus,
+        });
+      }
+    } catch (err) {
+      alert("주문 상태 변경에 실패했습니다.");
     }
   } // orderIdx, orderStatus 기준으로
 
@@ -545,10 +566,10 @@ export default function ReservationsPage() {
               </SelectTrigger>
               <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-md text-sm">
                 <SelectItem value="all">모든 상태</SelectItem>
-                <SelectItem value="pending">준비중</SelectItem>
-                <SelectItem value="ready">수령 대기</SelectItem>
-                <SelectItem value="delivered">수령 완료</SelectItem>
-                <SelectItem value="cancelled">취소됨</SelectItem>
+                <SelectItem value="PENDING">결제 대기</SelectItem>
+                <SelectItem value="PAID">결제 완료</SelectItem>
+                <SelectItem value="DELIVERED">수령 완료</SelectItem>
+                <SelectItem value="CANCELLED">취소됨</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -623,6 +644,10 @@ export default function ReservationsPage() {
           </DialogHeader>
           {selectedReservation && (
             <div className="space-y-6">
+              <div className="mb-4 flex items-center gap-2">
+                <span className="text-sm text-gray-500">주문 상태</span>
+                {getGiftShopStatusBadge(selectedGiftShopOrder?.orderStatus)}
+              </div>
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-sm text-gray-500">예약 번호</p>
@@ -846,33 +871,16 @@ setSelectedReservation({
           </DialogHeader>
           {selectedGiftShopOrder && (
             <div className="space-y-6">
+              <div className="mb-4 flex items-center gap-2">
+                <span className="text-sm text-gray-500">주문 상태</span>
+                {getGiftShopStatusBadge(selectedGiftShopOrder.orderStatus)}
+              </div>
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-sm text-gray-500">주문 번호</p>
                   <p className="font-medium">{selectedGiftShopOrder.orderIdx}</p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500">상태</p>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      defaultValue={selectedGiftShopOrder.orderStatus}
-                      onValueChange={(value) => {
-                        // 주문 상태 변경 처리
-                        handleGiftShopStatusChange(selectedGiftShopOrder.orderIdx, value as GiftShopOrder["orderStatus"])
-                      }}
-                    >
-                      <SelectTrigger className="bg-white/90 backdrop-blur-md border border-gray-300 rounded-md">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white/90 backdrop-blur-md shadow-lg border border-gray-200 rounded-md text-sm">
-                        <SelectItem value="pending">준비중</SelectItem>
-                        <SelectItem value="ready">수령 대기</SelectItem>
-                        <SelectItem value="delivered">수령 완료</SelectItem>
-                        <SelectItem value="cancelled">취소됨</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+              
               </div>
 
               <div className="grid grid-cols-2 gap-6">
