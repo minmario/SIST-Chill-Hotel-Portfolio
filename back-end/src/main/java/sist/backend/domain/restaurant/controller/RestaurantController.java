@@ -23,7 +23,7 @@ public class RestaurantController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RestaurantResponse> getById(@PathVariable Long id) {
+    public ResponseEntity<RestaurantResponse> getById(@PathVariable("id") Long id) {
         return restaurantService.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

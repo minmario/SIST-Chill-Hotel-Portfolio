@@ -13,12 +13,14 @@ export default function ReservationCompletePage() {
     if (data) {
       try {
         const parsed = JSON.parse(data)
-        setReservationNum(parsed.reservationNum)
+        const reservation = typeof parsed === "string" ? parsed : parsed.reservationNum
+        setReservationNum(reservation)
       } catch (e) {
-        console.error("Failed to parse reservation data")
+        console.error("Failed to parse reservation data", e)
       }
     }
   }, [])
+  
 
   const handleCopy = () => {
     if (!reservationNum) return

@@ -1,70 +1,27 @@
 package sist.backend.domain.dining_reservation.controller;
 
 import lombok.RequiredArgsConstructor;
-import sist.backend.domain.dining_reservation.dto.request.DiningReservationRequest;
-import sist.backend.domain.dining_reservation.entity.DiningReservation;
-import sist.backend.domain.dining_reservation.service.interfaces.DiningReservationService;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import jakarta.validation.Valid;
+import sist.backend.domain.dining_reservation.dto.request.DiningReservationRequest;
+import sist.backend.domain.dining_reservation.service.interfaces.DiningReservationService;
 
 @RestController
-@RequestMapping("/dining/reservation")
+@RequestMapping("/api/dining/reservations")
 @RequiredArgsConstructor
-@CrossOrigin // 프론트엔드와 연결 시 CORS 허용
 public class DiningReservationController {
 
     private final DiningReservationService reservationService;
 
     @PostMapping
-    public ResponseEntity<DiningReservation> createReservation(@RequestBody @Valid DiningReservationRequest request) {
-        DiningReservation reservation = reservationService.fromDTO(request);
-        DiningReservation saved = reservationService.save(reservation);
-        return ResponseEntity.ok(saved);
-    }
-
-    @Configuration
-    public class WebConfig {
-        @Bean
-        public WebMvcConfigurer corsConfigurer() {
-            return new WebMvcConfigurer() {
-                @Override
-                public void addCorsMappings(CorsRegistry registry) {
-                    registry.addMapping("/**")
-                            .allowedOrigins("http://localhost:3000")
-                            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                            .allowedHeaders("*")
-                            .allowCredentials(true);
-                }
-            };
-        }
-    }
-
-    @GetMapping("/count")
-    public ResponseEntity<Map<String, Integer>> getReservedCount(
-            @RequestParam Long restaurantId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam @DateTimeFormat(pattern = "HH:mm") LocalTime time) {
-        int totalPeople = reservationService.getReservedPeopleCount(restaurantId, date, time);
-        return ResponseEntity.ok(Map.of("totalPeople", totalPeople));
-    }
-
-    // 전체 다이닝 예약 목록 조회
-    @GetMapping
-    public ResponseEntity<List<DiningReservation>> getAllReservations() {
-        List<DiningReservation> reservations = reservationService.findAll();
-        return ResponseEntity.ok(reservations);
-    }
+    public ResponseEntity<Map<String, String>> createReservation(@RequestBody DiningReservationRequest request) {
+    String reservationNum = reservationService.reserve(request);
+    Map<String, String> result = new HashMap<>();
+    result.put("reservationNum", reservationNum);
+    return ResponseEntity.ok(result);
+}
 }

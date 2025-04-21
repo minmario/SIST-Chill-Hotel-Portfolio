@@ -63,6 +63,7 @@ export default function DiningReservePage() {
     const fetchRestaurant = async () => {
       try {
         const res = await fetch(`http://localhost:8080/api/restaurants/${restaurantId}`);
+        // console.log("fetching from:", `http://localhost:8080/api/restaurants/${restaurantId}`);
         const data = await res.json();
         setRestaurant(data);
       } catch (err) {
@@ -112,7 +113,7 @@ export default function DiningReservePage() {
     const reservationData = {
       restaurantId: restaurant?.id,
       reservationDate: date,
-      mealTime,
+      mealTime: mealTime.toUpperCase(),
       reservationTime: time,
       adults,
       children,
@@ -124,7 +125,7 @@ export default function DiningReservePage() {
     };
 
     try {
-      const res = await fetch("http://localhost:8080/dining/reservation", {
+      const res = await fetch("http://localhost:8080/api/dining/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(reservationData),
