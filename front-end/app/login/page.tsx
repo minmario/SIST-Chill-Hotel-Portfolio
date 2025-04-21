@@ -9,6 +9,8 @@ import styles from "./login.module.css"
 import { useAuth } from "@/context/auth-context"
 
 export default function Login() {
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const redirect = searchParams ? searchParams.get("redirect") : null;
   const router = useRouter()
   const [loginData, setLoginData] = useState({
     userId: "",
@@ -56,13 +58,15 @@ export default function Login() {
       const role = data.role
       
       localStorage.setItem("token", token)
+      localStorage.setItem("accessToken", token) // accessToken도 반드시 저장
       localStorage.setItem("isLoggedIn", "true")
       localStorage.setItem("userName", loginData.userId)
 
       // AuthContext의 login 함수 사용
       login(token, loginData.userId, role)
 
-      router.push("/") // 로그인 성공 후 이동
+      // 안내: 토큰 저장 직후 info 페이지에서 바로 membershipIdx가 반영됨
+      router.push(redirect || "/") // 로그인 성공 후 이동
     } catch (error) {
       console.error("로그인 중 오류:", error)
       setError("로그인에 실패했습니다. 다시 시도해주세요.")

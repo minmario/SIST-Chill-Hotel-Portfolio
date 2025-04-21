@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Menu, X, ShoppingCart, User } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useCart } from '@/context/cart-context'
@@ -60,9 +61,15 @@ const Header = () => {
       style={{ height: "80px" }}
     >
       <div className="container h-full flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold">
-          <span style={{ color: isScrolled ? "#2dd4bf" : "#111827" }}>Chill</span>
-          <span style={{ color: isScrolled ? "#333333" : "#111827" }}>Haven</span>
+        <Link href="/" className="flex items-center" style={{ height: 56 }}>
+          <Image 
+            src="/logo1.png"
+            alt="ChillHaven 로고"
+            width={120} // 원하는 크기로 조정
+            height={50}
+            style={{ objectFit: "contain" }}
+            priority
+          />
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
