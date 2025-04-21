@@ -13,6 +13,14 @@ java {
     }
 }
 
+// Java 버전 호환성 문제 해결을 위한 추가 설정
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+}
+
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
 configurations {
     compileOnly {
         extendsFrom annotationProcessor

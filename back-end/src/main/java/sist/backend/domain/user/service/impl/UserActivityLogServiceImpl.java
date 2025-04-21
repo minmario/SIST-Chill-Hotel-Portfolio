@@ -31,19 +31,33 @@ public class UserActivityLogServiceImpl implements UserActivityLogService {
         User user = userRepository.findById(userIdx)
                 .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다: " + userIdx));
         
-        logActivity(user, activityType, activityDetails, ipAddress);
+        // 주문번호가 activityDetails에 포함되어 있으면 중복으로 간주
+        String orderId = extractOrderId(activityDetails);
+        boolean exists = false;
+        if (orderId != null) {
+            exists = userActivityLogRepository.existsByUser_UserIdxAndActivityTypeAndActivityDetailsContaining(userIdx, activityType, orderId);
+        }
+        if (!exists) {
+            logActivity(user, activityType, activityDetails, ipAddress);
+        }
     }
 
     @Override
     @Transactional
     public void logActivity(User user, ActivityType activityType, String activityDetails, String ipAddress) {
+        // 주문번호가 activityDetails에 포함되어 있으면 중복으로 간주
+        String orderId = extractOrderId(activityDetails);
+        boolean exists = false;
+        if (orderId != null) {
+            exists = userActivityLogRepository.existsByUser_UserIdxAndActivityTypeAndActivityDetailsContaining(user.getUserIdx(), activityType, orderId);
+        }
+        if (exists) return;
         UserActivityLog activityLog = UserActivityLog.builder()
                 .user(user)
                 .activityType(activityType)
                 .activityDetails(activityDetails)
                 .ipAddress(ipAddress)
                 .build();
-                
         userActivityLogRepository.save(activityLog);
     }
     
@@ -103,5 +117,22 @@ public class UserActivityLogServiceImpl implements UserActivityLogService {
                 .ipAddress(log.getIpAddress())
                 .createdAt(log.getCreatedAt())
                 .build();
+    }
+
+    /**
+     * activityDetails에서 '주문번호=ORDER_xxx' 또는 '예약번호=xxx' 패턴을 추출
+     */
+    private String extractOrderId(String activityDetails) {
+        if (activityDetails == null) return null;
+        String[] patterns = {"주문번호=", "예약번호="};
+        for (String pattern : patterns) {
+            int idx = activityDetails.indexOf(pattern);
+            if (idx >= 0) {
+                int endIdx = activityDetails.indexOf(',', idx);
+                if (endIdx == -1) endIdx = activityDetails.length();
+                return activityDetails.substring(idx + pattern.length(), endIdx).trim();
+            }
+        }
+        return null;
     }
 }

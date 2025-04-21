@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { ChevronLeft } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { useCart } from "@/context/cart-context"
+import { initTossPayment } from "@/lib/toss-payments"
+import { ChevronLeft } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import styles from "./checkout.module.css"
 
 export default function Checkout() {
@@ -13,6 +14,7 @@ export default function Checkout() {
   const [mounted, setMounted] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState("card")
+  const [paymentError, setPaymentError] = useState("")
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -62,35 +64,73 @@ export default function Checkout() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsProcessing(true)
+    setPaymentError("")
 
     try {
-      // 주문 생성 API 호출
-      const token = localStorage.getItem("accessToken")
-      const orderData = {
-        amount: totalPrice, // 결제 금액
-        paymentMethod: paymentMethod,
-        cartItemIdxList: cartItems.map(item => item.cartItemIdx) // 장바구니 아이템 번호 배열 전달
-        // userIdx는 백엔드에서 JWT로 추출
-      }
-
-      const response = await fetch("http://localhost:8080/api/payments", {
-        method: "POST",
+      // 1. 주문 생성 API 호출
+      const token = localStorage.getItem('accessToken');
+      const createOrderRes = await fetch('http://localhost:8080/api/payments', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(orderData)
-      })
-
-      if (!response.ok) {
-        throw new Error("결제 처리 중 오류가 발생했습니다.")
+        body: JSON.stringify({
+          amount: totalPrice,
+          paymentMethod,
+          cartItemIdxList: cartItems.map(item => item.cartItemIdx)
+        })
+      });
+      if (!createOrderRes.ok) {
+        setPaymentError('주문 생성에 실패했습니다.');
+        setIsProcessing(false);
+        return;
+      }
+      const orderResJson = await createOrderRes.json();
+      const orderIdx = orderResJson.orderIdx || orderResJson.id || orderResJson.order_id;
+      if (!orderIdx) {
+        setPaymentError('주문 번호를 받아오지 못했습니다.');
+        setIsProcessing(false);
+        return;
       }
 
-      clearCart()
-      alert("결제가 완료되었습니다!")
-      router.push("/cart")
+      // 2. 결제 데이터 준비 (id에 반드시 orderIdx 사용)
+      const orderData = {
+        amount: totalPrice,
+        method: paymentMethod,
+        name: `SIST-Chill-Hotel 주문 결제`,
+        customerName: formData.name,
+        paymentType: 'ORDER',
+        id: orderIdx.toString()
+      };
+
+      // 3. 토스 페이먼츠 결제 시작
+      const result = await initTossPayment(orderData)
+      
+      if (!result.success) {
+        setPaymentError(result.message || "결제 처리 중 오류가 발생했습니다.")
+        setIsProcessing(false)
+        
+        // 결제 실패 로깅
+        const token = localStorage.getItem("accessToken")
+        await fetch("http://localhost:8080/api/logs", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            logType: "PAYMENT_FAILED",
+            message: result.message
+          })
+        })
+        return
+      }
+
+      // 성공 처리는 successUrl로 리다이렉트되어 백엔드에서 처리됨
     } catch (error) {
-      alert("주문 처리 중 오류가 발생했습니다.")
+      console.error("결제 오류:", error)
+      setPaymentError("결제 처리 중 오류가 발생했습니다.")
       setIsProcessing(false)
     }
   }
@@ -113,6 +153,12 @@ export default function Checkout() {
           <div className={styles.checkoutGrid}>
             <div className={styles.checkoutForm}>
               <h2 className={styles.formTitle}>주문 정보</h2>
+
+              {paymentError && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                  <strong>결제 실패: </strong> {paymentError}
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="bg-white p-6 rounded-lg shadow">
@@ -207,8 +253,8 @@ export default function Checkout() {
                     <label className="flex items-center">
                       <input
                         type="radio"
-                        value="card"
-                        checked={paymentMethod === "card"}
+                        value="카드"
+                        checked={paymentMethod === "카드"}
                         onChange={(e) => setPaymentMethod(e.target.value)}
                         className="mr-2"
                       />
@@ -218,8 +264,19 @@ export default function Checkout() {
                     <label className="flex items-center">
                       <input
                         type="radio"
-                        value="transfer"
-                        checked={paymentMethod === "transfer"}
+                        value="가상계좌"
+                        checked={paymentMethod === "가상계좌"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="mr-2"
+                      />
+                      가상계좌
+                    </label>
+                    
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="계좌이체"
+                        checked={paymentMethod === "계좌이체"}
                         onChange={(e) => setPaymentMethod(e.target.value)}
                         className="mr-2"
                       />
