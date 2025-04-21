@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 interface Restaurant {
   id: number
@@ -18,6 +19,11 @@ interface ReservationCell {
   status: string
   adults?: number
   children?: number
+  phone?: string
+  email?: string
+  reservationTime?: string
+  reservationDate?: string
+  request?: string
 }
 
 interface TimeSlot {
@@ -35,31 +41,26 @@ interface ApiReservation {
   request: string
   reservationNum: string
   status: string
+  phone?: string
+  email?: string
+  reservationDate?: string
 }
 
 function getStatusColor(status: string | undefined) {
-  console.log("상태값:", status); // 디버깅용
-  if (!status) return "bg-gray-100 text-gray-500 border-gray-200"; // ✅ fallback
+  if (!status) return "bg-gray-100 text-gray-500 border-gray-200"
   switch (status.toUpperCase()) {
-    case "CONFIRMED": return "bg-blue-100 text-blue-700 border-blue-300";
-    case "CANCELLED": return "bg-red-100 text-red-700 border-red-300";
-    case "PENDING": return "bg-yellow-100 text-yellow-700 border-yellow-300";
-    default: return "bg-gray-100 text-gray-500 border-gray-200"; // ✅ 예상치 못한 값 fallback
+    case "CONFIRMED": return "bg-blue-100 text-blue-700 border-blue-300"
+    case "CANCELLED": return "bg-red-100 text-red-700 border-red-300"
+    case "PENDING": default: return "bg-green-100 text-green-700 border-green-300"
   }
 }
 
-
 function getStatusLabel(status: string | undefined) {
   if (!status) return "알 수 없음"
-  console.log("상태값:", status); // 디버깅용
   switch (status.toUpperCase()) {
-    case "CONFIRMED":
-      return "예약 확정";
-    case "CANCELLED":
-      return "예약 취소";
-    case "PENDING":
-    default:
-      return "대기중";
+    case "CONFIRMED": return "예약 확정"
+    case "CANCELLED": return "예약 취소"
+    case "PENDING": default: return "대기중"
   }
 }
 
@@ -69,6 +70,7 @@ export default function AdminDiningSchedulePage() {
   const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split("T")[0])
   const [selectedReservation, setSelectedReservation] = useState<ReservationCell | null>(null)
   const [updating, setUpdating] = useState(false)
+  const [viewMode, setViewMode] = useState("table")
 
   useEffect(() => {
     const fetchRestaurants = async () => {
@@ -76,35 +78,33 @@ export default function AdminDiningSchedulePage() {
       const data = await res.json()
       setRestaurants(data)
     }
-
     fetchRestaurants()
   }, [])
 
-  // fetchSchedule을 컴포넌트 함수 바깥으로 이동
   const fetchSchedule = async (selectedDate: string, restaurants: Restaurant[], setSchedule: (v: TimeSlot[]) => void) => {
     const res = await fetch(`http://localhost:8080/admin/dining/schedule?date=${selectedDate}`)
     const data: ApiReservation[] = await res.json()
-    console.log("응답 데이터", data)
-    const start = 7
-    const end = 22
-    const times: TimeSlot[] = []
+    console.log('서버에서 받아온 예약 data:', data)
+    const start = 7, end = 22, times: TimeSlot[] = []
     for (let h = start; h < end; h++) {
       ["00", "30"].forEach((m) => {
         const time = `${h.toString().padStart(2, "0")}:${m}`
         const row: TimeSlot = { time }
-        restaurants.forEach((r) => {
-          row[r.id] = null
-        })
+        restaurants.forEach((r) => { row[r.id] = null })
         data.forEach((r) => {
           if (r.reservationTime === time) {
-            console.log("상태", r.status)
             row[r.restaurantId] = {
               guestName: r.guestName,
               partySize: r.partySize,
               reservationNum: r.reservationNum,
               adults: r.adults,
               children: r.children,
-              status: r.status || "PENDING"
+              status: r.status ?? "PENDING",
+              phone: r.phone,
+              email: r.email,
+              reservationTime: r.reservationTime,
+              reservationDate: r.reservationDate,
+              request: r.request
             }
           }
         })
@@ -134,7 +134,6 @@ export default function AdminDiningSchedulePage() {
       })
       if (res.ok) {
         setSelectedReservation({ ...selectedReservation, status: newStatus })
-        // 상태 변경 성공 시 스케줄 즉시 갱신
         fetchSchedule(selectedDate, restaurants, setSchedule)
       } else {
         alert("상태 변경 실패")
@@ -158,7 +157,7 @@ export default function AdminDiningSchedulePage() {
       if (res.ok) {
         alert("예약이 삭제되었습니다.")
         setSelectedReservation(null)
-        window.location.reload() // 간단한 방식으로 새로고침 (향후 fetchSchedule 재호출로 개선 가능)
+        window.location.reload()
       } else {
         alert("삭제 실패")
       }
@@ -180,52 +179,99 @@ export default function AdminDiningSchedulePage() {
           className="border rounded px-3 py-1"
         />
       </div>
-
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="px-4 py-2 border">시간</th>
-              {restaurants.map((r) => (
-                <th key={r.id} className="px-4 py-2 border">
-                  {r.name} <span className="text-xs text-gray-500">({r.capacity}석)</span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {schedule.map((slot) => (
-              <tr key={slot.time}>
-                <td className="px-4 py-2 border font-mono text-sm bg-gray-50">{slot.time}</td>
-                {restaurants.map((r) => {
-                  const cell = slot[r.id]
-                  return (
-                    <td
-                      key={r.id}
-                      className={`px-4 py-2 border text-center text-sm cursor-pointer hover:bg-teal-50 ${cell && typeof cell !== "string" ? getStatusColor(cell.status) : ""}`}
-                      onClick={() => cell && typeof cell !== "string" && setSelectedReservation(cell)}
-                    >
-                      {cell && typeof cell !== "string" ? (
-                        <div title={cell.guestName}>
-                          <div className="font-semibold">{cell.guestName}</div>
-                          <div className="text-xs">{cell.partySize}명</div>
-                          <div className="mt-1">
-                            <span className="inline-block rounded px-2 py-0.5 text-xs font-semibold bg-white bg-opacity-50">
-                              {getStatusLabel(cell.status)}
-                            </span>
-                          </div>
-                        </div>
-                      ) : "-"}
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="flex items-center justify-between mb-4">
+        {/* 왼쪽: Tabs */}
+        <Tabs value={viewMode} onValueChange={setViewMode}>
+          <TabsList>
+            <TabsTrigger value="table">테이블 뷰</TabsTrigger>
+            <TabsTrigger value="list">리스트 뷰</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      
+        {/* 오른쪽: 예약 상태 표시 */}
+        <div className="flex gap-4 text-sm items-center ml-auto">
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded bg-blue-200 border border-blue-400"></div>
+            예약 확정
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded bg-red-200 border border-red-400"></div>
+            취소됨
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-4 h-4 rounded bg-green-200 border border-green-400"></div>
+            대기중
+          </div>
+        </div>
       </div>
 
-      {/* 예약 상세 모달 */}
+
+      {viewMode === "table" ? (
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-gray-300">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-4 py-2 border">시간</th>
+                {restaurants.map((r) => (
+                  <th key={r.id} className="px-4 py-2 border">
+                    {r.name} <span className="text-xs text-gray-500">({r.capacity}석)</span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {schedule.map((slot) => (
+                <tr key={slot.time}>
+                  <td className="px-4 py-2 border font-mono text-sm bg-gray-50">{slot.time}</td>
+                  {restaurants.map((r) => {
+                    const cell = slot[r.id]
+                    return (
+                      <td
+                        key={r.id}
+                        className={`px-4 py-2 border text-center text-sm cursor-pointer hover:bg-teal-50 ${cell && typeof cell !== "string" ? getStatusColor(cell.status) : ""}`}
+                        onClick={() => cell && typeof cell !== "string" && setSelectedReservation(cell)}
+                      >
+                        {cell && typeof cell !== "string" ? (
+                          <div title={cell.guestName}>
+                            <div className="font-semibold">{cell.guestName}</div>
+                            <div className="text-xs">{cell.partySize}명</div>
+                            <div className="mt-1">
+                              {/* <span className="inline-block rounded px-2 py-0.5 text-xs font-semibold bg-white bg-opacity-50">
+                                {getStatusLabel(cell.status)}
+                              </span> */}
+                            </div>
+                          </div>
+                        ) : "-"}
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {schedule.flatMap((slot) =>
+            restaurants.map((r) => {
+              const cell = slot[r.id]
+              if (!cell || typeof cell === "string") return null
+              return (
+                <div
+                  key={`${slot.time}-${r.id}`}
+                  className={`border rounded p-3 ${getStatusColor(cell.status)}`}
+                  onClick={() => setSelectedReservation(cell)}
+                >
+                  <div className="font-semibold">{slot.time} | {r.name}</div>
+                  <div className="text-sm">👤 {cell.guestName} | 👪 {cell.partySize}명 (성인 {cell.adults} / 어린이 {cell.children})</div>
+                  <div className="text-xs mt-1">상태: {getStatusLabel(cell.status)}</div>
+                </div>
+              )
+            })
+          )}
+        </div>
+      )}
+
       <Dialog open={!!selectedReservation} onOpenChange={() => setSelectedReservation(null)}>
         <DialogContent className="bg-white p-6 rounded shadow-lg max-w-md w-full">
           <DialogHeader>
@@ -236,10 +282,15 @@ export default function AdminDiningSchedulePage() {
               <p><strong>예약번호:</strong> {selectedReservation.reservationNum}</p>
               <p><strong>이름:</strong> {selectedReservation.guestName}</p>
               <p><strong>인원:</strong> {selectedReservation.adults ?? "-"}명 / 어린이 {selectedReservation.children ?? 0}명</p>
+              <p><strong>전화번호:</strong> {selectedReservation.phone ?? "-"}</p>
+              <p><strong>이메일:</strong> {selectedReservation.email ?? "-"}</p>
+              <p><strong>예약날짜:</strong> {selectedReservation.reservationDate ?? selectedDate}</p>
+              <p><strong>예약시간:</strong> {selectedReservation.reservationTime ?? "-"}</p>
+              <p><strong>요청사항:</strong> {selectedReservation.request ?? "-"}</p>
               <div>
                 <label className="block font-medium mb-1">예약 상태</label>
                 <Select value={selectedReservation.status} onValueChange={handleStatusChange} disabled={updating}>
-                  <SelectTrigger className="w-full text-base font-medium" >
+                  <SelectTrigger className="w-full text-base font-medium">
                     <SelectValue placeholder="예약 상태 선택" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
@@ -249,14 +300,20 @@ export default function AdminDiningSchedulePage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="pt-4">
-                <Button variant="destructive" onClick={handleDelete} disabled={updating}>
-                  예약 삭제
-                </Button>
-              </div>
             </div>
           )}
-          <DialogFooter className="pt-4">
+          <DialogFooter className="pt-4 flex flex-row justify-between">
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={updating}
+              className="font-bold border-2 rounded-lg bg-gray-100 text-gray-700 border-gray-300 shadow hover:bg-gray-200 transition flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              예약 삭제
+            </Button>
             <Button onClick={() => setSelectedReservation(null)}>닫기</Button>
           </DialogFooter>
         </DialogContent>

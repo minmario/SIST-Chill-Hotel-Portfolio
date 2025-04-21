@@ -19,6 +19,9 @@ public class AdminScheduleResponse {
     private String request;
     private String reservationNum;
     private String status;
+    private String phone;
+    private String email;
+    private String reservationDate;
 
     public static AdminScheduleResponse from(DiningReservation r) {
         return AdminScheduleResponse.builder()
@@ -33,6 +36,9 @@ public class AdminScheduleResponse {
                 .request(r.getRequest())
                 .reservationNum(r.getReservationNum())
                 .status(r.getStatus() != null ? r.getStatus() : "PENDING")
+                .phone(r.getPhone())
+                .email(r.getEmail())
+                .reservationDate(r.getReservationDate().toString())
                 .build();
     }
 }
