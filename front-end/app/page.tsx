@@ -134,7 +134,7 @@ export default function Home() {
     {
       id: 1,
       name: "Chill Harmony Room",
-      image: "/placeholder.svg?height=300&width=400",
+      image: "/images/rooms/harmony/harmony1.png?height=300&width=400",
       description: "A peaceful retreat with panoramic mountain views with harmonious design elements.",
       size: "30m²",
       capacity: "성인 2인 기준",
@@ -143,7 +143,7 @@ export default function Home() {
     {
       id: 2,
       name: "Chill Serenity Room",
-      image: "/placeholder.svg?height=300&width=400",
+      image: "/images/rooms/serenity/serenity1.png?height=300&width=400",
       description: "A tranquil space with modern amenities and soothing natural views.",
       size: "35m²",
       capacity: "성인 2인 기준",
@@ -152,7 +152,7 @@ export default function Home() {
     {
       id: 3,
       name: "Chill Family Suite",
-      image: "/placeholder.svg?height=300&width=400",
+      image: "/images/rooms/family/family1.png?height=300&width=400",
       description: "A spacious suite with separate living areas and a luxurious suite designed for family well-being.",
       size: "50m²",
       capacity: "성인 2인 기준",

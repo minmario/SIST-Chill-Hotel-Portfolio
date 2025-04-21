@@ -16,9 +16,9 @@ const rooms = [
       "편안함과 실용성을 갖춘 객실로, 비즈니스와 레저 여행객 모두에게 적합합니다. 모던한 인테리어와 필수 편의시설을 갖추고 있어 편안한 휴식을 제공합니다.",
     price: 250000,
     images: [
-      "/main_room.png?height=600&width=800",
       "/images/rooms/comfort/comfort1.png?height=600&width=800",
       "/images/rooms/comfort/comfort2.png?height=600&width=800",
+      "/images/rooms/comfort/comfort3.png?height=600&width=800",
     ],
     details: {
       composition: "침실 1, 욕실 1",
@@ -42,9 +42,9 @@ const rooms = [
       "조화로운 디자인과 넓은 공간이 특징인 객실로, 도시의 스카이라인을 감상할 수 있습니다. 고급스러운 인테리어와 편안한 침구로 완벽한 휴식을 제공합니다.",
     price: 300000,
     images: [
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      "/images/rooms/harmony/harmony1.png?height=600&width=800",
+      "/images/rooms/harmony/harmony2.png?height=600&width=800",
+      "/images/rooms/harmony/harmony3.png?height=600&width=800",
     ],
     details: {
       composition: "침실 1, 욕실 1",
@@ -78,9 +78,9 @@ const rooms = [
       "고요함과 평온함을 느낄 수 있는 객실로, 프리미엄 어메니티와 넓은 공간을 제공합니다. 도시의 번잡함에서 벗어나 진정한 휴식을 경험할 수 있습니다.",
     price: 350000,
     images: [
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      "/images/rooms/serenity/serenity1.png?height=600&width=800",
+      "/images/rooms/serenity/serenity2.png?height=600&width=800",
+      "/images/rooms/serenity/serenity3.png?height=600&width=800",
     ],
     details: {
       composition: "침실 1, 욕실 1",
@@ -124,9 +124,9 @@ const rooms = [
       "아름다운 호수 전망을 자랑하는 객실로, 자연과 도시가 조화를 이루는 특별한 경험을 제공합니다. 넓은 창문을 통해 들어오는 자연광이 객실을 밝게 비춥니다.",
     price: 400000,
     images: [
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      "/images/rooms/lake/lake1.png?height=600&width=800",
+      "/images/rooms/lake/lake2.png?height=600&width=800",
+      "/images/rooms/lake/lake3.png?height=600&width=800",
     ],
     details: {
       composition: "침실 1, 욕실 1",
@@ -172,9 +172,9 @@ const rooms = [
       "럭스 호텔의 최상급 스위트룸으로, 넓은 공간과 최고급 인테리어, 프라이빗 라운지 액세스 등 특별한 서비스를 제공합니다. 도시의 파노라마 전망을 감상할 수 있는 완벽한 공간입니다.",
     price: 600000,
     images: [
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
-      "/placeholder.svg?height=600&width=800",
+      "/images/rooms/ultimate/ultimate1.png?height=600&width=800",
+      "/images/rooms/ultimate/ultimate2.png?height=600&width=800",
+      "/images/rooms/ultimate/ultimate3.png?height=600&width=800",
     ],
     details: {
       composition: "침실 1, 거실 1, 욕실 2",
@@ -226,21 +226,21 @@ const facilities = [
     name: "수영장",
     description:
       "탁 트인 전망을 자랑하는 실내 수영장에서 여유로운 시간을 보내세요. 온도 조절이 가능한 수영장은 계절에 상관없이 편안한 수영을 즐기실 수 있습니다.",
-    image: "/placeholder.svg?height=400&width=600",
+      image: "/images/facility/swimpool.png?height=400&width=600",
   },
   {
     id: "spa",
     name: "스파",
     description:
       "럭스 스파에서 일상의 스트레스를 잊고 몸과 마음의 균형을 되찾으세요. 다양한 트리트먼트와 마사지 프로그램이 준비되어 있습니다.",
-    image: "/placeholder.svg?height=400&width=600",
+      image: "/images/facility/sauna.png?height=400&width=600",
   },
   {
     id: "fitness",
     name: "피트니스 센터",
     description:
       "최신 장비를 갖춘 24시간 피트니스 센터에서 건강한 라이프스타일을 유지하세요. 전문 트레이너의 도움을 받을 수 있습니다.",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "/images/facility/fitness.png?height=400&width=600",
   },
 ]
 

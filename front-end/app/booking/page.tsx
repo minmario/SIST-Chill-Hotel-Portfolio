@@ -10,77 +10,8 @@ import { Users, Calendar, Home, ChevronDown, X } from "lucide-react"
 import styles from "../rooms/rooms.module.css"
 import { useSearchParams } from 'next/navigation'
 
-/*const rooms = [
-  {
-    id: "chill-comfort",
-    name: "Chill Comfort",
-    description: "편안함과 실용성을 갖춘 객실로, 비즈니스와 레저 여행객 모두에게 적합합니다.",
-    price: 250000,
-    image: "/placeholder.svg?height=400&width=600",
-    details: {
-      size: "36㎡",
-      bedType: "킹 또는 트윈",
-      view: "시티 뷰",
-      maxOccupancy: 2,
-    },
-  },
-  {
-    id: "chill-harmony",
-    name: "Chill Harmony",
-    description: "조화로운 디자인과 넓은 공간이 특징인 객실로, 도시의 스카이라인을 감상할 수 있습니다.",
-    price: 300000,
-    image: "/placeholder.svg?height=400&width=600",
-    details: {
-      size: "42㎡",
-      bedType: "킹 또는 트윈",
-      view: "시티 뷰",
-      maxOccupancy: 2,
-    },
-  },
-  {
-    id: "chill-serenity",
-    name: "Chill Serenity",
-    description: "고요함과 평온함을 느낄 수 있는 객실로, 프리미엄 어메니티와 넓은 공간을 제공합니다.",
-    price: 350000,
-    image: "/placeholder.svg?height=400&width=600",
-    details: {
-      size: "48㎡",
-      bedType: "킹",
-      view: "시티 뷰 또는 리버 뷰",
-      maxOccupancy: 2,
-    },
-  },
-  {
-    id: "chill-lake",
-    name: "Chill Lake",
-    description: "아름다운 호수 전망을 자랑하는 객실로, 자연과 도시가 조화를 이루는 특별한 경험을 제공합니다.",
-    price: 400000,
-    image: "/placeholder.svg?height=400&width=600",
-    details: {
-      size: "52㎡",
-      bedType: "킹",
-      view: "레이크 뷰",
-      maxOccupancy: 2,
-    },
-  },
-  {
-    id: "ultimate-chill-suite",
-    name: "Ultimate Chill Suite",
-    description:
-      "럭스 호텔의 최상급 스위트룸으로, 넓은 공간과 최고급 인테리어, 프라이빗 라운지 액세스 등 특별한 서비스를 제공합니다.",
-    price: 600000,
-    image: "/placeholder.svg?height=400&width=600",
-    details: {
-      size: "76㎡",
-      bedType: "킹",
-      view: "파노라마 뷰",
-      maxOccupancy: 3,
-    },
-  },
-]
-
 // 패키지 데이터
-const packages = [
+/*const packages = [
   {
     id: "romantic-escape",
     name: "로맨틱 이스케이프",
@@ -239,12 +170,22 @@ export default function Booking() {
 
   return (
     <>
-      <div className={styles.header}>
-        <div className="container">
-          <h1>객실 예약</h1>
-          <p>럭스 호텔에서 특별한 경험을 예약하세요.</p>
-        </div>
-      </div>
+      <div className={styles.header} style={{position:'relative',width:'100%',height:'320px',marginBottom:'2rem',overflow:'hidden'}}>
+  <Image
+    src="/images/rooms/reservation.png"
+    alt="예약 상단 대표 이미지"
+    fill
+    style={{objectFit:'cover'}}
+    priority
+  />
+  <div className={styles.roomsHeaderOverlay} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',background:'rgba(0,0,0,0.45)'}} />
+  <div className={styles.roomsHeaderText} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',zIndex:2}}>
+    <div className="container">
+      <h1 style={{color:'#fff',fontSize:'2.7rem',fontWeight:700,marginBottom:'1rem',textShadow:'0 2px 16px rgba(0,0,0,0.5)'}}>객실 예약</h1>
+      <p style={{color:'#fff',fontSize:'1.15rem',fontWeight:400,textAlign:'center',textShadow:'0 2px 12px rgba(0,0,0,0.5)'}}>럭스 호텔에서 특별한 경험을 예약하세요.</p>
+    </div>
+  </div>
+</div>
 
       <section className={styles.bookingSection}>
         <div className="container">
@@ -421,15 +362,16 @@ export default function Booking() {
               <div className="mt-4 flex justify-between items-center">
                 <div>
                   <div className="text-sm text-gray-500">평일가 기준</div>
-                  <div className="text-lg font-bold text-blue-600">₩{room.weekPrice.toLocaleString()}</div>
+                  <div className={styles.roomListPrice} style={{fontSize:'1.1rem',fontWeight:700,color:'var(--primary-color)'}}>₩{room.weekPrice.toLocaleString()}</div>
                 </div>
 
                 <button
-                  onClick={() => handleBookNow(room)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  예약하기
-                </button>
+  onClick={() => handleBookNow(room)}
+  className={styles.roomListBookButton}
+  style={{background:'var(--primary-color)',color:'#fff',padding:'0.5rem 1.1rem',fontWeight:600,borderRadius:'8px',fontSize:'1rem'}}
+>
+  예약하기
+</button>
               </div>
             </div>
           </div>

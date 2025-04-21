@@ -200,9 +200,9 @@ export default function ReservationsPage() {
         return "chill serenity";
       case 4:
         return "chill family";
-      case 6:
+      case 5:
         return "chill lake";
-      case 7:
+      case 6:
         return "ultimate chill suite";
       default:
         return `타입 ${roomTypeIdx}`;

@@ -81,7 +81,7 @@ export default function BookingInfo() {
     return Math.max(diffDays, 1) // 최소 1박
   }
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     // 예약 정보 저장
     const bookingInfo = {
       room: selectedRoom,
@@ -99,7 +99,30 @@ export default function BookingInfo() {
     localStorage.setItem("bookingInfo", JSON.stringify(bookingInfo))
 
     if (loginOption === "member") {
-      router.push("/booking/login")
+      // accessToken이 없으면 로그인 페이지로 이동
+      const accessToken = localStorage.getItem("accessToken")
+      if (!accessToken) {
+        router.push("/booking/login")
+        return
+      }
+      // 회원 정보 불러오기
+      try {
+        const res = await fetch("/api/user/info", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
+        if (res.ok) {
+          const userInfo = await res.json()
+          // 회원 정보도 localStorage에 저장해서 customer-info에서 활용
+          localStorage.setItem("bookingUserInfo", JSON.stringify(userInfo))
+          router.push("/booking/customer-info")
+        } else {
+          alert("회원 정보 조회 실패. 다시 로그인 해주세요.")
+          router.push("/booking/login")
+        }
+      } catch (err) {
+        alert("회원 정보 조회 중 오류 발생.")
+        router.push("/booking/login")
+      }
     } else {
       router.push("/booking/customer-info")
     }
@@ -147,8 +170,8 @@ export default function BookingInfo() {
                 <div className={styles.selectedRoomInfo}>
                   <div className={styles.selectedRoomImageContainer}>
                     <Image
-                      src={selectedRoom.image || "/placeholder.svg"}
-                      alt={selectedRoom.name}
+                      src={selectedRoom.roomImage || "/placeholder.svg"}
+                      alt={selectedRoom.roomName}
                       fill
                       style={{ objectFit: "cover" }}
                     />

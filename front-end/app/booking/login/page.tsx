@@ -11,7 +11,7 @@ import styles from "../../rooms/rooms.module.css"
 export default function BookingLogin() {
   const router = useRouter()
   const [loginData, setLoginData] = useState({
-    email: "",
+    id: "",
     password: "",
   })
 
@@ -28,7 +28,8 @@ export default function BookingLogin() {
 
     // 세션 정보 저장 (실제로는 토큰 등을 저장)
     localStorage.setItem("isLoggedIn", "true")
-    localStorage.setItem("userEmail", loginData.email)
+    localStorage.setItem("userId", loginData.id)
+    localStorage.setItem("accessToken", "mock-access-token") // 실제 로그인 API 응답값 활용
 
     // 고객 정보 입력 페이지로 이동
     router.push("/booking/customer-info")
@@ -73,15 +74,15 @@ export default function BookingLogin() {
 
             <form onSubmit={handleLogin}>
               <div className="mb-4">
-                <label htmlFor="email" className="block mb-2 font-medium">
-                  이메일
+                <label htmlFor="id" className="block mb-2 font-medium">
+                  아이디
                 </label>
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
+                  type="text"
+                  id="id"
+                  name="id"
                   className="w-full p-3 border border-gray-300 rounded"
-                  value={loginData.email}
+                  value={loginData.id}
                   onChange={handleInputChange}
                   required
                 />
