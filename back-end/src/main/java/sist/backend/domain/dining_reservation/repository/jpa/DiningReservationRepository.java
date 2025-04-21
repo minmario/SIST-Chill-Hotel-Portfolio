@@ -8,6 +8,8 @@ import sist.backend.domain.dining_reservation.entity.DiningReservation;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
 
 public interface DiningReservationRepository extends CrudRepository<DiningReservation, Long> {
 
@@ -20,4 +22,11 @@ public interface DiningReservationRepository extends CrudRepository<DiningReserv
         @Param("mealTime") String mealTime,
         @Param("reservationTime") LocalTime reservationTime
         );
+
+        // 관리자
+        List<DiningReservation> findByReservationDate(LocalDate date);
+
+        // 관리자
+        Optional<DiningReservation> findByReservationNum(String reservationNum);
+
 }
