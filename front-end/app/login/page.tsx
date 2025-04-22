@@ -17,10 +17,12 @@ export default function Login() {
   const [isClient, setIsClient] = useState(false)
   const [error, setError] = useState("")
   const { login } = useAuth()
+  
 
   useEffect(() => {
     setIsClient(true)
   }, [])
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -52,15 +54,29 @@ export default function Login() {
       console.log('[Login] 서버 응답 데이터:', data)
       
       // 필드명 확인 
-      const token = data.token || data.message
+    
       const role = data.role
       
-      localStorage.setItem("token", token)
+      
       localStorage.setItem("isLoggedIn", "true")
       localStorage.setItem("userName", loginData.userId)
+      localStorage.setItem("userRole", role)
+      localStorage.setItem("userToken", data.token)
+      const token = data.token;
 
-      // AuthContext의 login 함수 사용
-      login(token, loginData.userId, role)
+      if (!token || token.split(".").length !== 3) {
+        console.error("[Login] 잘못된 토큰 형식:", token);
+        throw new Error("서버에서 유효한 JWT 토큰을 반환하지 않았습니다.");
+      }
+
+      localStorage.setItem("accessToken", token);
+
+      login({
+        userId: loginData.userId,
+        name: "테스트유저",
+        email: "test@example.com",
+        role: data.role,
+      }, data.token);
 
       router.push("/") // 로그인 성공 후 이동
     } catch (error) {

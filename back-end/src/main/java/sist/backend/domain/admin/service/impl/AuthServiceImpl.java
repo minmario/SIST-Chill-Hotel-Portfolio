@@ -37,8 +37,12 @@ public class AuthServiceImpl implements AuthService {
         if (user.getRole() != UserRole.STAFF && user.getRole() != UserRole.ADMIN) {
             throw new IllegalArgumentException("허용되지 않은 사용자입니다.");
         }
+        Long membershipIdx = user.getMembership() != null ? user.getMembership().getMembershipIdx() : null;
 
-        String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
+        String token = jwtProvider.generateToken(
+                user.getId(),
+                user.getRole().name(),
+                membershipIdx);
 
         return new LoginResponse(token, user.getRole().name());
     }

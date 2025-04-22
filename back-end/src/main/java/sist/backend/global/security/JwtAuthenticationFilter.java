@@ -51,7 +51,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     "anonymousUser".equals(existingAuth.getPrincipal()) ||
                     !(existingAuth.getPrincipal() instanceof UserDetails))) {
                 try {
-                    UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+                    CustomUserDetails userDetails = (CustomUserDetails) userDetailsService
+                            .loadUserByUsername(userEmail);
                     System.out.println("[JWT] UserDetailsService 조회 성공: " + userDetails.getUsername());
                     if (jwtProvider.validateToken(jwt, userDetails)) {
                         System.out.println("[JWT] 토큰 유효성 검증 성공");

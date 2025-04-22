@@ -33,8 +33,8 @@ public class CartController {
 
     @GetMapping
     public ResponseEntity<List<CartItemResponseDTO>> getCartItems(
-            @AuthenticationPrincipal User user) {
-                System.out.println(user);
+            @AuthenticationPrincipal(expression = "user") User user) {
+        System.out.println(user);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -44,7 +44,7 @@ public class CartController {
 
     @PostMapping("/items")
     public ResponseEntity<CartItemResponseDTO> addItemToCart(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal(expression = "user") User user,
             @RequestBody CartItemRequestDTO requestDto) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -55,7 +55,7 @@ public class CartController {
 
     @PutMapping("/items/{cartItemIdx}")
     public ResponseEntity<CartItemResponseDTO> updateCartItem(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal(expression = "user") User user,
             @PathVariable Long cartItemIdx,
             @RequestBody CartItemRequestDTO requestDto) {
         if (user == null) {
@@ -67,7 +67,7 @@ public class CartController {
 
     @DeleteMapping("/items/{cartItemIdx}")
     public ResponseEntity<Void> removeItemFromCart(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal(expression = "user") User user,
             @PathVariable Long cartItemIdx) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -78,7 +78,7 @@ public class CartController {
 
     @DeleteMapping
     public ResponseEntity<Void> clearCart(
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal(expression = "user") User user) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
