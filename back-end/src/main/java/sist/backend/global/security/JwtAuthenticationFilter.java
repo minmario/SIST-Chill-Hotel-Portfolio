@@ -33,12 +33,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         System.out.println("[JWT] 요청 URI: " + uri);
         if (header != null && header.startsWith("Bearer ")) {
             String jwt = header.substring(7);
-            String userEmail = null;
+            String userId = null;
             try {
-                userEmail = jwtProvider.extractUsername(jwt);
-                System.out.println("[JWT] userEmail 추출: " + userEmail);
+                userId = jwtProvider.extractUsername(jwt);
+                System.out.println("[JWT] userId 추출: " + userId);
             } catch (Exception e) {
-                System.out.println("[JWT] Username 추출 실패: " + e.getMessage());
+                System.out.println("[JWT] userId 추출 실패: " + e.getMessage());
             }
 
             Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
@@ -46,13 +46,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 System.out.println("[JWT] 기존 Authentication principal: " + existingAuth.getPrincipal());
                 System.out.println("[JWT] 기존 Authentication class: " + existingAuth.getClass().getName());
             }
-            if (userEmail != null && (existingAuth == null ||
+            if (userId != null && (existingAuth == null ||
                     existingAuth.getPrincipal() == null ||
                     "anonymousUser".equals(existingAuth.getPrincipal()) ||
                     !(existingAuth.getPrincipal() instanceof UserDetails))) {
                 try {
                     CustomUserDetails userDetails = (CustomUserDetails) userDetailsService
-                            .loadUserByUsername(userEmail);
+                            .loadUserByUsername(userId);
                     System.out.println("[JWT] UserDetailsService 조회 성공: " + userDetails.getUsername());
                     if (jwtProvider.validateToken(jwt, userDetails)) {
                         System.out.println("[JWT] 토큰 유효성 검증 성공");

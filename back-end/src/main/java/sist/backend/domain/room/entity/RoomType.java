@@ -68,6 +68,7 @@ public class RoomType  {
     private String roomImage;
 
     @OneToMany(mappedBy = "roomType",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @Builder.Default
     private List<Room> rooms = new ArrayList<>();
 
     // 비즈니스 메서드
@@ -91,6 +92,7 @@ public class RoomType  {
         rooms.add(room);
         room.setRoomType(this);
     }
+    
     public void updateRoomImage(String roomImage) {
         this.roomImage = roomImage;
     }

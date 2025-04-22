@@ -70,13 +70,13 @@ export default function BookingLogin() {
       const data = await response.json()
       console.log('[BookingLogin] 서버 응답 데이터:', data)
       const token = data.token || data.message
-      const role = data.role
+      
 
       localStorage.setItem("token", token)
       localStorage.setItem("isLoggedIn", "true")
       localStorage.setItem("userName", loginData.userId)
 
-      login(token, loginData.userId, role)
+      login(token, loginData.userId)
 
       // 예약 진행 단계이므로 고객 정보 입력 페이지로 이동
       router.push("/booking/customer-info")

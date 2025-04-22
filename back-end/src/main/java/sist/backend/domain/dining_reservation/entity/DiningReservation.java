@@ -60,7 +60,6 @@ public class DiningReservation {
     @Column(length = 20)
     private String status = "PENDING";
 
-    @Builder.Default
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
