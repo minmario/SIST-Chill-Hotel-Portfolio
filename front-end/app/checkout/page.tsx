@@ -65,9 +65,6 @@ export default function Checkout() {
     }
   }, [mounted, cartItems, router]);
 
-  // 클라이언트 컴포넌트 로직
-  const { getCartTotal } = useCart()
-
   // 서버 사이드 렌더링 중에는 기본 UI만 표시
   if (!mounted) {
     return (
@@ -231,7 +228,7 @@ export default function Checkout() {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium mb-1">요청 사항</label>
+                      <label className="block text-sm font-medium mb-1">요청 사항.</label>
                       <textarea
                         name="memo"
                         value={formData.memo}
@@ -299,7 +296,7 @@ export default function Checkout() {
                 {cartItems.map((item, idx) => (
                   <div key={item.id ?? idx} className={styles.orderItem}>
                     <div className={styles.orderItemDetails}>
-                      <div className={styles.orderItemName}>{item.name}</div>
+                      <div className={styles.orderItemName}>{item.productName}</div>
                       <div className={styles.orderItemMeta}>수량: {item.quantity}</div>
                     </div>
                     <div className={styles.orderItemPrice}>{(item.price * item.quantity).toLocaleString()}원</div>

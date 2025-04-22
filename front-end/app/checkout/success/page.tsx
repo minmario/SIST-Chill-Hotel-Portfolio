@@ -80,7 +80,7 @@ export default function PaymentSuccessPage() {
       </div>
       <h1 className="text-3xl font-bold mb-4">결제가 완료되었습니다!</h1>
       <p className="text-gray-600 mb-8">
-        주문이 성공적으로 처리되었습니다. 곧 배송이 시작될 예정입니다.
+        주문이 성공적으로 처리되었습니다. 체크인 시 제품을 수령하여 주십시오.
       </p>
       <button
         onClick={handleGoHome}

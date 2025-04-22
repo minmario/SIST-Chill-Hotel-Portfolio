@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, createRef } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,7 @@ import { Package, Plus, Pencil, Trash2, Search, CheckSquare, Square, AlertCircle
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination"
+import { createPortal } from "react-dom"
 
 // 물품 타입 정의
 type Item = {
@@ -24,6 +25,7 @@ type Item = {
   category: string
   itemName: string
   description: string
+  imageUrl: string
 }
 
 // 카테고리 목록
@@ -100,17 +102,20 @@ function Modal({ isOpen, onClose, title, children, footer }: ModalProps) {
 
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none'; // 모바일 터치 방지
       // 스크롤바 너비만큼 padding-right 추가하여 레이아웃 이동 방지
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
       document.body.style.paddingRight = `${scrollbarWidth}px`;
     } else {
       document.body.style.overflow = '';
+      document.body.style.touchAction = '';
       document.body.style.paddingRight = '';
     }
     
     // 컴포넌트 언마운트 시 원래대로 복원
     return () => {
       document.body.style.overflow = '';
+      document.body.style.touchAction = '';
       document.body.style.paddingRight = '';
     };
   }, [isOpen]);
@@ -123,7 +128,7 @@ function Modal({ isOpen, onClose, title, children, footer }: ModalProps) {
       <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
 
       {/* 모달 컨텐츠 */}
-      <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 z-10 overflow-visible">
+      <div className="fixed z-[101] bg-white rounded-lg shadow-lg w-full max-w-md mx-4 max-h-[90vh] flex flex-col">
         {/* 헤더 */}
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-lg font-semibold">{title}</h3>
@@ -133,13 +138,27 @@ function Modal({ isOpen, onClose, title, children, footer }: ModalProps) {
         </div>
 
         {/* 본문 */}
-        <div className="p-4 overflow-visible">{children}</div>
+        <div className="p-4 overflow-y-auto">{children}</div>
 
         {/* 푸터 */}
-        {footer && <div className="p-4 border-t flex justify-end gap-2">{footer}</div>}
+        {footer && <div className="p-4 border-t flex justify-end gap-2 mt-auto">{footer}</div>}
       </div>
     </div>
   )
+}
+
+// Custom Select 스타일 컴포넌트 - 메인 컴포넌트 위에 배치
+function CustomSelectContent({ children, ...props }: React.ComponentPropsWithoutRef<typeof SelectContent>) {
+  return (
+    <SelectContent
+      {...props}
+      className="fixed z-[1000] bg-white border border-gray-200 shadow-lg rounded-md w-[var(--radix-select-trigger-width)]"
+      position="popper"
+      sideOffset={5}
+    >
+      {children}
+    </SelectContent>
+  );
 }
 
 // API URL - 백엔드 컨트롤러의 경로와 일치시킴
@@ -171,13 +190,22 @@ export default function ItemsPage() {
     createdAt: "",
     updatedAt: "",
     category: "",
+    itemName: "",
     description: "",
+    imageUrl: "",
   })
 
   // 모달 상태
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+
+  // 포털 컨테이너 refs
+  const portalRef = useRef<HTMLDivElement>(null)
+
+  // 파일 업로드 상태
+  const [uploadLoading, setUploadLoading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // 필터링 및 정렬된 아이템 목록
   const filteredItems = items.filter((item) => {
@@ -374,6 +402,7 @@ export default function ItemsPage() {
           price: currentItem.price,
           stockQuantity: currentItem.stockQuantity,
           category: currentItem.category,
+          imageUrl: currentItem.imageUrl,
         }),
       })
 
@@ -391,6 +420,7 @@ export default function ItemsPage() {
         updatedAt: "",
       category: "",
       description: "",
+      imageUrl: "",
     })
     setIsAddModalOpen(false)
       toast.success('상품이 추가되었습니다')
@@ -421,6 +451,7 @@ export default function ItemsPage() {
           price: currentItem.price,
           stockQuantity: currentItem.stockQuantity,
           category: currentItem.category,
+          imageUrl: currentItem.imageUrl,
         }),
       })
 
@@ -591,6 +622,7 @@ export default function ItemsPage() {
       stockQuantity: 0,
       category: "",
       description: "",
+      imageUrl: "",
     })
     setIsAddModalOpen(true)
   }
@@ -628,8 +660,94 @@ export default function ItemsPage() {
     return sortDirection === "asc" ? <ArrowUp size={16} /> : <ArrowDown size={16} />;
   };
 
+  // 포털 컨테이너 요소 생성 및 스타일 적용
+  useEffect(() => {
+    // 서버 사이드 렌더링일 경우 실행하지 않음
+    if (typeof window === 'undefined') return;
+    
+    // 기존 포털 컨테이너가 있다면 제거
+    const existingContainer = document.getElementById('select-portal-container')
+    if (existingContainer) {
+      existingContainer.remove()
+    }
+    
+    // 새 포털 컨테이너 생성
+    const portalContainer = document.createElement('div')
+    portalContainer.id = 'select-portal-container'
+    portalContainer.style.position = 'fixed'
+    portalContainer.style.top = '0'
+    portalContainer.style.left = '0'
+    portalContainer.style.width = '100%'
+    portalContainer.style.height = '100%'
+    portalContainer.style.zIndex = '9999'
+    portalContainer.style.pointerEvents = 'none' // 포인터 이벤트 비활성화로 다른 콘텐츠 클릭 가능
+    document.body.appendChild(portalContainer)
+    
+    // 컴포넌트 언마운트 시 제거
+    return () => {
+      portalContainer.remove()
+    }
+  }, [])
+
+  // 이미지 업로드 핸들러
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const file = files[0]
+    // 파일 타입 검증
+    if (!file.type.startsWith('image/')) {
+      toast.error('이미지 파일만 업로드할 수 있습니다.')
+      return
+    }
+
+    // 파일 크기 검증 (10MB 제한)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('10MB 이하의 이미지만 업로드할 수 있습니다.')
+      return
+    }
+
+    setUploadLoading(true)
+    
+    try {
+      // 파일 업로드를 위한 FormData 생성
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch('http://localhost:8080/api/v1/files/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+        body: formData,
+      })
+      
+      if (!response.ok) {
+        throw new Error('이미지 업로드에 실패했습니다')
+      }
+      
+      const imageUrl = await response.text()
+      handleSelectChange('imageUrl', imageUrl)
+      toast.success('이미지가 업로드되었습니다')
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      toast.error('이미지 업로드에 실패했습니다')
+    } finally {
+      setUploadLoading(false)
+      // 파일 입력 초기화
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
   return (
     <div className="container mx-auto py-8 px-4">
+      {/* 포털을 위한 컨테이너 */}
+      <div id="portal-root" ref={portalRef} />
+    
       <h1 className="text-2xl font-bold mb-4">기프트샵 관리</h1>
       
       {/* 검색 및 필터 섹션 */}
@@ -637,50 +755,50 @@ export default function ItemsPage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-start mb-4">
           <div className="flex-1 w-full">
             <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <Input
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <Input
                 type="text"
                 placeholder="상품명 또는 설명으로 검색"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
-          />
-        </div>
+              />
+            </div>
           </div>
           
           <div className="flex gap-2 items-center w-full sm:w-auto">
-            <div className="relative z-[100]">
+            <div className="relative">
               <Select 
                 value={
                   selectedCategory 
                   ? Object.entries(categoryIdMap)
                       .find(([_, id]) => id === selectedCategory)?.[0] || "all" 
                   : "all"
-                } 
+                }
                 onValueChange={handleCategoryChange}
               >
                 <SelectTrigger className="w-full sm:w-[200px]">
                   <SelectValue placeholder="전체 카테고리" />
                 </SelectTrigger>
-                <SelectContent className="bg-white">
+                <CustomSelectContent>
                   <SelectItem value="all">전체 카테고리</SelectItem>
-                  {categories.map((category) => (
+                {categories.map((category) => (
                     <SelectItem key={category} value={category}>
-                      {category}
+                    {category}
                     </SelectItem>
-                  ))}
-                </SelectContent>
+                ))}
+                </CustomSelectContent>
               </Select>
             </div>
             
             {selectedCategory && subcategories[selectedCategory] && (
-              <div className="relative z-[99]">
+              <div className="relative">
                 <Select 
                   value={
                     selectedSubcategory && selectedSubcategory !== "none"
                       ? selectedSubcategory
                       : "none"
-                  } 
+                  }
                   onValueChange={handleSubcategoryChange}
                 >
                   <SelectTrigger className="w-full sm:w-[180px]">
@@ -688,14 +806,14 @@ export default function ItemsPage() {
                       {selectedSubcategory === "none" ? "전체" : undefined}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
+                  <CustomSelectContent>
                     <SelectItem value="none">전체</SelectItem>
-                    {subcategories[selectedCategory].map((subcategory) => (
+                  {subcategories[selectedCategory].map((subcategory) => (
                       <SelectItem key={subcategory.id} value={subcategory.id || "no-value"}>
-                        {subcategory.name}
+                      {subcategory.name}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
+                  ))}
+                  </CustomSelectContent>
                 </Select>
               </div>
             )}
@@ -704,7 +822,7 @@ export default function ItemsPage() {
               <RefreshCw size={18} className={`${refreshing ? "animate-spin" : ""}`} />
             </Button>
           </div>
-      </div>
+        </div>
 
         <div className="flex flex-wrap gap-2 justify-between items-center">
           <div className="flex gap-2">
@@ -726,150 +844,154 @@ export default function ItemsPage() {
       </div>
       
       {/* 물품 테이블 */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[50px]">
-                  <div className="flex justify-center items-center" onClick={toggleSelectAll}>
-                    {selectedItems.length === filteredItems.length && filteredItems.length > 0 ? (
-                      <CheckSquare size={18} className="cursor-pointer text-primary" />
-                    ) : (
-                      <Square size={18} className="cursor-pointer" />
-                    )}
-                  </div>
-              </TableHead>
-                <TableHead className="w-[80px]">
-                  <div className="flex items-center cursor-pointer" onClick={() => handleSortFieldChange("itemIdx")}>
-                    ID {renderSortIcon("itemIdx")}
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center cursor-pointer" onClick={() => handleSortFieldChange("itemName")}>
-                    상품명 {renderSortIcon("itemName")}
-                  </div>
-                </TableHead>
-              <TableHead>카테고리</TableHead>
-                <TableHead className="text-right">
-                  <div className="flex items-center justify-end cursor-pointer" onClick={() => handleSortFieldChange("price")}>
-                    가격 {renderSortIcon("price")}
-                  </div>
-                </TableHead>
-                <TableHead className="text-right">
-                  <div className="flex items-center justify-end cursor-pointer" onClick={() => handleSortFieldChange("stockQuantity")}>
-                    재고 {renderSortIcon("stockQuantity")}
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center cursor-pointer" onClick={() => handleSortFieldChange("createdAt")}>
-                    생성일 {renderSortIcon("createdAt")}
-                  </div>
-                </TableHead>
-                <TableHead>수정일</TableHead>
-                <TableHead className="w-[100px] text-center">관리</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-              {loading ? (
-                // 로딩 스켈레톤
-              Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={`skeleton-${index}`}>
-                    <TableCell><Skeleton className="h-5 w-5 rounded-sm mx-auto" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-10" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-full max-w-[150px]" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-12 ml-auto" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-8 w-20 mx-auto" /></TableCell>
-                </TableRow>
-              ))
-              ) : filteredItems.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center">
-                    {items.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center">
-                        <Package size={32} className="text-gray-300 mb-2" />
-                        <p className="text-gray-500">등록된 상품이 없습니다. 새 상품을 추가해주세요.</p>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center">
-                        <AlertCircle size={32} className="text-gray-300 mb-2" />
-                        <p className="text-gray-500">검색 조건에 맞는 상품이 없습니다.</p>
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ) : (
-              currentItems.map((item) => (
-                  <TableRow key={item.itemIdx}>
-                  <TableCell>
-                      <div
-                        className="flex justify-center items-center"
-                        onClick={() => toggleItemSelection(item.itemIdx)}
-                      >
-                        {selectedItems.includes(item.itemIdx) ? (
+      <div className="relative bg-white rounded-lg shadow-md" style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
+        <div className="min-w-full w-full overflow-hidden">
+          <div className="w-full overflow-x-auto">
+            <div style={{ width: '100%', minWidth: '100%' }}>
+              <Table className="table-fixed w-full border-collapse">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px]">
+                      <div className="flex justify-center items-center" onClick={toggleSelectAll}>
+                        {selectedItems.length === filteredItems.length && filteredItems.length > 0 ? (
                           <CheckSquare size={18} className="cursor-pointer text-primary" />
                         ) : (
                           <Square size={18} className="cursor-pointer" />
                         )}
                       </div>
-                  </TableCell>
-                    <TableCell className="font-medium">{item.itemIdx}</TableCell>
-                    <TableCell>
-                      <div className="max-w-[200px] truncate" title={item.itemName}>
-                        {item.itemName}
+                    </TableHead>
+                    <TableHead className="w-[80px]">
+                      <div className="flex items-center cursor-pointer" onClick={() => handleSortFieldChange("itemIdx")}>
+                        ID {renderSortIcon("itemIdx")}
                       </div>
-                      {item.description && (
-                        <div className="text-xs text-gray-500 max-w-[200px] truncate" title={item.description}>
-                          {item.description}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>{item.category || "-"}</TableCell>
-                    <TableCell className="text-right">{item.price.toLocaleString()}원</TableCell>
-                  <TableCell className="text-right">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          item.stockQuantity <= 5
-                            ? "bg-red-100 text-red-800"
-                            : item.stockQuantity <= 20
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-green-100 text-green-800"
-                        }`}
-                      >
-                        {item.stockQuantity}
-                      </span>
-                    </TableCell>
-                    <TableCell>{formatDate(item.createdAt)}</TableCell>
-                    <TableCell>{formatDate(item.updatedAt)}</TableCell>
-                    <TableCell>
-                      <div className="flex justify-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => openEditModal(item)}
-                        >
-                          <Pencil size={16} />
-                      </Button>
-                      <Button
-                          variant="ghost"
-                        size="icon"
-                          className="h-8 w-8 text-red-500"
-                        onClick={() => openDeleteModal(item)}
-                      >
-                          <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                    </TableHead>
+                    <TableHead className="w-[25%]">
+                      <div className="flex items-center cursor-pointer" onClick={() => handleSortFieldChange("itemName")}>
+                        상품명 {renderSortIcon("itemName")}
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-[15%]">카테고리</TableHead>
+                    <TableHead className="w-[10%] text-right">
+                      <div className="flex items-center justify-end cursor-pointer" onClick={() => handleSortFieldChange("price")}>
+                        가격 {renderSortIcon("price")}
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-[10%] text-right">
+                      <div className="flex items-center justify-end cursor-pointer" onClick={() => handleSortFieldChange("stockQuantity")}>
+                        재고 {renderSortIcon("stockQuantity")}
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-[15%]">
+                      <div className="flex items-center cursor-pointer" onClick={() => handleSortFieldChange("createdAt")}>
+                        생성일 {renderSortIcon("createdAt")}
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-[15%]">수정일</TableHead>
+                    <TableHead className="w-[100px] text-center">관리</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    // 로딩 스켈레톤
+                    Array.from({ length: 5 }).map((_, index) => (
+                      <TableRow key={`skeleton-${index}`}>
+                        <TableCell><Skeleton className="h-5 w-5 rounded-sm mx-auto" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-10" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-full max-w-[150px]" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-12 ml-auto" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-8 w-20 mx-auto" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : filteredItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="h-24 text-center">
+                        {items.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center">
+                            <Package size={32} className="text-gray-300 mb-2" />
+                            <p className="text-gray-500">등록된 상품이 없습니다. 새 상품을 추가해주세요.</p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center">
+                            <AlertCircle size={32} className="text-gray-300 mb-2" />
+                            <p className="text-gray-500">검색 조건에 맞는 상품이 없습니다.</p>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    currentItems.map((item) => (
+                      <TableRow key={item.itemIdx}>
+                        <TableCell>
+                          <div
+                            className="flex justify-center items-center"
+                            onClick={() => toggleItemSelection(item.itemIdx)}
+                          >
+                            {selectedItems.includes(item.itemIdx) ? (
+                              <CheckSquare size={18} className="cursor-pointer text-primary" />
+                            ) : (
+                              <Square size={18} className="cursor-pointer" />
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">{item.itemIdx}</TableCell>
+                        <TableCell>
+                          <div className="max-w-[200px] truncate" title={item.itemName}>
+                            {item.itemName}
+                          </div>
+                          {item.description && (
+                            <div className="text-xs text-gray-500 max-w-[200px] truncate" title={item.description}>
+                              {item.description}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>{item.category || "-"}</TableCell>
+                        <TableCell className="text-right">{item.price.toLocaleString()}원</TableCell>
+                        <TableCell className="text-right">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs ${
+                              item.stockQuantity <= 5
+                                ? "bg-red-100 text-red-800"
+                                : item.stockQuantity <= 20
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-green-100 text-green-800"
+                            }`}
+                          >
+                            {item.stockQuantity}
+                          </span>
+                        </TableCell>
+                        <TableCell>{formatDate(item.createdAt)}</TableCell>
+                        <TableCell>{formatDate(item.updatedAt)}</TableCell>
+                        <TableCell>
+                          <div className="flex justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => openEditModal(item)}
+                            >
+                              <Pencil size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-red-500"
+                              onClick={() => openDeleteModal(item)}
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </div>
         
         {/* 페이지네이션 추가 */}
@@ -938,7 +1060,7 @@ export default function ItemsPage() {
           
           <div>
             <Label htmlFor="category">카테고리</Label>
-            <div className="relative z-[200]">
+            <div className="relative">
               <Select 
                 value={currentItem.category?.split('-')[0] || currentItem.category?.split('/')[0] || "none"} 
                 onValueChange={(value) => {
@@ -955,12 +1077,12 @@ export default function ItemsPage() {
                 <SelectTrigger className="bg-white">
                   <SelectValue placeholder="카테고리 선택" />
                 </SelectTrigger>
-                <SelectContent className="bg-white z-[300]">
+                <CustomSelectContent>
                   <SelectItem value="none">카테고리 선택</SelectItem>
                   {Object.entries(categoryIdMap).map(([name, id]) => (
                     id !== "all" && <SelectItem key={id} value={id}>{name}</SelectItem>
                   ))}
-                </SelectContent>
+                </CustomSelectContent>
               </Select>
             </div>
           </div>
@@ -969,7 +1091,7 @@ export default function ItemsPage() {
           {currentItem.category && currentItem.category !== "none" && (
             <div>
               <Label htmlFor="subcategory">서브카테고리</Label>
-              <div className="relative z-[190]">
+              <div className="relative">
                 <Select 
                   value={currentItem.category?.split(/[-\/]/)[1] || "none"} 
                   onValueChange={(subcatValue) => {
@@ -984,7 +1106,7 @@ export default function ItemsPage() {
                   <SelectTrigger className="bg-white">
                     <SelectValue placeholder="서브카테고리 선택" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-[290]">
+                  <CustomSelectContent>
                     <SelectItem value="none">서브카테고리 선택</SelectItem>
                     {currentItem.category && 
                       subcategories[currentItem.category.split(/[-\/]/)[0]] && 
@@ -994,7 +1116,7 @@ export default function ItemsPage() {
                         </SelectItem>
                       ))
                     }
-                  </SelectContent>
+                  </CustomSelectContent>
                 </Select>
               </div>
             </div>
@@ -1038,6 +1160,62 @@ export default function ItemsPage() {
               rows={3}
             />
           </div>
+
+          {/* 이미지 URL 필드 */}
+          <div>
+            <Label htmlFor="imageUrl">상품 이미지</Label>
+            <div className="space-y-2">
+              {currentItem.imageUrl ? (
+                <div className="relative w-full">
+                  <img 
+                    src={currentItem.imageUrl} 
+                    alt="상품 이미지 미리보기" 
+                    className="h-40 object-contain border rounded-md p-2 bg-gray-50 w-full"
+                  />
+                  <Button
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute top-2 right-2 bg-white rounded-full h-6 w-6"
+                    onClick={() => handleSelectChange('imageUrl', '')}
+                  >
+                    <X size={16} />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Input
+                    id="imageUrl"
+                    name="imageUrl"
+                    value={currentItem.imageUrl || ""}
+                    onChange={handleInputChange}
+                    placeholder="이미지 URL을 입력하거나 파일을 업로드하세요"
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="imageUpload"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                      ref={fileInputRef}
+                    />
+                    <Button 
+                      variant="outline" 
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadLoading}
+                    >
+                      {uploadLoading ? (
+                        <>
+                          <RefreshCw size={16} className="mr-1 animate-spin" />
+                          업로드 중...
+                        </>
+                      ) : "파일 업로드"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </Modal>
 
@@ -1070,7 +1248,7 @@ export default function ItemsPage() {
           
           <div>
             <Label htmlFor="edit-category">카테고리</Label>
-            <div className="relative z-[200]">
+            <div className="relative">
               <Select 
                 value={currentItem.category?.split('-')[0] || currentItem.category?.split('/')[0] || "none"} 
                 onValueChange={(value) => {
@@ -1087,12 +1265,12 @@ export default function ItemsPage() {
                 <SelectTrigger className="bg-white">
                   <SelectValue placeholder="카테고리 선택" />
                 </SelectTrigger>
-                <SelectContent className="bg-white z-[300]">
+                <CustomSelectContent>
                   <SelectItem value="none">카테고리 선택</SelectItem>
                   {Object.entries(categoryIdMap).map(([name, id]) => (
                     id !== "all" && <SelectItem key={id} value={id}>{name}</SelectItem>
                   ))}
-                </SelectContent>
+                </CustomSelectContent>
               </Select>
             </div>
           </div>
@@ -1101,7 +1279,7 @@ export default function ItemsPage() {
           {currentItem.category && currentItem.category !== "none" && (
             <div>
               <Label htmlFor="edit-subcategory">서브카테고리</Label>
-              <div className="relative z-[190]">
+              <div className="relative">
                 <Select 
                   value={currentItem.category?.split(/[-\/]/)[1] || "none"} 
                   onValueChange={(subcatValue) => {
@@ -1116,7 +1294,7 @@ export default function ItemsPage() {
                   <SelectTrigger className="bg-white">
                     <SelectValue placeholder="서브카테고리 선택" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white z-[290]">
+                  <CustomSelectContent>
                     <SelectItem value="none">서브카테고리 선택</SelectItem>
                     {currentItem.category && 
                       subcategories[currentItem.category.split(/[-\/]/)[0]] && 
@@ -1126,7 +1304,7 @@ export default function ItemsPage() {
                         </SelectItem>
                       ))
                     }
-                  </SelectContent>
+                  </CustomSelectContent>
                 </Select>
               </div>
             </div>
@@ -1169,6 +1347,62 @@ export default function ItemsPage() {
               placeholder="상품 설명을 입력하세요"
               rows={3}
             />
+          </div>
+          
+          {/* 이미지 URL 필드 */}
+          <div>
+            <Label htmlFor="edit-imageUrl">상품 이미지</Label>
+            <div className="space-y-2">
+              {currentItem.imageUrl ? (
+                <div className="relative w-full">
+                  <img 
+                    src={currentItem.imageUrl} 
+                    alt="상품 이미지 미리보기" 
+                    className="h-40 object-contain border rounded-md p-2 bg-gray-50 w-full"
+                  />
+                  <Button
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute top-2 right-2 bg-white rounded-full h-6 w-6"
+                    onClick={() => handleSelectChange('imageUrl', '')}
+                  >
+                    <X size={16} />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Input
+                    id="edit-imageUrl"
+                    name="imageUrl"
+                    value={currentItem.imageUrl || ""}
+                    onChange={handleInputChange}
+                    placeholder="이미지 URL을 입력하거나 파일을 업로드하세요"
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="edit-imageUpload"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                      ref={fileInputRef}
+                    />
+                    <Button 
+                      variant="outline" 
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadLoading}
+                    >
+                      {uploadLoading ? (
+                        <>
+                          <RefreshCw size={16} className="mr-1 animate-spin" />
+                          업로드 중...
+                        </>
+                      ) : "파일 업로드"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </Modal>

@@ -45,3 +45,5 @@ back-end/.env*
 back-end/.vercel
 back-end/*.tsbuildinfo
 back-end/next-env.d.ts
+
+back-end/src/main/resources/application-secret.yml

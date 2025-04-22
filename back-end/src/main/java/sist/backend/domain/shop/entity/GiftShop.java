@@ -45,6 +45,9 @@ public class GiftShop {
     @Column(length = 50)
     private String category;
     
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+    
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
     

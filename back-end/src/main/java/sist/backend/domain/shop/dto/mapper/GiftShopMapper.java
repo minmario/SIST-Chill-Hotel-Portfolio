@@ -19,6 +19,7 @@ public class GiftShopMapper {
                 .price(dto.getPrice())
                 .stockQuantity(dto.getStockQuantity())
                 .category(dto.getCategory())
+                .imageUrl(dto.getImageUrl())
                 .build();
     }
 
@@ -34,6 +35,7 @@ public class GiftShopMapper {
                 .price(giftShop.getPrice())
                 .stockQuantity(giftShop.getStockQuantity())
                 .category(giftShop.getCategory())
+                .imageUrl(giftShop.getImageUrl())
                 .createdAt(giftShop.getCreatedAt())
                 .updatedAt(giftShop.getUpdatedAt())
                 .build();

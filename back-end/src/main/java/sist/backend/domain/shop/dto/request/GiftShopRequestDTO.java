@@ -30,4 +30,6 @@ public class GiftShopRequestDTO {
     private Integer stockQuantity;
 
     private String category;
+    
+    private String imageUrl;
 }
