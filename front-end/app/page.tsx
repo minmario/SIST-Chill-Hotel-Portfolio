@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation"
 const slides = [
   {
     id: 1,
-    image: "/placeholder.svg?height=1080&width=1920",
+    image: "/main_room.png?height=1080&width=1920",
     title: "Your Ultimate Healing Retreat",
     description: "Experience tranquility and rejuvenation at Chill Haven Resort & Spa",
     buttonText: "Begin Your Journey",
@@ -22,7 +22,7 @@ const slides = [
   },
   {
     id: 2,
-    image: "/placeholder.svg?height=1080&width=1920",
+    image: "/main_pool.png?height=1080&width=1920",
     title: "Luxury Meets Nature",
     description: "Immerse yourself in the perfect blend of luxury and natural beauty",
     buttonText: "Explore Our Resort",
@@ -30,7 +30,7 @@ const slides = [
   },
   {
     id: 3,
-    image: "/placeholder.svg?height=1080&width=1920",
+    image: "/main_dining.png?height=1080&width=1920",
     title: "Culinary Excellence",
     description: "Indulge in exceptional dining experiences with breathtaking views",
     buttonText: "Discover Dining",
@@ -43,6 +43,18 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [checkInDate, setCheckInDate] = useState("")
   const [checkOutDate, setCheckOutDate] = useState("")
+
+  // 컴포넌트 마운트 시 체크인=오늘, 체크아웃=내일로 자동 설정
+  useEffect(() => {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    const todayStr = today.toISOString().split('T')[0];
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    setCheckInDate(todayStr);
+    setCheckOutDate(tomorrowStr);
+  }, []);
+
   const [currentDiningSlide, setCurrentDiningSlide] = useState(0)
   const [currentStoreSlide, setCurrentStoreSlide] = useState(0)
   const [adults, setAdults] = useState(2)
@@ -122,29 +134,29 @@ export default function Home() {
     {
       id: 1,
       name: "Chill Harmony Room",
-      image: "/placeholder.svg?height=300&width=400",
+      image: "/images/rooms/harmony/harmony1.png?height=300&width=400",
       description: "A peaceful retreat with panoramic mountain views with harmonious design elements.",
       size: "30m²",
-      capacity: "성인 2인 기준 / 최대 3인",
-      link: "/rooms/harmony",
+      capacity: "성인 2인 기준",
+      link: "/rooms/2",
     },
     {
       id: 2,
       name: "Chill Serenity Room",
-      image: "/placeholder.svg?height=300&width=400",
+      image: "/images/rooms/serenity/serenity1.png?height=300&width=400",
       description: "A tranquil space with modern amenities and soothing natural views.",
       size: "35m²",
-      capacity: "성인 2인 기준 / 최대 3인",
-      link: "/rooms/serenity",
+      capacity: "성인 2인 기준",
+      link: "/rooms/3",
     },
     {
       id: 3,
       name: "Chill Family Suite",
-      image: "/placeholder.svg?height=300&width=400",
+      image: "/images/rooms/family/family1.png?height=300&width=400",
       description: "A spacious suite with separate living areas and a luxurious suite designed for family well-being.",
       size: "50m²",
-      capacity: "성인 4인 기준 / 최대 5인",
-      link: "/rooms/family",
+      capacity: "성인 2인 기준",
+      link: "/rooms/4",
     },
   ]
 
@@ -169,7 +181,7 @@ export default function Home() {
     {
       id: 3,
       name: "Harmony Bar",
-      image: "/placeholder.svg?height=400&width=800",
+      image: "/placeholder.jpg?height=400&width=800",
       description: "프리미엄 위스키와 칵테일을 즐길 수 있는 분위기 있는 바",
       hours: "매일 18:00 - 01:00",
       link: "/dining/harmony-bar",
@@ -250,73 +262,104 @@ export default function Home() {
         {/* 예약 폼 */}
         <div className={styles.heroBookingBarContainer}>
           <div className="container">
-            <div className={styles.bookingForm}>
-              <div className={styles.bookingFormField}>
-                <label htmlFor="check-in">체크인</label>
-                <input
-                  type="date"
-                  id="check-in"
-                  value={checkInDate}
-                  onChange={(e) => setCheckInDate(e.target.value)}
-                  className={styles.bookingInput}
-                />
-                {checkInDate && <div className={styles.formattedDate}>{formatDate(checkInDate)}</div>}
-              </div>
-              <div className={styles.bookingFormField}>
-                <label htmlFor="check-out">체크아웃</label>
-                <input
-                  type="date"
-                  id="check-out"
-                  value={checkOutDate}
-                  onChange={(e) => setCheckOutDate(e.target.value)}
-                  className={styles.bookingInput}
-                />
-                {checkOutDate && <div className={styles.formattedDate}>{formatDate(checkOutDate)}</div>}
-              </div>
-              <div className="space-y-6 p-4 max-w-md mx-auto">
-                {/* 객실 수 */}
-                <div>
-                  <label className="block font-semibold mb-1">객실 수</label>
-                  <div className="flex items-center space-x-4">
-                    <button onClick={() => handleRoomChange(-1)} className="px-3 py-1 border rounded">-</button>
-                    <span>{roomCount}</span>
-                    <button onClick={() => handleRoomChange(1)} className="px-3 py-1 border rounded">+</button>
-                  </div>
+            <div className={styles.bookingForm} >
+              <div className="flex flex-row gap-6 w-full items-end">
+                <div className={styles.bookingFormField} >
+                  <label htmlFor="check-in">체크인</label>
+                  <input
+                    type="date"
+                    id="check-in"
+                    value={checkInDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => {
+                      setCheckInDate(e.target.value);
+                      if (checkOutDate && e.target.value && checkOutDate <= e.target.value) {
+                        const nextDay = new Date(e.target.value);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        setCheckOutDate(nextDay.toISOString().split('T')[0]);
+                      }
+                    }}
+                    onClick={() => {
+                      if (!checkInDate) {
+                        const today = new Date().toISOString().split('T')[0];
+                        setCheckInDate(today);
+                      }
+                    }}
+                    className={styles.bookingInput + ' no-calendar-icon'}
+                  />
+                  {checkInDate && <div className={styles.formattedDate}>{formatDate(checkInDate)}</div>}
                 </div>
-
-                {/* 성인 수 */}
-                <div>
-                  <label className="block font-semibold mb-1">성인</label>
-                  <div className="flex items-center space-x-4">
-                    <button onClick={() => handleAdultsChange(-1)} className="px-3 py-1 border rounded">-</button>
-                    <span>{adults}</span>
-                    <button onClick={() => handleAdultsChange(1)} className="px-3 py-1 border rounded">+</button>
-                  </div>
+                <div className={styles.bookingFormField}>
+                  <label htmlFor="check-out">체크아웃</label>
+                  <input
+                    type="date"
+                    id="check-out"
+                    value={checkOutDate}
+                    min={checkInDate ? (() => {
+                      const nextDay = new Date(checkInDate);
+                      nextDay.setDate(nextDay.getDate() + 1);
+                      return nextDay.toISOString().split('T')[0];
+                    })() : new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setCheckOutDate(e.target.value)}
+                    onClick={() => {
+                      if (!checkOutDate) {
+                        let minDate = new Date();
+                        if (checkInDate) {
+                          minDate = new Date(checkInDate);
+                          minDate.setDate(minDate.getDate() + 1);
+                        }
+                        setCheckOutDate(minDate.toISOString().split('T')[0]);
+                      }
+                    }}
+                    className={styles.bookingInput + ' no-calendar-icon'}
+                  />
+                  {checkOutDate && <div className={styles.formattedDate}>{formatDate(checkOutDate)}</div>}
                 </div>
-
-                {/* 어린이 수 */}
-                <div>
-                  <label className="block font-semibold mb-1">어린이</label>
-                  <div className="flex items-center space-x-4">
-                    <button onClick={() => handleChildrenChange(-1)} className="px-3 py-1 border rounded">-</button>
-                    <span>{children}</span>
-                    <button onClick={() => handleChildrenChange(1)} className="px-3 py-1 border rounded">+</button>
-                  </div>
-                </div>
-
-                {/* 디버그 출력 */}
-                <p className="text-sm text-gray-500">총 인원: {totalPeople}명 / 최대 {maxPeople}명 (객실 {roomCount}개)</p>
               </div>
-              <div className={styles.bookingFormButton}>
-              <button onClick={handleSearch} className={styles.searchButton}>
-                객실 검색
-              </button>
+                              {/* 객실/인원수 한 줄 */}
+                <div className="flex flex-col w-full items-center">
+                  <div className="flex flex-row gap-6 items-end">
+                    {/* 객실 수 */}
+                    <div className="flex flex-col items-center">
+                      <label className="font-semibold mb-1">객실 수</label>
+                      <div className="flex items-center space-x-2">
+                        <button onClick={() => handleRoomChange(-1)} className="px-3 py-1 border rounded">-</button>
+                        <span>{roomCount}</span>
+                        <button onClick={() => handleRoomChange(1)} className="px-3 py-1 border rounded">+</button>
+                      </div>
+                    </div>
+                    {/* 성인 수 */}
+                    <div className="flex flex-col items-center">
+                      <label className="font-semibold mb-1">성인</label>
+                      <div className="flex items-center space-x-2">
+                        <button onClick={() => handleAdultsChange(-1)} className="px-3 py-1 border rounded">-</button>
+                        <span>{adults}</span>
+                        <button onClick={() => handleAdultsChange(1)} className="px-3 py-1 border rounded">+</button>
+                      </div>
+                    </div>
+                    {/* 어린이 수 */}
+                    <div className="flex flex-col items-center">
+                      <label className="font-semibold mb-1">어린이</label>
+                      <div className="flex items-center space-x-2">
+                        <button onClick={() => handleChildrenChange(-1)} className="px-3 py-1 border rounded">-</button>
+                        <span>{children}</span>
+                        <button onClick={() => handleChildrenChange(1)} className="px-3 py-1 border rounded">+</button>
+                      </div>
+                    </div>
+                  </div>
+                  {/* 총 인원 안내 */}
+                  <p className="text-sm text-gray-500 mt-2">총 인원: {totalPeople}명 / 최대 {maxPeople}명 (객실 {roomCount}개)</p>
+                </div>
+              <div className={styles.bookingFormButton + " flex flex-col justify-center items-center mt-4"}>
+                <button onClick={handleSearch} className={styles.searchButton}>
+                  객실 검색
+                </button>
               </div>
             </div>
           </div>
         </div>
-      </section>
 
+      </section>
       {/* 객실 소개 섹션 */}
       <section className={styles.roomsSection}>
         <div className="container">

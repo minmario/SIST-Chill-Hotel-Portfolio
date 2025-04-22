@@ -41,7 +41,8 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDTO createOrder(OrderRequestDTO requestDto) {
         // 인증된 사용자 정보 추출
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getPrincipal().equals("anonymousUser")) {
             throw new IllegalStateException("인증된 사용자를 찾을 수 없습니다.");
         }
         String userId = authentication.getName();
@@ -70,9 +71,9 @@ public class OrderServiceImpl implements OrderService {
                 .orderStatus(OrderStatus.PENDING)
                 .orderDate(LocalDateTime.now())
                 .build();
-        
+
         Order savedOrder = orderRepository.save(order);
-        
+
         // 장바구니 아이템을 주문 아이템으로 변환
         List<OrderItem> orderItems = cart.getItems().stream()
                 .<OrderItem>map(cartItem -> OrderItem.builder()
@@ -82,13 +83,13 @@ public class OrderServiceImpl implements OrderService {
                         .price(cartItem.getPrice())
                         .build())
                 .collect(Collectors.toList());
-        
+
         orderItemRepository.saveAll(orderItems);
-        
+
         // 장바구니 비우기
         cart.clearItems();
         cartRepository.save(cart);
-        
+
         return orderMapper.toDto(savedOrder);
     }
 
@@ -110,7 +111,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDTO updateOrderStatus(Long orderIdx, OrderStatus status) {
         Order order = orderRepository.findById(orderIdx)
                 .orElseThrow(() -> new ResourceNotFoundException("주문을 찾을 수 없습니다."));
-        
+
         order.updateStatus(status);
         return orderMapper.toDto(order);
     }
@@ -132,6 +133,5 @@ public class OrderServiceImpl implements OrderService {
         List<Order> orders = orderQueryRepository.findTopSellingItems(start, end, limit);
         return orderMapper.toOrderDtoList(orders);
     }
-
 
 }

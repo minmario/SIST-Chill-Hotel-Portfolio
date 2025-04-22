@@ -55,7 +55,7 @@ export default function StaffPage() {
     name: "",
     email: "",
     phone: "",
-    status: "active",
+    status: "ACTIVE",
     role: "ADMIN",         // 관리자 추가용이면 기본 admin
     password: "",          // ✅ 비밀번호 추가
     currentPassword: "",
@@ -64,10 +64,15 @@ export default function StaffPage() {
   });
   // 스태프 데이터 로드 (API에서 가져옴)
   useEffect(() => {
-    fetch("http://localhost:8080/admin/staff")
+    const token = localStorage.getItem("accessToken");
+    fetch("http://localhost:8080/api/admin/staff", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
       .then(res => res.json())
       .then((data: Staff[]) => setStaffList(data))
-      .catch(() => setStaffList([]))
+      .catch(() => setStaffList([]));
   }, [])
 
   // 검색 필터링된 스태프 목록
@@ -82,10 +87,27 @@ export default function StaffPage() {
   const paginatedStaff = filteredStaff.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   // 검색어나 데이터 변경 시 페이지 리셋
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchTerm, staffList])
-
+  const handleStatusToggle = async (staff: Staff, newStatus: string) => {
+    const token = localStorage.getItem("accessToken")
+    try {
+      const res = await fetch(`http://localhost:8080/api/admin/staff/${staff.userIdx}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (!res.ok) throw new Error("상태 변경 실패")
+  
+      const updatedList = staffList.map((s) =>
+        s.userIdx === staff.userIdx ? { ...s, status: newStatus } : s
+      )
+      setStaffList(updatedList)
+    } catch (err) {
+      alert("상태 변경에 실패했습니다.")
+    }
+  }
   // 스태프 추가 다이얼로그 열기
   const openAddDialog = (role: "ADMIN" | "staff" = "staff") => {
     setStaffForm({
@@ -94,7 +116,7 @@ export default function StaffPage() {
       name: "",
       email: "",
       phone: "",
-      status: "active",
+      status: "ACTIVE",
       role, // ✅ 동적으로 설정
       currentPassword: "",
       newPassword: "",
@@ -140,14 +162,16 @@ export default function StaffPage() {
   // 스태프 추가 처리
   const handleAddStaff = async () => {
     try {
-      await fetch("http://localhost:8080/admin/staff", {
+      const token = localStorage.getItem("accessToken")
+      await fetch("http://localhost:8080/api/admin/staff", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
           id: staffForm.email.split("@")[0],
-          pwd: "default1234",
+          pwd: staffForm.password,
           name: staffForm.name,
           email: staffForm.email,
           phone: staffForm.phone,
@@ -157,7 +181,11 @@ export default function StaffPage() {
       });
   
       // 추가 성공 후 목록 다시 불러오기
-      const res = await fetch("http://localhost:8080/admin/staff");
+      const res = await fetch("http://localhost:8080/api/admin/staff", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await res.json();
       setStaffList(data);
       setIsAddDialogOpen(false);
@@ -170,7 +198,14 @@ export default function StaffPage() {
   const handleUpdateStaff = async () => {
     if (!selectedStaff) return;
   
-    if (staffForm.newPassword || staffForm.confirmPassword) {
+    if (!staffForm.email || staffForm.email.trim() === "") {
+      alert("이메일은 필수 입력 항목입니다.");
+      return;
+    }
+  
+    // 비밀번호 변경 유효성 체크
+    const isPasswordChange = staffForm.newPassword || staffForm.confirmPassword;
+    if (isPasswordChange) {
       if (!staffForm.currentPassword) {
         alert("기존 비밀번호를 입력하세요.");
         return;
@@ -182,40 +217,61 @@ export default function StaffPage() {
     }
   
     try {
-      // 일반 정보 업데이트
-      const updateInfoRes = await fetch(`http://localhost:8080/admin/staff/${selectedStaff.id}`, {
+      // ✅ 일반 정보 업데이트
+      const token = localStorage.getItem("accessToken");
+      const updateInfoRes = await fetch(`http://localhost:8080/api/admin/staff/${selectedStaff.userIdx}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ 추가
+        },
         body: JSON.stringify({
+          id: staffForm.email.split("@")[0],
           name: staffForm.name,
           email: staffForm.email,
           phone: staffForm.phone,
-       
           status: staffForm.status,
-          role: staffForm.role
+          role: staffForm.role,
         }),
       });
   
-      // 비밀번호 변경
+      if (!updateInfoRes.ok) {
+        const errorText = await updateInfoRes.text();
+        console.error("업데이트 실패:", errorText);
+        alert("업데이트 실패: " + errorText);
+        return;
+      }
+  
+      // ✅ 비밀번호 변경
       if (staffForm.newPassword) {
-        const passwordChangeRes = await fetch(`http://localhost:8080/admin/staff/${selectedStaff.id}/password`, {
+        const passwordChangeRes = await fetch(`http://localhost:8080/api/admin/staff/${selectedStaff.userIdx}/password`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // ✅ 추가
+          },
           body: JSON.stringify({
             currentPassword: staffForm.currentPassword,
             newPassword: staffForm.newPassword,
           }),
         });
-  
+      
         if (!passwordChangeRes.ok) {
-          alert("비밀번호 변경 실패");
+          const errorText = await passwordChangeRes.text();
+          console.error("비밀번호 변경 실패:", errorText);
+          alert("비밀번호 변경 실패: " + errorText);
           return;
         }
       }
   
-      // 성공 후 UI 업데이트
-      const refreshedList = await fetch("http://localhost:8080/admin/staff").then(res => res.json());
-      setStaffList(refreshedList);
+      // ✅ 성공 후 목록 갱신
+      const refreshed = await fetch("http://localhost:8080/api/admin/staff", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const list = await refreshed.json();
+      setStaffList(list);
       setIsEditDialogOpen(false);
       setSelectedStaff(null);
     } catch (err) {
@@ -223,34 +279,43 @@ export default function StaffPage() {
       alert("수정 중 오류가 발생했습니다.");
     }
   };
-
   // 스태프 삭제 처리
   const handleDeleteStaff = async () => {
     if (!selectedStaff) return;
   
     try {
-      const res = await fetch(`http://localhost:8080/admin/staff/${selectedStaff.userIdx}`, {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(`http://localhost:8080/api/admin/staff/${selectedStaff.userIdx}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
   
-      if (!res.ok) throw new Error("삭제 실패");
+      if (!res.ok) {
+        const errorText = await res.text();
+  
+        // 에러 메시지 분기 처리
+        if (errorText.includes("STAFF만 삭제")) {
+          alert("⚠️ 관리자 계정은 삭제할 수 없습니다.");
+        } else {
+          alert("❌ 삭제 중 오류가 발생했습니다: " + errorText);
+        }
+  
+        return; // ❗ throw 하지 말고 여기서 종료
+      }
   
       const updatedList = staffList.filter((staff) => staff.userIdx !== selectedStaff.userIdx);
       setStaffList(updatedList);
       setIsDeleteDialogOpen(false);
       setSelectedStaff(null);
     } catch (err) {
-      alert("삭제 중 오류 발생");
+      alert("삭제 중 네트워크 오류가 발생했습니다.");
       console.error(err);
     }
   };
-  // 비밀번호 초기화 처리
-  const handleResetPassword = () => {
-    // 실제로는 API를 통해 비밀번호 초기화 처리
-    alert(`${selectedStaff?.name}의 비밀번호가 초기화되었습니다.`)
-    setIsResetPasswordDialogOpen(false)
-    setSelectedStaff(null)
-  }
+  
+
 
   // 역할에 따른 배지 색상
   const getRoleBadge = (role: string) => {
@@ -331,57 +396,21 @@ export default function StaffPage() {
                     <TableCell>{staff.phone ?? "없음"}</TableCell>
                     <TableCell>{staff.email ?? "없음"}</TableCell>
                     <TableCell>{getRoleBadge(staff.role) ?? "없음"}</TableCell>
+                   
                     <TableCell>
-  {staff.status === "active" ? (
-    <Button
-      variant="outline"
-      size="sm"
-      className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200"
-      onClick={async () => {
-        try {
-          const response = await fetch(`http://localhost:8080/admin/staff/${staff.userIdx}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: "INACTIVE" }),
-          });
-          if (!response.ok) throw new Error("상태 변경 실패");
-          const updatedStaff = staffList.map((s) =>
-            s.userIdx === staff.userIdx ? { ...s, status: "INACTIVE" as const } : s
-          );
-          setStaffList(updatedStaff);
-        } catch (err) {
-          alert("상태 변경에 실패했습니다.");
-        }
-      }}
-    >
-      활성
-    </Button>
-  ) : (
-    <Button
-      variant="outline"
-      size="sm"
-      className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
-      onClick={async () => {
-        try {
-          const response = await fetch(`http://localhost:8080/admin/staff/${staff.userIdx}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: "active" }),
-          });
-          if (!response.ok) throw new Error("상태 변경 실패");
-          const updatedStaff = staffList.map((s) =>
-            s.userIdx === staff.userIdx ? { ...s, status: "active" as const } : s
-          );
-          setStaffList(updatedStaff);
-        } catch (err) {
-          alert("상태 변경에 실패했습니다.");
-        }
-      }}
-    >
-      비활성
-    </Button>
-  )}
-</TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={
+                          staff.status === "ACTIVE"
+                            ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-200"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
+                        }
+                        onClick={() => handleStatusToggle(staff, staff.status === "ACTIVE" ? "INACTIVE" : "ACTIVE")}
+                      >
+                        {staff.status === "ACTIVE" ? "활성" : "비활성"}
+                      </Button>
+                    </TableCell>
                     <TableCell>{formatDate(staff.createdAt )?? "없음"}</TableCell>
                     <TableCell>{formatDate(staff.updatedAt )?? "없음"}</TableCell>
                     <TableCell>
@@ -524,10 +553,13 @@ export default function StaffPage() {
       {/* 스태프 수정 다이얼로그 */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="	bg-white/90 backdrop-blur-md shadow-2xl rounded-xl p-6 border border-gray-200">
-          <DialogHeader>
-            <DialogTitle>스태프 정보 수정</DialogTitle>
-            <DialogDescription>스태프의 이름, 이메일, 전화번호 정보를 수정합니다.</DialogDescription>
-          </DialogHeader>
+        <DialogHeader>
+          <DialogTitle>스태프 정보 수정</DialogTitle>
+          <div className="text-sm text-gray-500 mt-1 space-y-1">
+            <p>이름, 이메일, 전화번호와 비밀번호를 수정할 수 있습니다.</p>
+            <p className="text-gray-400">비밀번호를 변경하려면 기존 비밀번호와 새 비밀번호를 입력해주세요.</p>
+          </div>
+        </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="edit-name" className="text-right">
@@ -636,38 +668,7 @@ export default function StaffPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 비밀번호 초기화 다이얼로그 */}
-      <Dialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
-        <DialogContent className="	bg-white/90 backdrop-blur-md shadow-2xl rounded-xl p-6 border border-gray-200">
-          <DialogHeader>
-            <DialogTitle>비밀번호 초기화</DialogTitle>
-            <DialogDescription>
-              이 스태프의 비밀번호를 초기화하시겠습니까? 초기화 후 임시 비밀번호가 생성됩니다.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            {selectedStaff && (
-              <div className="p-4 bg-gray-50 rounded-md">
-                <p>
-                  <strong>이름:</strong> {selectedStaff.name}
-                </p>
-                <p>
-                  <strong>이메일:</strong> {selectedStaff.email}
-                </p>
-                <p>
-                  <strong>전화번호:</strong> {selectedStaff.phone}
-                </p>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsResetPasswordDialogOpen(false)}>
-              취소
-            </Button>
-            <Button onClick={handleResetPassword}>비밀번호 초기화</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      
     </div>
   )
 }

@@ -24,14 +24,16 @@ public class JwtProvider {
     }
 
     // userId를 JWT의 subject로 사용
-    public String generateToken(String userId, String role) {
+    public String generateToken(String userId, String role, Long membershipIdx) {
         return Jwts.builder()
                 .setSubject(userId) // 반드시 userId (id 필드)로 세팅
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(key)
+                .claim("membershipIdx", membershipIdx)
                 .compact();
+
     }
 
     // JWT에서 subject(userId) 추출
@@ -80,5 +82,9 @@ public class JwtProvider {
             return bearerToken.substring(7);
         }
         return null;
+    }
+
+    public Key getKey() {
+        return this.key;
     }
 }

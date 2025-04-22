@@ -3,6 +3,9 @@ package sist.backend.domain.shop.controller;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,4 +23,13 @@ public class AdminOrderController {
     public List<OrderResponse> getAllOrders() {
         return orderService.getAllOrders();
     }
+
+    @PostMapping("/{orderIdx}/status")
+    public void updateOrderStatus(
+            @PathVariable Long orderIdx,
+            @RequestBody sist.backend.domain.shop.dto.request.OrderStatusUpdateRequest request
+    ) {
+        orderService.updateOrderStatus(orderIdx, request.getStatus());
+    }
 }
+

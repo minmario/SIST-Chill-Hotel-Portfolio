@@ -1,322 +1,430 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { Check, Info, Star, Award, Crown, ChevronDown, ChevronUp } from "lucide-react"
 import Link from "next/link"
-import { Check } from "lucide-react"
 import styles from "./membership.module.css"
+type MembershipLevel = {
+  tier: string
+  requiredPoint: number
+  requiredStays: number
+  membershipNumber: string
+  savePercent: number
+}
+// 등급 데이터
 
-// 멤버십 데이터
-const membershipTiers = [
+// 포인트 적립/사용 데이터
+const pointSources = [
   {
-    id: "premium",
-    name: "프리미엄 멤버십",
-    price: 1000000,
-    points: 200000,
-    discount: "5%",
-    color: "#8B4513", // 브라운 색상
-    benefits: [
-      "객실 예약 시 5% 할인",
-      "프리미엄 어메니티 무료 제공",
-      "얼리 체크인 서비스 (가능 시)",
-      "웰컴 드링크 제공",
-    ],
+    table: "orders",
+    description: "쇼핑몰 상품 주문 시 포인트 적립 또는 사용",
+    type: "적립/사용",
+    details: "주문 금액의 1~5% 적립 (회원 등급에 따라 다름), 포인트로 결제 가능",
   },
   {
-    id: "vip",
-    name: "VIP 멤버십",
-    price: 5000000,
-    points: 500000,
-    discount: "10%",
-    color: "#B8860B", // 골드 색상
-    benefits: [
-      "객실 예약 시 10% 할인",
-      "럭셔리 어메니티 무료 제공",
-      "레스토랑 다이닝 1회 무료 (2인)",
-      "얼리 체크인 및 레이트 체크아웃",
-      "웰컴 과일 바구니 및 와인 제공",
-      "발렛 파킹 서비스 무료",
-    ],
+    table: "reservation",
+    description: "객실 예약 시 포인트 적립 또는 사용",
+    type: "적립/사용",
+    details: "객실 요금의 1~5% 적립 (회원 등급에 따라 다름), 포인트로 객실 요금 결제 가능",
   },
   {
-    id: "platinum",
-    name: "플래티넘 멤버십",
-    price: 10000000,
-    points: 1200000,
-    discount: "15%",
-    color: "#2F4F4F", // 다크 틸 색상
-    benefits: [
-      "객실 예약 시 15% 할인",
-      "최고급 어메니티 무료 제공",
-      "레스토랑 다이닝 무제한 10% 할인",
-      "스파 트리트먼트 2회 무료 (1인)",
-      "프라이빗 체크인/체크아웃",
-      "객실 업그레이드 보장 (가능 시)",
-      "공항 픽업 서비스 1회 무료",
-      "멤버십 전용 컨시어지 서비스",
-    ],
+    table: "user_activity_log",
+    description: "로그인, 출석, 특정 활동에 따른 보상 지급",
+    type: "적립",
+    details: "로그인 50포인트, 연속 출석 시 추가 보너스, 이벤트 참여 시 포인트 지급",
+  },
+  {
+    table: "membership",
+    description: "등급 상승 시 포인트 보너스 지급",
+    type: "적립",
+    details: "실버 승급 시 5,000포인트, 골드 승급 시 20,000포인트, 플래티넘 승급 시 50,000포인트 보너스",
+  },
+  {
+    table: "gift_shop",
+    description: "포인트를 사용한 상품 직접 구매 (포인트몰)",
+    type: "사용",
+    details: "포인트로 호텔 굿즈, 바우처, 무료 숙박권 등 구매 가능",
+  },
+  {
+    table: "qna",
+    description: "문의/리뷰 작성 보상 포인트 지급 (이벤트성)",
+    type: "적립",
+    details: "호텔 이용 후기 작성 시 500포인트, 상품 리뷰 작성 시 300포인트 적립",
+  },
+  {
+    table: "users",
+    description: "회원가입 축하 포인트 적립",
+    type: "적립",
+    details: "신규 회원가입 시 1,000포인트 적립, 추천인 코드 입력 시 추가 1,000포인트",
+  },
+  {
+    table: "others",
+    description: "기타 이벤트 및 프로모션",
+    type: "적립/사용",
+    details: "시즌별 이벤트, 프로모션, 오류 보상 등 특별 포인트 지급",
   },
 ]
+const getTierColor = (tier: string) => {
+  switch (tier) {
+    case "BRONZE": return "#CD7F32"
+    case "SILVER": return "#C0C0C0"
+    case "GOLD": return "#FFD700"
+    case "VIP": return "#8A2BE2"
+    default: return "#ccc"
+  }
+}
 
-export default function Membership() {
-  const [selectedTier, setSelectedTier] = useState<string | null>(null)
+const getTierIcon = (tier: string) => {
+  switch (tier) {
+    case "BRONZE": return Star
+    case "SILVER": return Star
+    case "GOLD": return Award
+    case "VIP": return Crown
+    default: return Star
+  }
+}
+const tierBenefitsMap: Record<string, string[]> = {
+  BRONZE: ["객실 예약 시 3% 할인", "웰컴 드링크 제공", "무료 Wi-Fi"],
+  SILVER: [
+    "객실 예약 시 5% 할인",
+    "웰컴 드링크 제공",
+    "무료 Wi-Fi",
+    "객실 업그레이드(연 1회)"
+  ],
+  GOLD: [
+    "객실 예약 시 7% 할인",
+    "웰컴 드링크 및 과일 제공",
+    "무료 Wi-Fi",
+    "객실 업그레이드(연 3회)",
+    "레이트 체크아웃(월 1회)",
+    "무료 조식(연 1회)",
+    "오프라인 바우처(연 1회 50$)"
+  ],
+  VIP: [
+    "객실 예약 시 10% 할인",
+    "웰컴 패키지 제공 (음료, 과일, 스낵)",
+    "무료 Wi-Fi",
+    "객실 업그레이드(연 5회)",
+    "레이트 체크아웃(월 2회)",
+    "무료 조식(연 3회)",
+    "오프라인 바우처(연 2회 50$)"
+  ],
+}
+export default function PointSystem() {
+  const [membershipLevels, setMembershipLevels] = useState<MembershipLevel[]>([])
+  useEffect(() => {
+    fetch("http://localhost:8080/api/membership") // URL은 실제 백엔드 주소로 교체
+      .then(res => res.json())
+      .then(data => setMembershipLevels(data))
+      .catch(err => console.error("멤버십 등급 조회 실패:", err))
+  }, [])
+  const [expandedSection, setExpandedSection] = useState<string | null>("pointSources")
+
+  const toggleSection = (section: string) => {
+    if (expandedSection === section) {
+      setExpandedSection(null)
+    } else {
+      setExpandedSection(section)
+    }
+  }
 
   return (
     <>
       <div className={styles.header}>
-        <div className="container">
-          <h1>멤버십</h1>
-          <p>럭스 호텔 멤버십에 가입하고 다양한 혜택을 누려보세요.</p>
+      <div className="container">
+          <h1 className="text-4xl font-bold mb-4">포인트 & 등급 시스템</h1>
+          <p className="text-xl">럭스 호텔의 포인트 적립 방법과 회원 등급 혜택을 알아보세요.</p>
         </div>
       </div>
 
       <section className="py-12 bg-gray-50">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">멤버십 등급 및 혜택</h2>
-            <p className="text-gray-600 max-w-3xl mx-auto">
-              럭스 호텔의 멤버십 프로그램은 고객님께 최상의 서비스와 특별한 혜택을 제공합니다. 다양한 등급의 멤버십
-              중에서 원하시는 혜택에 맞는 멤버십을 선택하세요.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            {membershipTiers.map((tier) => (
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            {/* 등급 시스템 설명 */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <div
-                key={tier.id}
-                className="bg-white rounded-lg overflow-hidden shadow-lg transition-transform hover:translate-y-[-8px]"
+                className="flex justify-between items-center cursor-pointer"
+                onClick={() => toggleSection("membershipLevels")}
               >
-                <div className="p-6 text-white" style={{ backgroundColor: tier.color }}>
-                  <h3 className="text-2xl font-bold mb-2">{tier.name}</h3>
-                  <div className="text-4xl font-bold mb-2">{tier.price.toLocaleString()}원</div>
-                  <div className="flex items-center mb-2">
-                    <span className="text-sm mr-2">즉시 지급 포인트:</span>
-                    <span className="font-bold">{tier.points.toLocaleString()} P</span>
+                <h2 className="text-2xl font-bold">회원 등급 시스템</h2>
+                {expandedSection === "membershipLevels" ? (
+                  <ChevronUp className="h-6 w-6 text-gray-500" />
+                ) : (
+                  <ChevronDown className="h-6 w-6 text-gray-500" />
+                )}
+              </div>
+
+              {expandedSection === "membershipLevels" && (
+                <div className="mt-6">
+                  <p className="text-gray-600 mb-6">
+                    럭스 호텔의 회원 등급은 적립 포인트와 숙박 횟수에 따라 결정됩니다. 등급이 올라갈수록 더 많은 할인과
+                    혜택을 누릴 수 있습니다.
+                  </p>
+
+                  <div className="overflow-x-auto mb-6">
+                      <table className="min-w-full border-collapse">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="border px-4 py-3 text-left">등급</th>
+                            <th className="border px-4 py-3 text-left">필요 포인트</th>
+                            <th className="border px-4 py-3 text-left">필요 숙박 수</th>
+                            <th className="border px-4 py-3 text-left">할인율</th>
+                            <th className="border px-4 py-3 text-left">멤버십 번호</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {membershipLevels.map((level, index) => (
+                            <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                              <td className="border px-4 py-3 font-medium">
+                                <div className="flex items-center">
+                                  <div
+                                    className="w-3 h-3 rounded-full mr-2"
+                                    style={{ backgroundColor: getTierColor(level.tier) }}
+                                  ></div>
+                                  {level.tier}
+                                </div>
+                              </td>
+                              <td className="border px-4 py-3">
+                                {level.requiredPoint.toLocaleString()}P{level.tier !== "BRONZE" ? " 이상" : ""}
+                              </td>
+                              <td className="border px-4 py-3">
+                                {level.requiredStays}회{level.tier !== "BRONZE" ? " 이상" : ""}
+                              </td>
+                              <td className="border px-4 py-3">{level.savePercent}%</td>
+                              <td className="border px-4 py-3">{level.membershipNumber}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                  <div className="space-y-8 mt-8">
+                    {membershipLevels.map((level, index) => {
+                      const color = getTierColor(level.tier)
+                      const Icon = getTierIcon(level.tier)
+                      const benefits = tierBenefitsMap[level.tier] || []
+
+                      return (
+                        <div key={index} className="border rounded-lg overflow-hidden">
+                          <div
+                            className="p-4 text-white flex items-center justify-between"
+                            style={{ backgroundColor: color }}
+                          >
+                            <div className="flex items-center">
+                              <Icon className="h-6 w-6 mr-2" />
+                              <h3 className="text-xl font-bold">{level.tier}</h3>
+                            </div>
+                            <div className="text-sm">
+                              필요 포인트: {level.requiredPoint.toLocaleString()}P{level.tier !== "BRONZE" ? " 이상" : ""}
+                            </div>
+                          </div>
+
+                          <div className="p-4 bg-white">
+                            <h4 className="font-semibold mb-3">등급 혜택</h4>
+                            <ul className="space-y-2">
+                              {benefits.map((benefit, i) => (
+                                <li key={i} className="flex items-start">
+                                  <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
+                                  <span>{benefit}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
-                  <div className="flex items-center">
-                    <span className="text-sm mr-2">객실 할인:</span>
-                    <span className="font-bold">{tier.discount}</span>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6 flex items-start">
+                    <Info className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-blue-800">
+                        회원 등급은 포인트 적립 또는 숙박 횟수 중 먼저 달성하는 조건을 기준으로 산정됩니다. 등급은 매월
+                        1일에 갱신되며, 한번 획득한 등급은 해당 월부터 다음 등급 산정일까지 유지됩니다.
+                      </p>
+                    </div>
                   </div>
                 </div>
-
-                <div className="p-6">
-                  <h4 className="font-bold text-lg mb-4">주요 혜택</h4>
-                  <ul className="space-y-3 mb-6">
-                    {tier.benefits.map((benefit, index) => (
-                      <li key={index} className="flex items-start">
-                        <Check
-                          size={18}
-                          className="text-primary-color mr-2 mt-0.5 flex-shrink-0"
-                          style={{ color: "var(--primary-color)" }}
-                        />
-                        <span>{benefit}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button
-                    className="w-full py-3 rounded-md font-medium transition-colors"
-                    style={{
-                      backgroundColor: tier.color,
-                      color: "white",
-                    }}
-                    onClick={() => setSelectedTier(tier.id)}
-                  >
-                    멤버십 가입하기
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
-            <h3 className="text-2xl font-bold mb-6 text-center">멤버십 프로그램 안내</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div>
-                <h4 className="text-lg font-semibold mb-3 flex items-center">
-                  <span
-                    className="w-8 h-8 rounded-full bg-primary-color text-white flex items-center justify-center mr-2"
-                    style={{ backgroundColor: "var(--primary-color)" }}
-                  >
-                    1
-                  </span>
-                  멤버십 가입 방법
-                </h4>
-                <p className="text-gray-600 mb-4">
-                  럭스 호텔 멤버십은 온라인 또는 호텔 프론트 데스크에서 가입하실 수 있습니다. 가입 시 회원 정보와 결제
-                  정보를 입력하시면 즉시 멤버십 혜택을 이용하실 수 있습니다.
-                </p>
-                <ul className="space-y-2 text-gray-600">
-                  <li className="flex items-start">
-                    <Check
-                      size={16}
-                      className="text-primary-color mr-2 mt-1"
-                      style={{ color: "var(--primary-color)" }}
-                    />
-                    <span>온라인: 웹사이트에서 멤버십 가입 페이지를 통해 신청</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check
-                      size={16}
-                      className="text-primary-color mr-2 mt-1"
-                      style={{ color: "var(--primary-color)" }}
-                    />
-                    <span>오프라인: 호텔 프론트 데스크에서 직원에게 문의</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-semibold mb-3 flex items-center">
-                  <span
-                    className="w-8 h-8 rounded-full bg-primary-color text-white flex items-center justify-center mr-2"
-                    style={{ backgroundColor: "var(--primary-color)" }}
-                  >
-                    2
-                  </span>
-                  포인트 적립 및 사용
-                </h4>
-                <p className="text-gray-600 mb-4">
-                  멤버십 회원은 호텔 내 모든 서비스 이용 시 포인트를 적립하실 수 있으며, 적립된 포인트는 객실 예약,
-                  레스토랑, 스파 등에서 사용하실 수 있습니다.
-                </p>
-                <ul className="space-y-2 text-gray-600">
-                  <li className="flex items-start">
-                    <Check
-                      size={16}
-                      className="text-primary-color mr-2 mt-1"
-                      style={{ color: "var(--primary-color)" }}
-                    />
-                    <span>객실 이용: 결제 금액의 5% 적립</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check
-                      size={16}
-                      className="text-primary-color mr-2 mt-1"
-                      style={{ color: "var(--primary-color)" }}
-                    />
-                    <span>레스토랑 이용: 결제 금액의 3% 적립</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check
-                      size={16}
-                      className="text-primary-color mr-2 mt-1"
-                      style={{ color: "var(--primary-color)" }}
-                    />
-                    <span>스파 이용: 결제 금액의 3% 적립</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-semibold mb-3 flex items-center">
-                  <span
-                    className="w-8 h-8 rounded-full bg-primary-color text-white flex items-center justify-center mr-2"
-                    style={{ backgroundColor: "var(--primary-color)" }}
-                  >
-                    3
-                  </span>
-                  멤버십 유효 기간
-                </h4>
-                <p className="text-gray-600 mb-4">
-                  멤버십은 가입일로부터 1년간 유효하며, 연장을 원하시는 경우 갱신 수수료를 납부하시면 됩니다. 포인트는
-                  적립일로부터 2년간 유효합니다.
-                </p>
-                <ul className="space-y-2 text-gray-600">
-                  <li className="flex items-start">
-                    <Check
-                      size={16}
-                      className="text-primary-color mr-2 mt-1"
-                      style={{ color: "var(--primary-color)" }}
-                    />
-                    <span>멤버십 갱신: 기존 등급의 20% 할인된 가격으로 갱신 가능</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check
-                      size={16}
-                      className="text-primary-color mr-2 mt-1"
-                      style={{ color: "var(--primary-color)" }}
-                    />
-                    <span>포인트 소멸 예정 시 이메일로 안내</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-lg font-semibold mb-3 flex items-center">
-                  <span
-                    className="w-8 h-8 rounded-full bg-primary-color text-white flex items-center justify-center mr-2"
-                    style={{ backgroundColor: "var(--primary-color)" }}
-                  >
-                    4
-                  </span>
-                  문의 및 고객 지원
-                </h4>
-                <p className="text-gray-600 mb-4">
-                  멤버십 관련 문의사항은 전용 고객센터를 통해 지원해드립니다. 멤버십 회원을 위한 전담 상담사가 신속하게
-                  응대해 드립니다.
-                </p>
-                <ul className="space-y-2 text-gray-600">
-                  <li className="flex items-start">
-                    <Check
-                      size={16}
-                      className="text-primary-color mr-2 mt-1"
-                      style={{ color: "var(--primary-color)" }}
-                    />
-                    <span>전화: 02-123-4567 (평일 09:00-18:00)</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check
-                      size={16}
-                      className="text-primary-color mr-2 mt-1"
-                      style={{ color: "var(--primary-color)" }}
-                    />
-                    <span>이메일: membership@luxehotel.com</span>
-                  </li>
-                </ul>
-              </div>
+              )}
             </div>
 
-            <div className="text-center mt-8">
-              <Link
-                href="/membership/join"
-                className="inline-block px-8 py-3 bg-primary-color text-white rounded-md hover:bg-primary-hover transition-colors"
-                style={{ backgroundColor: "var(--primary-color)" }}
+            {/* 포인트 적립/사용 방법 */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <div
+                className="flex justify-between items-center cursor-pointer"
+                onClick={() => toggleSection("pointSources")}
               >
-                멤버십 가입하기
-              </Link>
+                <h2 className="text-2xl font-bold">포인트 적립 및 사용 방법</h2>
+                {expandedSection === "pointSources" ? (
+                  <ChevronUp className="h-6 w-6 text-gray-500" />
+                ) : (
+                  <ChevronDown className="h-6 w-6 text-gray-500" />
+                )}
+              </div>
+
+              {expandedSection === "pointSources" && (
+                <div className="mt-6">
+                  <p className="text-gray-600 mb-6">
+                    럭스 호텔에서는 다양한 활동을 통해 포인트를 적립하고 사용할 수 있습니다. 적립된 포인트는 객실 예약,
+                    레스토랑, 스파 등 호텔 내 다양한 서비스 이용 시 현금처럼 사용 가능합니다.
+                  </p>
+
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border px-4 py-3 text-left">테이블명</th>
+                          <th className="border px-4 py-3 text-left">포인트 관련 사유 설명</th>
+                          <th className="border px-4 py-3 text-left">적립 or 사용</th>
+                          <th className="border px-4 py-3 text-left">상세 내용</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pointSources.map((source, index) => (
+                          <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                            <td className="border px-4 py-3">
+                              <span className="inline-block bg-gray-200 rounded-md px-3 py-1 text-sm font-medium">
+                                {source.table}
+                              </span>
+                            </td>
+                            <td className="border px-4 py-3">{source.description}</td>
+                            <td className="border px-4 py-3">
+                              <span
+                                className={`inline-block rounded-md px-2 py-1 text-xs font-medium ${
+                                  source.type === "적립"
+                                    ? "bg-green-100 text-green-800"
+                                    : source.type === "사용"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-purple-100 text-purple-800"
+                                }`}
+                              >
+                                {source.type}
+                              </span>
+                            </td>
+                            <td className="border px-4 py-3 text-sm">{source.details}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6 flex items-start">
+                    <Info className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-yellow-800">
+                        포인트 유효기간은 적립일로부터 2년입니다. 소멸 예정인 포인트는 매월 이메일로 안내해 드립니다.
+                        1,000포인트부터 현금처럼 사용 가능하며, 포인트 1포인트 = 1원으로 환산됩니다.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* 포인트 계산 예시 */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div
+                className="flex justify-between items-center cursor-pointer"
+                onClick={() => toggleSection("pointExamples")}
+              >
+                <h2 className="text-2xl font-bold">포인트 적립 예시</h2>
+                {expandedSection === "pointExamples" ? (
+                  <ChevronUp className="h-6 w-6 text-gray-500" />
+                ) : (
+                  <ChevronDown className="h-6 w-6 text-gray-500" />
+                )}
+              </div>
+
+              {expandedSection === "pointExamples" && (
+                <div className="mt-6">
+                  <div className="space-y-6">
+                    <div className="border rounded-lg p-4">
+                      <h3 className="font-bold text-lg mb-2">스탠다드 회원 예시</h3>
+                      <p className="text-gray-600 mb-3">스탠다드 회원이 200,000원 객실을 예약한 경우:</p>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                          <span>
+                            객실 예약: 200,000원 × 1% = <strong>2,000 포인트</strong> 적립
+                          </span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                          <span>
+                            체크인 출석: <strong>50 포인트</strong> 적립
+                          </span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                          <span>
+                            호텔 이용 후기 작성: <strong>500 포인트</strong> 적립
+                          </span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                          <span>
+                            총 적립 포인트: <strong>2,550 포인트</strong>
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div className="border rounded-lg p-4">
+                      <h3 className="font-bold text-lg mb-2">골드 회원 예시</h3>
+                      <p className="text-gray-600 mb-3">
+                        골드 회원이 300,000원 객실을 예약하고 레스토랑에서 100,000원 결제한 경우:
+                      </p>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                          <span>
+                            객실 예약: 300,000원 × 3% = <strong>9,000 포인트</strong> 적립
+                          </span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                          <span>
+                            레스토랑 이용: 100,000원 × 3% = <strong>3,000 포인트</strong> 적립
+                          </span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                          <span>
+                            체크인 출석: <strong>50 포인트</strong> 적립
+                          </span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                          <span>
+                            호텔 이용 후기 작성: <strong>500 포인트</strong> 적립
+                          </span>
+                        </li>
+                        <li className="flex items-start">
+                          <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                          <span>
+                            총 적립 포인트: <strong>12,550 포인트</strong>
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-6 flex items-start">
+                    <Info className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-green-800">
+                        포인트는 결제 완료 후 자동으로 적립되며, 적립된 포인트는 다음 날부터 사용 가능합니다. 특별
+                        프로모션 기간에는 추가 포인트 적립 혜택이 제공될 수 있습니다.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       </section>
-
-      {/* 멤버십 가입 모달 */}
-      {selectedTier && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">
-              {membershipTiers.find((tier) => tier.id === selectedTier)?.name} 가입
-            </h3>
-            <p className="text-gray-600 mb-6">선택하신 멤버십에 가입하시려면 로그인 후 진행해주세요.</p>
-            <div className="flex justify-end gap-3">
-              <button
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-                onClick={() => setSelectedTier(null)}
-              >
-                취소
-              </button>
-              <Link
-                href="/login"
-                className="px-4 py-2 bg-primary-color text-white rounded-md hover:bg-primary-hover transition-colors"
-                style={{ backgroundColor: "var(--primary-color)" }}
-              >
-                로그인하기
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   )
 }
-

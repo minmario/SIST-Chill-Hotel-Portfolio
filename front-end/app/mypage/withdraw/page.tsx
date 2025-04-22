@@ -207,12 +207,7 @@ export default function Withdraw() {
                     회원 탈퇴
                   </Link>
                 </li>
-                <li className={styles.sidebarNavItem}>
-                  <Link href="/mypage/payment" className={styles.sidebarNavLink}>
-                    <CreditCard size={18} />
-                    결제관리
-                  </Link>
-                </li>
+                
               </ul>
 
               <div className={styles.customerService}>

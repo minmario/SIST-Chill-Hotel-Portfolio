@@ -55,6 +55,7 @@ export default function LoginPage() {
         userId,
         name: "관리자",
         email: "admin@example.com",
+        role, 
         
       })
 

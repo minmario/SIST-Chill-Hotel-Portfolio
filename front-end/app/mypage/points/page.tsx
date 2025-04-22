@@ -6,36 +6,16 @@ import { useRouter } from "next/navigation"
 import { User, CreditCard, LogOut, Award, Gift, Search, Calendar } from "lucide-react"
 import styles from "../mypage.module.css"
 
-// 포인트 내역 데이터
-const pointsHistory = [
-  {
-    id: 1,
-    date: "2024-03-15",
-    category: "적립",
-    description: "객실 이용",
-    earned: 2500,
-    used: 0,
-    balance: 2500,
-  },
-  {
-    id: 2,
-    date: "2024-03-20",
-    category: "적립",
-    description: "레스토랑 이용",
-    earned: 1000,
-    used: 0,
-    balance: 3500,
-  },
-  {
-    id: 3,
-    date: "2024-04-05",
-    category: "사용",
-    description: "객실 예약 포인트 사용",
-    earned: 0,
-    used: 2000,
-    balance: 1500,
-  },
-]
+type PointTransaction = {
+  id: number
+  date: string
+  description: string
+  earned: number
+  used: number
+  balance: number
+  referenceType: string
+  referenceId: number
+}
 
 export default function PointsHistory() {
   const router = useRouter()
@@ -44,42 +24,96 @@ export default function PointsHistory() {
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   const [filter, setFilter] = useState("전체")
-  const [filteredHistory, setFilteredHistory] = useState(pointsHistory)
+  const [filteredHistory, setFilteredHistory] = useState<PointTransaction[]>([])
+  const [summary, setSummary] = useState({
+    totalPoints: 0,
+    availablePoints: 0,
+    expiringPoints: 0,
+  })
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
+
+  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage)
+  const currentItems = filteredHistory.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
 
   useEffect(() => {
     // 로그인 상태 확인
     const loggedIn = localStorage.getItem("isLoggedIn") === "true"
     setIsLoggedIn(loggedIn)
-
+  
     if (!loggedIn) {
       router.push("/login")
+      return
     }
-
+  
     // 현재 날짜 설정
     const today = new Date()
     const endDateStr = today.toISOString().split("T")[0]
     setEndDate(endDateStr)
-
-    // 시작 날짜 설정 (3개월 전)
+  
+    // 시작 날짜 설정 (6개월 전)
     const startDateObj = new Date(today)
-    startDateObj.setMonth(today.getMonth() - 3)
+    startDateObj.setMonth(today.getMonth() - 6) // 기본 6개월
     const startDateStr = startDateObj.toISOString().split("T")[0]
     setStartDate(startDateStr)
+  
+    // ✅ summary fetch
+    const fetchSummary = async () => {
+      try {
+        const token = localStorage.getItem("accessToken")
+        const res = await fetch("http://localhost:8080/api/user/points/summary", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+  
+        if (!res.ok) throw new Error("요약 정보 조회 실패")
+        const data = await res.json()
+        setSummary(data)
+      } catch (err) {
+        console.error("[요약 정보 fetch 오류]", err)
+      }
+    }
+  
+    // ✅ 포인트 내역 fetch
+    const fetchPointHistory = async () => {
+      try {
+        const token = localStorage.getItem("accessToken")
+        const res = await fetch(`http://localhost:8080/api/user/points?startDate=${startDateStr}&endDate=${endDateStr}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+  
+        if (!res.ok) throw new Error("포인트 내역 조회 실패")
+        const data = await res.json()
+        setFilteredHistory(data)
+      } catch (err) {
+        console.error("[포인트 내역 fetch 오류]", err)
+        setFilteredHistory([])
+      }
+    }
+  
+    fetchSummary()
+    fetchPointHistory()
   }, [router])
 
-  const handlePeriodChange = (newPeriod) => {
+  const handlePeriodChange = (newPeriod: string) => {
     setPeriod(newPeriod)
 
     const today = new Date()
     const endDateStr = today.toISOString().split("T")[0]
 
     const startDateObj = new Date(today)
-    if (newPeriod === "1주일") {
-      startDateObj.setDate(today.getDate() - 7)
-    } else if (newPeriod === "1개월") {
+    if (newPeriod === "1개월") {
       startDateObj.setMonth(today.getMonth() - 1)
-    } else if (newPeriod === "3개월") {
-      startDateObj.setMonth(today.getMonth() - 3)
+    } else if (newPeriod === "6개월") {
+      startDateObj.setMonth(today.getMonth() - 6)
+    } else if (newPeriod === "1년") {
+      startDateObj.setFullYear(today.getFullYear() - 1)
     }
 
     const startDateStr = startDateObj.toISOString().split("T")[0]
@@ -87,25 +121,33 @@ export default function PointsHistory() {
     setEndDate(endDateStr)
   }
 
-  const handleSearch = () => {
-    // 실제로는 API 호출 등이 필요하지만, 여기서는 필터링만 수행
-    let filtered = [...pointsHistory]
-
-    if (filter !== "전체") {
-      filtered = filtered.filter((item) => item.category === filter)
-    }
-
-    // 날짜 필터링
-    if (startDate && endDate) {
-      filtered = filtered.filter((item) => {
-        const itemDate = new Date(item.date)
-        const start = new Date(startDate)
-        const end = new Date(endDate)
-        return itemDate >= start && itemDate <= end
+  const handleSearch = async () => {
+    try {
+      const token = localStorage.getItem("accessToken")
+      if (!token) throw new Error("토큰 없음")
+  
+      const res = await fetch(`http://localhost:8080/api/user/points?startDate=${startDate}&endDate=${endDate}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
+  
+      if (!res.ok) throw new Error("포인트 내역 조회 실패")
+  
+      const data = await res.json()
+  
+      // 필터링: 전체, 적립, 사용
+      const filtered = data.filter((item: PointTransaction) => {
+        if (filter === "전체") return true
+        if (filter === "적립") return item.earned > 0
+        if (filter === "사용") return item.used > 0
+        return true
+      })
+      setFilteredHistory(filtered)
+    } catch (err) {
+      console.error("[포인트 내역 fetch 오류]", err)
+      setFilteredHistory([]) // 오류 시 빈 배열로 fallback
     }
-
-    setFilteredHistory(filtered)
   }
 
   if (!isLoggedIn) {
@@ -113,9 +155,9 @@ export default function PointsHistory() {
   }
 
   // 총 포인트 계산
-  const totalPoints = 12500
-  const availablePoints = 10000
-  const expiringPoints = 2500
+  {summary.totalPoints.toLocaleString()} "P"
+  {summary.availablePoints.toLocaleString()} "P"
+  {summary.expiringPoints.toLocaleString()} "P"
 
   return (
     <>
@@ -161,12 +203,7 @@ export default function PointsHistory() {
                     회원 탈퇴
                   </Link>
                 </li>
-                <li className={styles.sidebarNavItem}>
-                  <Link href="/mypage/payment" className={styles.sidebarNavLink}>
-                    <CreditCard size={18} />
-                    결제관리
-                  </Link>
-                </li>
+                
               </ul>
 
               <div className={styles.customerService}>
@@ -184,22 +221,22 @@ export default function PointsHistory() {
                   <div className="text-center">
                     <h3 className="text-sm text-gray-500 mb-2">총 포인트</h3>
                     <p className="text-3xl font-bold text-primary-color" style={{ color: "var(--primary-color)" }}>
-                      {totalPoints.toLocaleString()} P
+                    {`${summary.totalPoints.toLocaleString()} P`}
                     </p>
                   </div>
                   <div className="text-center">
                     <h3 className="text-sm text-gray-500 mb-2">사용 가능 포인트</h3>
                     <p className="text-3xl font-bold text-primary-color" style={{ color: "var(--primary-color)" }}>
-                      {availablePoints.toLocaleString()} P
+                      {`${summary.availablePoints.toLocaleString()} P`}
                     </p>
                   </div>
                   <div className="text-center">
                     <h3 className="text-sm text-gray-500 mb-2">소멸 예정 포인트</h3>
                     <p className="text-3xl font-bold text-primary-color" style={{ color: "var(--primary-color)" }}>
-                      {expiringPoints.toLocaleString()} P
+                    {`${summary.expiringPoints.toLocaleString()} P`}
                     </p>
-                    <p className="text-xs text-red-500 mt-1">* 3개월 이내 소멸 예정</p>
-                  </div>
+                    <p className="text-xs text-red-500 mt-1">* 1년 유효기간 기준</p>
+                    </div>
                 </div>
               </div>
 
@@ -209,36 +246,36 @@ export default function PointsHistory() {
               <div className="mb-6">
                 {/* 기간 선택 탭 */}
                 <div className="flex mb-4">
-                  <button
-                    className={`px-4 py-2 rounded-md ${period === "1주일" ? "bg-primary-color text-white" : "bg-gray-100 text-gray-700"}`}
-                    style={{
-                      backgroundColor: period === "1주일" ? "var(--primary-color)" : "",
-                      color: period === "1주일" ? "white" : "",
-                    }}
-                    onClick={() => handlePeriodChange("1주일")}
-                  >
-                    1주일
-                  </button>
-                  <button
-                    className={`px-4 py-2 rounded-md mx-2 ${period === "1개월" ? "bg-primary-color text-white" : "bg-gray-100 text-gray-700"}`}
-                    style={{
-                      backgroundColor: period === "1개월" ? "var(--primary-color)" : "",
-                      color: period === "1개월" ? "white" : "",
-                    }}
-                    onClick={() => handlePeriodChange("1개월")}
-                  >
-                    1개월
-                  </button>
-                  <button
-                    className={`px-4 py-2 rounded-md ${period === "3개월" ? "bg-primary-color text-white" : "bg-gray-100 text-gray-700"}`}
-                    style={{
-                      backgroundColor: period === "3개월" ? "var(--primary-color)" : "",
-                      color: period === "3개월" ? "white" : "",
-                    }}
-                    onClick={() => handlePeriodChange("3개월")}
-                  >
-                    3개월
-                  </button>
+                    <button
+                      className={`px-4 py-2 rounded-md ${period === "1개월" ? "bg-primary-color text-white" : "bg-gray-100 text-gray-700"}`}
+                      style={{
+                        backgroundColor: period === "1개월" ? "var(--primary-color)" : "",
+                        color: period === "1개월" ? "white" : "",
+                      }}
+                      onClick={() => handlePeriodChange("1개월")}
+                    >
+                      1개월
+                    </button>
+                    <button
+                      className={`px-4 py-2 rounded-md mx-2 ${period === "6개월" ? "bg-primary-color text-white" : "bg-gray-100 text-gray-700"}`}
+                      style={{
+                        backgroundColor: period === "6개월" ? "var(--primary-color)" : "",
+                        color: period === "6개월" ? "white" : "",
+                      }}
+                      onClick={() => handlePeriodChange("6개월")}
+                    >
+                      6개월
+                    </button>
+                    <button
+                      className={`px-4 py-2 rounded-md ${period === "1년" ? "bg-primary-color text-white" : "bg-gray-100 text-gray-700"}`}
+                      style={{
+                        backgroundColor: period === "1년" ? "var(--primary-color)" : "",
+                        color: period === "1년" ? "white" : "",
+                      }}
+                      onClick={() => handlePeriodChange("1년")}
+                    >
+                      1년
+                    </button>
                 </div>
 
                 {/* 날짜 선택 및 검색 */}
@@ -331,42 +368,80 @@ export default function PointsHistory() {
                       <th className="py-3 px-4 text-right border-b border-gray-200">적립 포인트</th>
                       <th className="py-3 px-4 text-right border-b border-gray-200">사용 포인트</th>
                       <th className="py-3 px-4 text-right border-b border-gray-200">잔여 포인트</th>
+                      <th className="py-3 px-4 text-right border-b border-gray-200">연관 항목</th>
+                      <th className="py-3 px-4 text-right border-b border-gray-200">연관 ID</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredHistory.length > 0 ? (
-                      filteredHistory.map((item) => (
-                        <tr key={item.id} className="hover:bg-gray-50">
-                          <td className="py-3 px-4 border-b border-gray-200">{item.date}</td>
-                          <td className="py-3 px-4 border-b border-gray-200">
-                            <span
-                              className={`inline-block px-2 py-1 rounded-full text-xs ${item.category === "적립" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"}`}
-                            >
-                              {item.category}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 border-b border-gray-200">{item.description}</td>
-                          <td className="py-3 px-4 text-right border-b border-gray-200 text-green-600">
-                            {item.earned > 0 ? `+${item.earned.toLocaleString()}` : "-"}
-                          </td>
-                          <td className="py-3 px-4 text-right border-b border-gray-200 text-blue-600">
-                            {item.used > 0 ? `-${item.used.toLocaleString()}` : "-"}
-                          </td>
-                          <td className="py-3 px-4 text-right border-b border-gray-200 font-medium">
-                            {item.balance.toLocaleString()}
-                          </td>
-                        </tr>
-                      ))
+                    {currentItems.length > 0 ? (
+                      currentItems.map((item: PointTransaction) => {
+                        const isEarn = item.earned > 0
+                        const category = isEarn ? "적립" : "사용"
+                      
+                        return (
+                          <tr key={item.id} className="hover:bg-gray-50">
+                            <td className="py-3 px-4 border-b border-gray-200">{item.date.split("T")[0]}</td>
+                            <td className="py-3 px-4 border-b border-gray-200">
+                              <span
+                                className={`inline-block px-2 py-1 rounded-full text-xs ${
+                                  isEarn ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
+                                }`}
+                              >
+                                {category}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 border-b border-gray-200">{item.description}</td>
+                            <td className="py-3 px-4 text-right border-b border-gray-200 text-green-600">
+                              {item.earned > 0 ? `+${item.earned.toLocaleString()}` : "-"}
+                            </td>
+                            <td className="py-3 px-4 text-right border-b border-gray-200 text-blue-600">
+                              {item.used > 0 ? `-${item.used.toLocaleString()}` : "-"}
+                            </td>
+                            <td className="py-3 px-4 text-right border-b border-gray-200 font-medium">
+                              {item.balance.toLocaleString()}
+                            </td>
+                            <td className="py-3 px-4 text-right border-b border-gray-200">{item.referenceType}</td>
+                            <td className="py-3 px-4 text-right border-b border-gray-200">{item.referenceId}</td>
+                          </tr>
+                        )
+                      })
                     ) : (
-                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-gray-500 border-b border-gray-200">
-                          조회된 포인트 내역이 없습니다.
-                        </td>
-                      </tr>
+                            <tr key="no-data">
+                              <td colSpan={8} className="py-8 text-center text-gray-500 border-b border-gray-200">
+                                조회된 포인트 내역이 없습니다.
+                              </td>
+                            </tr>
                     )}
                   </tbody>
                 </table>
               </div>
+              <div className="flex justify-center mt-6 gap-2">
+  <button
+    className="px-3 py-1 border rounded disabled:opacity-50"
+    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+    disabled={currentPage === 1}
+  >
+    이전
+  </button>
+  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+    <button
+      key={page}
+      className={`px-3 py-1 border rounded ${
+        page === currentPage ? "bg-primary-color text-white font-bold" : ""
+      }`}
+      onClick={() => setCurrentPage(page)}
+    >
+      {page}
+    </button>
+  ))}
+  <button
+    className="px-3 py-1 border rounded disabled:opacity-50"
+    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+    disabled={currentPage === totalPages}
+  >
+    다음
+  </button>
+</div>
             </div>
           </div>
         </div>

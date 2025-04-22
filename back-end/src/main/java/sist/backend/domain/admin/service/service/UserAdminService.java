@@ -25,7 +25,5 @@ public interface UserAdminService {
     TotalUserDailyChangeResponse getDailyTotalUserChange();
 
     UserDailyChangeResponse getDailyNewStaffChange();
-    
 
 }
-

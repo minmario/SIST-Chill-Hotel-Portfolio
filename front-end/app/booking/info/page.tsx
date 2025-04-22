@@ -11,17 +11,19 @@ export default function BookingInfo() {
   const router = useRouter()
   const [selectedRoom, setSelectedRoom] = useState<any>(null)
   const [bookingParams, setBookingParams] = useState<any>(null)
-  const [bedType, setBedType] = useState("king")
+  const [bedType, setBedType] = useState("킹")
   const [adultBreakfast, setAdultBreakfast] = useState(0)
   const [childBreakfast, setChildBreakfast] = useState(0)
   const [specialRequests, setSpecialRequests] = useState("")
   const [loginOption, setLoginOption] = useState("member")
+  // membership_idx 상태 추가
+  const [membershipIdx, setMembershipIdx] = useState<number | null>(null)
 
   // 로컬 스토리지에서 예약 정보 불러오기
   useEffect(() => {
     const roomData = localStorage.getItem("selectedRoom")
     const paramsData = localStorage.getItem("bookingParams")
-
+    
     if (roomData) {
       setSelectedRoom(JSON.parse(roomData))
     } else {
@@ -31,7 +33,28 @@ export default function BookingInfo() {
     if (paramsData) {
       setBookingParams(JSON.parse(paramsData))
     }
-  }, [router])
+
+    // accessToken에서 membership_idx 추출(JWT 디코딩)
+    const accessToken = localStorage.getItem("accessToken")
+    if (accessToken) {
+      try {
+        const payload = accessToken.split('.')[1]
+        // base64 padding 처리
+        const pad = payload.length % 4 === 2 ? '==' : (payload.length % 4 === 3 ? '=' : '')
+        const decoded = JSON.parse(atob(payload + pad))
+        if (decoded && decoded.membership_idx) {
+          setMembershipIdx(decoded.membership_idx)
+        } else {
+          setMembershipIdx(null)
+        }
+      } catch {
+        setMembershipIdx(null)
+      }
+    } else {
+      setMembershipIdx(null)
+    }
+    // accessToken이 바뀔 때마다 membershipIdx 재설정
+  }, [router, localStorage.getItem("accessToken")])
 
   if (!selectedRoom || !bookingParams) {
     return <div className="container py-20 text-center">로딩 중...</div>
@@ -51,26 +74,26 @@ export default function BookingInfo() {
     }
   }
 
-  const calculateTotal = () => {
+  const calculateTotal = (savePercent = 0) => {
     const nights = calculateNights(bookingParams.checkIn, bookingParams.checkOut)
     const basePrice = (selectedRoom?.weekPrice ?? selectedRoom?.price ?? 0) * nights
     const adultBreakfastPrice = 35000 * adultBreakfast * nights
     const childBreakfastPrice = 20000 * childBreakfast * nights
     const total = basePrice + adultBreakfastPrice + childBreakfastPrice
 
-    // 회원 할인 (2%)
-    const discount = Math.round(total * 0.02)
+    // savePercent가 0이 아니면 해당 퍼센트로 할인
+    const discount = savePercent > 0 ? Math.round(total * (savePercent / 100)) : 0;
 
     return {
       nights,
-    roomPrice: basePrice,
-    adultBreakfastPrice,
-    childBreakfastPrice,
-    adultBreakfast,
-    childBreakfast,
-    subtotal: total,
-    discount,
-    total: total - discount,
+      roomPrice: basePrice,
+      adultBreakfastPrice,
+      childBreakfastPrice,
+      adultBreakfast,
+      childBreakfast,
+      subtotal: total,
+      discount,
+      total: total - discount,
     }
   }
   const calculateNights = (checkIn: string, checkOut: string): number => {
@@ -81,7 +104,12 @@ export default function BookingInfo() {
     return Math.max(diffDays, 1) // 최소 1박
   }
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    // 회원 예약인데 로그인 상태가 아니면 로그인 페이지로 이동
+    if (loginOption === "member" && !membershipIdx) {
+      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)
+      return
+    }
     // 예약 정보 저장
     const bookingInfo = {
       room: selectedRoom,
@@ -95,17 +123,60 @@ export default function BookingInfo() {
         specialRequests,
       },
       pricing: calculateTotal(),
+      // membership_idx도 예약 정보에 포함
+      membership_idx: membershipIdx,
     }
     localStorage.setItem("bookingInfo", JSON.stringify(bookingInfo))
 
     if (loginOption === "member") {
-      router.push("/booking/login")
+      // accessToken이 없으면 로그인 페이지로 이동
+      const accessToken = localStorage.getItem("accessToken")
+      if (!accessToken) {
+        router.push("/booking/login")
+        return
+      }
+      // 회원 정보 불러오기
+      try {
+        const res = await fetch("/api/user/info", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
+        if (res.ok) {
+          const userInfo = await res.json()
+          // 회원 정보도 localStorage에 저장해서 customer-info에서 활용
+          localStorage.setItem("bookingUserInfo", JSON.stringify(userInfo))
+          router.push("/booking/customer-info")
+        } else {
+          router.push("/booking/login")
+        }
+      } catch (err) {
+        alert("회원 정보 조회 중 오류 발생.")
+        router.push("/booking/login")
+      }
     } else {
       router.push("/booking/customer-info")
     }
   }
 
-  const priceInfo = calculateTotal()
+  // 회원 정보 로딩 및 할인율 추출
+let memberDiscountPercent = 0;
+let isMemberLoggedIn = false;
+let memberLabel = "회원 등급 할인";
+
+if (typeof window !== "undefined") {
+  const bookingUserInfo = localStorage.getItem("bookingUserInfo");
+  if (bookingUserInfo) {
+    try {
+      const user = JSON.parse(bookingUserInfo);
+      if (user && user.save_percent) {
+        memberDiscountPercent = Number(user.save_percent);
+        isMemberLoggedIn = true;
+        memberLabel = `회원 등급 할인 (${memberDiscountPercent}%)`;
+      }
+    } catch {}
+  }
+}
+
+const priceInfo = calculateTotal(memberDiscountPercent);
 
   return (
     <>
@@ -147,8 +218,8 @@ export default function BookingInfo() {
                 <div className={styles.selectedRoomInfo}>
                   <div className={styles.selectedRoomImageContainer}>
                     <Image
-                      src={selectedRoom.image || "/placeholder.svg"}
-                      alt={selectedRoom.name}
+                      src={selectedRoom.roomImage || "/placeholder.svg"}
+                      alt={selectedRoom.roomName}
                       fill
                       style={{ objectFit: "cover" }}
                     />
@@ -273,39 +344,6 @@ export default function BookingInfo() {
                 </div>
               </div>
 
-              <div className={styles.bookingInfoCard}>
-                <h2 className={styles.bookingInfoCardTitle}>로그인 옵션</h2>
-
-                <div className={styles.loginOptions}>
-                  <label
-                    className={`${styles.loginOption} ${loginOption === "member" ? styles.loginOptionSelected : ""}`}
-                  >
-                    <input
-                      type="radio"
-                      name="loginOption"
-                      value="member"
-                      className={styles.loginOptionRadio}
-                      checked={loginOption === "member"}
-                      onChange={() => setLoginOption("member")}
-                    />
-                    <span className={styles.loginOptionLabel}>회원 예약</span>
-                  </label>
-
-                  <label
-                    className={`${styles.loginOption} ${loginOption === "nonMember" ? styles.loginOptionSelected : ""}`}
-                  >
-                    <input
-                      type="radio"
-                      name="loginOption"
-                      value="nonMember"
-                      className={styles.loginOptionRadio}
-                      checked={loginOption === "nonMember"}
-                      onChange={() => setLoginOption("nonMember")}
-                    />
-                    <span className={styles.loginOptionLabel}>비회원 예약</span>
-                  </label>
-                </div>
-              </div>
             </div>
 
             <div className={styles.bookingSummary}>
@@ -335,10 +373,12 @@ export default function BookingInfo() {
                 <span className={styles.bookingSummaryValue}>₩{priceInfo.subtotal.toLocaleString()}</span>
               </div>
 
-              <div className={styles.bookingSummaryRow}>
-                <span className={styles.bookingSummaryLabel}>회원 등급 할인 (2%)</span>
-                <span className={styles.membershipDiscount}>-₩{priceInfo.discount.toLocaleString()}</span>
-              </div>
+              {isMemberLoggedIn && priceInfo.discount > 0 && (
+                <div className={styles.bookingSummaryRow}>
+                  <span className={styles.bookingSummaryLabel}>{memberLabel}</span>
+                  <span className={styles.membershipDiscount}>-₩{priceInfo.discount.toLocaleString()}</span>
+                </div>
+              )}
 
               <div className={styles.bookingSummaryTotal}>
                 <span className={styles.bookingSummaryTotalLabel}>총 결제 금액</span>
@@ -349,10 +389,40 @@ export default function BookingInfo() {
                 예약하기
               </button>
 
-              <Link href="/booking" className={styles.continueShoppingButton}>
-                <ChevronLeft size={16} />
-                객실 선택으로 돌아가기
-              </Link>
+              <div className={styles.bookingInfoCard} style={{ marginTop: 16 }}>
+                <h2 className={styles.bookingInfoCardTitle}>로그인 옵션</h2>
+                <div className={styles.loginOptions}>
+                  <label
+                    className={`${styles.loginOption} ${loginOption === "member" ? styles.loginOptionSelected : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="loginOption"
+                      value="member"
+                      className={styles.loginOptionRadio}
+                      checked={loginOption === "member"}
+                      onChange={() => setLoginOption("member")}
+                    />
+                    <span className={styles.loginOptionLabel}>회원 예약</span>
+                  </label>
+                  <label
+                    className={`${styles.loginOption} ${loginOption === "nonMember" ? styles.loginOptionSelected : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="loginOption"
+                      value="nonMember"
+                      className={styles.loginOptionRadio}
+                      checked={loginOption === "nonMember"}
+                      onChange={() => setLoginOption("nonMember")}
+                      disabled={membershipIdx !== null} // 로그인 시 비회원 예약 비활성화
+                    />
+                    <span className={styles.loginOptionLabel} style={membershipIdx !== null ? { color: '#aaa', cursor: 'not-allowed' } : {}}>
+                      비회원 예약{membershipIdx !== null ? ' (로그인 시 선택 불가)' : ''}
+                    </span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         </div>

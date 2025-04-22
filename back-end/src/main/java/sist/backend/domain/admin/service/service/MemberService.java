@@ -6,6 +6,7 @@ import sist.backend.domain.admin.dto.response.MemberResponse;
 
 public interface MemberService {
     public List<MemberResponse> getAllMembers();
+
     void updateUserStatus(String userId, String status);
 
 }

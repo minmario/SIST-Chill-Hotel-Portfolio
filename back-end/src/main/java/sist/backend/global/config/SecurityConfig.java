@@ -32,10 +32,9 @@ import java.util.Collections;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    
+
     private final JwtProvider jwtProvider;
 
-    
     private final UserDetailsService userDetailsService;
 
     @Bean
@@ -46,20 +45,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/**").permitAll() // API는 누구나 접근 가능
-                .requestMatchers("/admin/**").permitAll() // 관리자만
-                .requestMatchers("/dining/**").permitAll()
-                .anyRequest().permitAll() // 그 외 모두 허용 (개발용)
-            )
-            .formLogin(Customizer.withDefaults()) // 기본 로그인 폼 사용
-            .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/")
-            )
-            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/user/**").permitAll() // API는 누구나 접근 가능
+                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF") // 관리자만
+
+                        .requestMatchers("/dining/**").permitAll()
+                        .requestMatchers("/api/mypage/**").authenticated()
+                        .anyRequest().permitAll() // 그 외 모두 허용 (개발용)
+                )
+                .formLogin(Customizer.withDefaults()) // 기본 로그인 폼 사용
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/"))
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -70,13 +70,14 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition", "Content-Type", "Set-Cookie"));
+        configuration
+                .setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition", "Content-Type", "Set-Cookie"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-    
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
             throws Exception {
