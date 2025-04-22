@@ -440,7 +440,7 @@ export default function CustomerInfo() {
                     <span>₩{safe(bookingInfo.pricing?.subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">회원 등급 할인 (2%)</span>
+                    <span className="text-gray-600">회원 등급 할인</span>
                     <span className="text-red-500">-₩{safe(bookingInfo.pricing?.discount)}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-base border-t pt-2">

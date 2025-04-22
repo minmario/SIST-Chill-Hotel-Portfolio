@@ -17,6 +17,20 @@ public class AdminGiftShopService {
     private final OrderRepository orderRepository;
 
     @Transactional
+    public void updateOrderStatus(Long orderIdx, String statusString) {
+        Order order = orderRepository.findById(orderIdx)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderIdx));
+        sist.backend.domain.shop.entity.OrderStatus status;
+        try {
+            status = sist.backend.domain.shop.entity.OrderStatus.valueOf(statusString.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("잘못된 주문 상태입니다: " + statusString);
+        }
+        order.updateStatus(status);
+        orderRepository.save(order);
+    }
+
+    @Transactional
     public List<OrderResponse> getAllOrders() {
         List<Order> orders = orderRepository.findAll(); // 또는 getAllOrders()
 
