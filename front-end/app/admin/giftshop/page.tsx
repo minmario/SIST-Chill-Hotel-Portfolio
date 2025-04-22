@@ -190,7 +190,6 @@ export default function ItemsPage() {
     createdAt: "",
     updatedAt: "",
     category: "",
-    itemName: "",
     description: "",
     imageUrl: "",
   })
