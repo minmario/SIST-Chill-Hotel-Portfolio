@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Trash2, Plus, Minus, ShoppingBag } from "lucide-react"
 import { useCart } from "@/context/cart-context"
 import { fetchProductById } from "@/lib/api"
+import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { useEffect, useState } from "react"
 import styles from "./cart.module.css"
 
 interface CartItem {
@@ -22,10 +22,16 @@ interface StockQuantities {
   [key: number]: number;
 }
 
+// 이미지 URL을 저장하기 위한 인터페이스 추가
+interface ProductImages {
+  [key: number]: string;
+}
+
 export default function Cart() {
   const [mounted, setMounted] = useState(false)
   const { items: cartItems, updateQuantity, removeItem: removeFromCart, totalItems, totalPrice, isLoggedIn } = useCart()
   const [stockQuantities, setStockQuantities] = useState<StockQuantities>({})
+  const [productImages, setProductImages] = useState<ProductImages>({}) // 상품 이미지 URL 저장
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -36,6 +42,8 @@ export default function Cart() {
   const loadStockQuantities = async () => {
     try {
       const quantities: StockQuantities = {}
+      const images: ProductImages = {} // 이미지 URL을 저장할 객체
+      
       for (const item of cartItems) {
         if (!item.productIdx) {
           console.warn('상품 ID가 유효하지 않습니다:', item);
@@ -45,13 +53,20 @@ export default function Cart() {
         try {
           const product = await fetchProductById(item.productIdx);
           quantities[item.productIdx] = product.stockQuantity;
+          
+          // 상품 이미지 URL 저장
+          if (product.imageUrl) {
+            images[item.productIdx] = product.imageUrl;
+          }
         } catch (productError) {
           console.warn(`상품 정보 로드 실패 (ID: ${item.productIdx}):`, productError);
           // 개별 상품 로드 실패 시 계속 진행
           quantities[item.productIdx] = 0; // 기본값 설정
         }
       }
+      
       setStockQuantities(quantities);
+      setProductImages(images); // 이미지 URL 상태 업데이트
       setLoading(false);
     } catch (error) {
       console.error('재고 정보를 불러오는데 실패했습니다:', error);
@@ -112,7 +127,7 @@ export default function Cart() {
                   <div className={styles.cartItemProduct}>
                     <div className={styles.cartItemImage}>
                       <Image
-                        src={item.image || "/placeholder.svg?height=100&width=100"}
+                        src={productImages[item.productIdx] || item.image || "/placeholder.svg?height=100&width=100"}
                         alt={item.productName}
                         width={100}
                         height={100}
