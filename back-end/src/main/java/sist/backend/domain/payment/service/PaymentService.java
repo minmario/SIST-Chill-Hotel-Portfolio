@@ -18,6 +18,7 @@ import sist.backend.domain.shop.entity.OrderItem;
 import sist.backend.domain.shop.entity.OrderStatus;
 import sist.backend.domain.shop.repository.jpa.CartItemRepository;
 import sist.backend.domain.shop.repository.jpa.OrderRepository;
+import sist.backend.domain.shop.service.interfaces.CartService;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +30,7 @@ public class PaymentService {
     private final UserActivityLogService userActivityLogService; // interfaces 패키지 인터페이스 사용
     private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
+    private final CartService cartService;
     // private final OrderItemRepository orderItemRepository;
     // private final GiftShopRepository giftShopRepository;
 
@@ -144,6 +146,18 @@ public class PaymentService {
                     order.updateStatus(OrderStatus.PAID); // 결제완료 등으로 상태 변경
                     orderRepository.save(order);
                     System.out.println("[processTossPayment] order DB status(after): " + order.getOrderStatus());
+                    
+                    // 결제 성공 시 장바구니 비우기
+                    if (user != null) {
+                        try {
+                            cartService.clearCart(user.getUserIdx());
+                            System.out.println("[processTossPayment] 장바구니 비우기 성공: userIdx=" + user.getUserIdx());
+                        } catch (Exception e) {
+                            System.out.println("[processTossPayment] 장바구니 비우기 실패: " + e.getMessage());
+                            // 장바구니 비우기 실패해도 결제는 성공 처리
+                        }
+                    }
+                    
                     userActivityLogService.logActivity(
                         user, ActivityType.PAYMENT,
                         "토스 결제 완료: 주문번호=" + id + ", 금액=" + response.getAmount(),
