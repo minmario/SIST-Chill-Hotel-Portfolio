@@ -1,15 +1,16 @@
 package sist.backend.domain.payment.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import sist.backend.domain.payment.dto.PaymentRequest;
 import sist.backend.domain.payment.dto.TossPaymentResponse;
 import sist.backend.domain.reservation.entity.Reservation;
 import sist.backend.domain.reservation.entity.ReservationStatus;
-import sist.backend.domain.user.entity.ActivityType;
-import sist.backend.domain.user.entity.User;
-import sist.backend.domain.user.service.interfaces.UserActivityLogService;
 import sist.backend.domain.reservation.repository.ReservationRepository;
 import sist.backend.domain.shop.entity.CartItem;
 import sist.backend.domain.shop.entity.GiftShop;
@@ -19,8 +20,9 @@ import sist.backend.domain.shop.entity.OrderStatus;
 import sist.backend.domain.shop.repository.jpa.CartItemRepository;
 import sist.backend.domain.shop.repository.jpa.OrderRepository;
 import sist.backend.domain.shop.service.interfaces.CartService;
-import java.util.List;
-import java.util.Optional;
+import sist.backend.domain.user.entity.ActivityType;
+import sist.backend.domain.user.entity.User;
+import sist.backend.domain.user.service.interfaces.UserActivityLogService;
 
 @Service
 @RequiredArgsConstructor
@@ -119,10 +121,10 @@ public class PaymentService {
                 return false;
             }
             
-            // 주문 ID에서 결제 유형과 ID를 추출 (예: ORDER_123, RESERVATION_456)
+            // 주문 ID에서 결제 유형과 ID를 추출 (예: ORDER_123_timestamp_random)
             String[] orderParts = response.getOrderId().split("_");
-            String paymentType = orderParts[0];
-            String id = orderParts[1];
+            String paymentType = orderParts[0]; // 첫 번째 부분은 항상 결제 유형
+            String id = orderParts[1]; // 두 번째 부분은 항상 ID
             
             // 결제 유형에 따라 처리
             if ("RESERVATION".equals(paymentType)) {
@@ -144,6 +146,28 @@ public class PaymentService {
                 boolean wasPaid = order.getOrderStatus() == OrderStatus.PAID;
                 if (!wasPaid) {
                     order.updateStatus(OrderStatus.PAID); // 결제완료 등으로 상태 변경
+                    
+                    // 결제 성공 시 재고 차감
+                    for (OrderItem orderItem : order.getOrderItems()) {
+                        GiftShop giftShop = orderItem.getItem();
+                        int orderQuantity = orderItem.getQuantity();
+                        
+                        // 재고 차감 로직 적용
+                        boolean stockDecreasedSuccessfully = giftShop.decreaseStock(orderQuantity);
+                        if (stockDecreasedSuccessfully) {
+                            System.out.println("[processTossPayment] 재고 차감 성공: 상품ID=" + giftShop.getItemIdx() 
+                                + ", 차감수량=" + orderQuantity 
+                                + ", 남은재고=" + giftShop.getStockQuantity());
+                        } else {
+                            // 재고 부족 시 로그만 남기고 계속 진행 (이미 주문은 완료 상태)
+                            System.out.println("[processTossPayment] 재고 부족: 상품ID=" + giftShop.getItemIdx() 
+                                + ", 필요수량=" + orderQuantity 
+                                + ", 현재재고=" + giftShop.getStockQuantity());
+                            // 가용 재고를 모두 차감
+                            giftShop.setStockQuantity(0);
+                        }
+                    }
+                    
                     orderRepository.save(order);
                     System.out.println("[processTossPayment] order DB status(after): " + order.getOrderStatus());
                     

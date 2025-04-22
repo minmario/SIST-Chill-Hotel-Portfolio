@@ -1,20 +1,23 @@
 package sist.backend.domain.payment.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.CrossOrigin;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import sist.backend.domain.payment.dto.PaymentRequest;
 import sist.backend.domain.payment.dto.TossPaymentResponse;
 import sist.backend.domain.payment.service.PaymentService;
+import sist.backend.domain.shop.entity.Order;
+import sist.backend.domain.user.entity.User;
 
 
 @RestController
@@ -25,7 +28,7 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping
-    public ResponseEntity<?> pay(@RequestBody PaymentRequest request, HttpServletRequest httpRequest, @org.springframework.security.core.annotation.AuthenticationPrincipal sist.backend.domain.user.entity.User user) {
+    public ResponseEntity<?> pay(@RequestBody PaymentRequest request, HttpServletRequest httpRequest, @AuthenticationPrincipal(expression = "user") User user) {
         try {
             String ipAddress = httpRequest.getRemoteAddr();
             System.out.println("[pay] called");
@@ -35,7 +38,9 @@ public class PaymentController {
             if (user == null) {
                 return ResponseEntity.status(401).body(Map.of("message", "로그인 정보가 없습니다. 인증이 필요합니다."));
             }
-            sist.backend.domain.shop.entity.Order order = paymentService.processPayment(request, ipAddress, user);
+            else
+                System.out.println("[pay] user: " + user.getId());
+            Order order = paymentService.processPayment(request, ipAddress, user);
             Map<String, Object> result = new HashMap<>();
             if (order != null) {
                 System.out.println("[pay] orderIdx: " + order.getOrderIdx());
@@ -54,7 +59,7 @@ public class PaymentController {
     }
     
     @PostMapping("/toss/success")
-    public ResponseEntity<?> tossPaymentSuccess(@RequestBody TossPaymentResponse response, HttpServletRequest httpRequest, @org.springframework.security.core.annotation.AuthenticationPrincipal sist.backend.domain.user.entity.User user) {
+    public ResponseEntity<?> tossPaymentSuccess(@RequestBody TossPaymentResponse response, HttpServletRequest httpRequest, @org.springframework.security.core.annotation.AuthenticationPrincipal(expression = "user") sist.backend.domain.user.entity.User user) {
         System.out.println("[toss/success] called");
         System.out.println("[toss/success] paymentKey: " + response.getPaymentKey());
         System.out.println("[toss/success] orderId: " + response.getOrderId());

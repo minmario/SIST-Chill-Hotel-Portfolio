@@ -20,9 +20,11 @@ export const initTossPayment = async (orderData) => {
     // 결제 위젯 초기화
     const tossPayments = window.TossPayments(clientKey);
     
-    // 주문 ID 생성 (중복 방지를 위해 타임스탬프 추가)
+    // 주문 ID 생성 - 항상 고유한 주문번호 생성을 위해 타임스탬프와 난수 추가
     const timestamp = new Date().getTime();
-    const orderId = orderData.paymentType + '_' + orderData.id;
+    const randomString = Math.random().toString(36).substring(2, 10); // 랜덤 문자열 생성
+    const orderId = `${orderData.paymentType}_${orderData.id}_${timestamp}_${randomString}`;
+    console.log('생성된 주문번호:', orderId);
     
     // 결제 요청
     await tossPayments.requestPayment(orderData.method, {
@@ -49,11 +51,15 @@ export const checkPaymentStatus = async (paymentKey, orderId, amount) => {
   try {
     const token = localStorage.getItem('accessToken');
     
+    if (!token) {
+      console.warn('토큰이 없습니다. 로그인 상태를 확인하세요.');
+    }
+    
     const response = await fetch('http://localhost:8080/api/payments/toss/success', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': token ? `Bearer ${token}` : ''
       },
       body: JSON.stringify({
         paymentKey,
@@ -61,11 +67,14 @@ export const checkPaymentStatus = async (paymentKey, orderId, amount) => {
         amount,
         status: 'DONE',
         message: '토스 결제 성공'
-      })
+      }),
+      credentials: 'include'
     });
     
     if (!response.ok) {
-      throw new Error('결제 상태 확인 중 오류가 발생했습니다.');
+      const errorText = await response.text();
+      console.error(`결제 상태 확인 오류: ${response.status}`, errorText);
+      throw new Error(`결제 상태 확인 중 오류가 발생했습니다. (${response.status})`);
     }
     
     return await response.json();

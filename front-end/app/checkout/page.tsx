@@ -1,7 +1,7 @@
 "use client"
 
-import { useCart } from "@/context/cart-context"
 import { useAuth } from "@/context/auth-context"
+import { useCart } from "@/context/cart-context"
 import { initTossPayment } from "@/lib/toss-payments"
 import { ChevronLeft } from "lucide-react"
 import Link from "next/link"
@@ -27,6 +27,11 @@ export default function Checkout() {
   // 클라이언트 사이드에서만 실행되도록 처리
   useEffect(() => {
     setMounted(true)
+    
+    // 로그인 상태 및 토큰 확인
+    if (!isLoggedIn) {
+      router.push("/login?redirect=/checkout");
+    }
   }, [])
 
   // 사용자 정보 로드
@@ -92,9 +97,54 @@ export default function Checkout() {
     setIsProcessing(true)
     setPaymentError("")
 
+    // 로그인 상태 재확인
+    if (!isLoggedIn) {
+      setPaymentError('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+      setIsProcessing(false);
+      setTimeout(() => {
+        router.push("/login?redirect=/checkout");
+      }, 2000);
+      return;
+    }
+
     try {
       // 1. 주문 생성 API 호출
       const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        setPaymentError('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+        setIsProcessing(false);
+        setTimeout(() => {
+          router.push("/login?redirect=/checkout");
+        }, 2000);
+        return;
+      }
+      
+      // 토큰이 유효한지 빠르게 검증 (JWT 형식 및 만료 확인)
+      try {
+        if (token.split('.').length !== 3) {
+          throw new Error('유효하지 않은 토큰 형식');
+        }
+        
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = JSON.parse(atob(base64));
+        
+        // 토큰 만료 확인
+        if (jsonPayload.exp * 1000 < Date.now()) {
+          throw new Error('토큰이 만료됨');
+        }
+      } catch (e) {
+        console.error('토큰 검증 실패:', e);
+        setPaymentError('인증 정보가 유효하지 않습니다. 다시 로그인해주세요.');
+        setIsProcessing(false);
+        setTimeout(() => {
+          router.push("/login?redirect=/checkout");
+        }, 2000);
+        return;
+      }
+      
+      // 만료되지 않은 토큰이라면 API 요청 시도
       const createOrderRes = await fetch('http://localhost:8080/api/payments', {
         method: 'POST',
         headers: {
@@ -105,13 +155,27 @@ export default function Checkout() {
           amount: totalPrice,
           paymentMethod,
           cartItemIdxList: cartItems.map(item => item.cartItemIdx)
-        })
+        }),
+        credentials: 'include'
       });
+      
       if (!createOrderRes.ok) {
-        setPaymentError('주문 생성에 실패했습니다.');
+        const errorText = await createOrderRes.text();
+        console.error('주문 생성 실패:', createOrderRes.status, errorText);
+        
+        if (createOrderRes.status === 401) {
+          setPaymentError('로그인이 필요하거나 세션이 만료되었습니다. 다시 로그인해주세요.');
+          setTimeout(() => {
+            router.push("/login?redirect=/checkout");
+          }, 2000);
+        } else {
+          setPaymentError(`주문 생성에 실패했습니다. (${createOrderRes.status})`);
+        }
+        
         setIsProcessing(false);
         return;
       }
+      
       const orderResJson = await createOrderRes.json();
       const orderIdx = orderResJson.orderIdx || orderResJson.id || orderResJson.order_id;
       if (!orderIdx) {
@@ -152,6 +216,10 @@ export default function Checkout() {
         })
         return
       }
+
+      // 결제가 성공하면 장바구니 비우기
+      clearCart();
+      console.log('주문 완료 후 장바구니 비우기 완료');
 
       // 성공 처리는 successUrl로 리다이렉트되어 백엔드에서 처리됨
     } catch (error) {
