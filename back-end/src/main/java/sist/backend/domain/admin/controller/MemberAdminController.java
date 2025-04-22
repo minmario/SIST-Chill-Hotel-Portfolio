@@ -26,10 +26,11 @@ public class MemberAdminController {
     public List<MemberResponse> getAllMembers() {
         return memberService.getAllMembers();
     }
-     @PutMapping("/{id}")
+
+    @PutMapping("/{id}")
     public ResponseEntity<Void> updateUserStatus(@PathVariable String id, @RequestBody UpdateStatusRequest dto) {
         memberService.updateUserStatus(id, dto.getStatus());
         return ResponseEntity.ok().build();
     }
-    
+
 }

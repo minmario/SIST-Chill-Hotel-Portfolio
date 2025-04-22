@@ -6,64 +6,85 @@ import { useRouter } from "next/navigation"
 import { User, CreditCard, LogOut, Award, Gift, ChevronRight, Calendar } from "lucide-react"
 import styles from "./mypage.module.css"
 
-// 포인트 내역 데이터
-const pointsHistory = [
-  {
-    id: 1,
-    date: "2024-03-15",
-    category: "적립",
-    description: "객실 이용",
-    earned: 2500,
-    used: 0,
-    balance: 2500,
-  },
-  {
-    id: 2,
-    date: "2024-03-20",
-    category: "적립",
-    description: "레스토랑 이용",
-    earned: 1000,
-    used: 0,
-    balance: 3500,
-  },
-  {
-    id: 3,
-    date: "2024-04-05",
-    category: "사용",
-    description: "객실 예약 포인트 사용",
-    earned: 0,
-    used: 2000,
-    balance: 1500,
-  },
-]
+
 
 export default function MyPage() {
   const router = useRouter()
   const [userName, setUserName] = useState("")
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [pointSummary, setPointSummary] = useState({
+    totalPoints: 0,
+    availablePoints: 0,
+    expiringPoints: 0,
+  })
 
-  useEffect(() => {
-    // 로그인 상태 확인
-    const loggedIn = localStorage.getItem("isLoggedIn") === "true"
-    const name = localStorage.getItem("userName") || ""
+const [filteredHistory, setFilteredHistory] = useState<
+  {
+    id: number
+    date: string
+    category: string
+    description: string
+    earned: number
+    used: number
+    balance: number
+  }[]
+>([])
+const [isLoggedIn, setIsLoggedIn] = useState(false)
 
-    setIsLoggedIn(loggedIn)
-    setUserName(name)
 
-    if (!loggedIn) {
-      router.push("/login")
-    }
-  }, [router])
 
-  if (!isLoggedIn) {
-    return null // 로그인 페이지로 리디렉션 중
+useEffect(() => {
+  const loggedIn = localStorage.getItem("isLoggedIn") === "true"
+  const token = localStorage.getItem("accessToken")
+  console.log("[MyPage] accessToken:", token)
+
+  setIsLoggedIn(loggedIn)
+
+  if (!loggedIn || !token) {
+    router.push("/login")
+    return
   }
 
-  // 총 포인트 계산
-  const totalPoints = 12500
-  const availablePoints = 10000
-  const expiringPoints = 2500
+  const today = new Date()
+  const sixMonthsAgo = new Date()
+  sixMonthsAgo.setMonth(today.getMonth() - 6)
 
+  const format = (d: Date) => d.toISOString().split("T")[0]
+  const startDateStr = format(sixMonthsAgo)
+  const endDateStr = format(today)
+
+  const fetchSummary = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/user/points/summary", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error("요약 정보 응답 오류")
+      const data = await res.json()
+      setPointSummary(data)
+    } catch (err) {
+      console.error("요약 정보 fetch 실패:", err)
+    }
+  }
+
+  const fetchPoints = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8080/api/user/points?startDate=${startDateStr}&endDate=${endDateStr}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      if (!res.ok) throw new Error("포인트 내역 응답 오류")
+      const data = await res.json()
+      setFilteredHistory(data)
+    } catch (err) {
+      console.error("포인트 내역 fetch 실패:", err)
+      setFilteredHistory([])
+    }
+  }
+
+  fetchSummary()
+  fetchPoints()
+}, [router])
   return (
     <>
       <div className={styles.header}>
@@ -108,12 +129,7 @@ export default function MyPage() {
                     회원 탈퇴
                   </Link>
                 </li>
-                <li className={styles.sidebarNavItem}>
-                  <Link href="/mypage/payment" className={styles.sidebarNavLink}>
-                    <CreditCard size={18} />
-                    결제관리
-                  </Link>
-                </li>
+                
               </ul>
 
               <div className={styles.customerService}>
@@ -148,19 +164,19 @@ export default function MyPage() {
                   <div className="text-center">
                     <h3 className="text-sm text-gray-500 mb-2">총 포인트</h3>
                     <p className="text-3xl font-bold text-primary-color" style={{ color: "var(--primary-color)" }}>
-                      {totalPoints.toLocaleString()} P
+                    {pointSummary.totalPoints.toLocaleString()} P
                     </p>
                   </div>
                   <div className="text-center">
                     <h3 className="text-sm text-gray-500 mb-2">사용 가능 포인트</h3>
                     <p className="text-3xl font-bold text-primary-color" style={{ color: "var(--primary-color)" }}>
-                      {availablePoints.toLocaleString()} P
+                    {pointSummary.availablePoints.toLocaleString()} P
                     </p>
                   </div>
                   <div className="text-center">
                     <h3 className="text-sm text-gray-500 mb-2">소멸 예정 포인트</h3>
                     <p className="text-3xl font-bold text-primary-color" style={{ color: "var(--primary-color)" }}>
-                      {expiringPoints.toLocaleString()} P
+                    {pointSummary.expiringPoints.toLocaleString()} P
                     </p>
                     <p className="text-xs text-red-500 mt-1">* 3개월 이내 소멸 예정</p>
                   </div>
@@ -248,8 +264,8 @@ export default function MyPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {pointsHistory.length > 0 ? (
-                        pointsHistory.map((item) => (
+                      {filteredHistory.length > 0 ? (
+                        filteredHistory.map((item) => (
                           <tr key={item.id} className="hover:bg-gray-50">
                             <td className="py-3 px-4 border-b border-gray-200">{item.date}</td>
                             <td className="py-3 px-4 border-b border-gray-200">

@@ -50,7 +50,7 @@ export default function UserInfo() {
       return
     }
   
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("accessToken")
     console.log("[token]", token)
     if (!token) {
       router.push("/login")
@@ -93,7 +93,7 @@ if (isLoading) return <p>로딩 중...</p>
     e.preventDefault()
   
     try {
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("accessToken")
 
       if (!token) {
         alert("로그인이 필요합니다.")
@@ -194,7 +194,7 @@ if (isLoading) return <p>로딩 중...</p>
   
     if (!validateForm()) return
   
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("accessToken")
     if (!token) {
       alert("로그인이 필요합니다.")
       router.push("/login")
@@ -290,12 +290,7 @@ if (isLoading) return <p>로딩 중...</p>
                     회원 탈퇴
                   </Link>
                 </li>
-                <li className={styles.sidebarNavItem}>
-                  <Link href="/mypage/payment" className={styles.sidebarNavLink}>
-                    <CreditCard size={18} />
-                    결제관리
-                  </Link>
-                </li>
+                
               </ul>
 
               <div className={styles.customerService}>

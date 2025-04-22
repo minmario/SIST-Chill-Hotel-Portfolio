@@ -17,6 +17,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sist.backend.domain.user.entity.User;
 import sist.backend.global.common.BaseTimeEntity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
 @Entity
 @Table(name = "point_transaction")
@@ -39,16 +41,36 @@ public class PointTransaction extends BaseTimeEntity {
 
     private Long referenceIdx;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 50)
-    private String referenceType;
+    private ReferenceType referenceType;
 
     @Column(nullable = false)
     private LocalDateTime transactionDate;
 
+    @Column(length = 255)
+    private String description;
+
+    @Column(nullable = false)
+    private LocalDateTime expirationDate;
+
     // 정적 팩토리 메서드
-    public static PointTransaction createTransaction(User user, Integer point, String referenceType,
-            Long referenceIdx) {
-        return PointTransaction.builder().user(user).point(point).referenceType(referenceType)
-                .referenceIdx(referenceIdx).transactionDate(LocalDateTime.now()).build();
+    public static PointTransaction createTransaction(
+            User user,
+            Integer point,
+            ReferenceType referenceType,
+            Long referenceIdx,
+            String description) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return PointTransaction.builder()
+                .user(user)
+                .point(point)
+                .referenceType(referenceType)
+                .referenceIdx(referenceIdx)
+                .transactionDate(now)
+                .expirationDate(now.plusMonths(3)) // ✅ 3개월 후 소멸로 설정
+                .description(description)
+                .build();
     }
 }

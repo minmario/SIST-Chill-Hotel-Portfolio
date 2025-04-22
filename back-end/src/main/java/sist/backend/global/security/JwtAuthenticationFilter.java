@@ -2,6 +2,7 @@ package sist.backend.global.security;
 
 import sist.backend.global.jwt.JwtProvider;
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -41,25 +42,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
-if (existingAuth != null) {
-    System.out.println("[JWT] 기존 Authentication principal: " + existingAuth.getPrincipal());
-    System.out.println("[JWT] 기존 Authentication class: " + existingAuth.getClass().getName());
-}
-if (userEmail != null && (existingAuth == null ||
-    existingAuth.getPrincipal() == null ||
-    "anonymousUser".equals(existingAuth.getPrincipal()) ||
-    !(existingAuth.getPrincipal() instanceof UserDetails))) {
+            if (existingAuth != null) {
+                System.out.println("[JWT] 기존 Authentication principal: " + existingAuth.getPrincipal());
+                System.out.println("[JWT] 기존 Authentication class: " + existingAuth.getClass().getName());
+            }
+            if (userEmail != null && (existingAuth == null ||
+                    existingAuth.getPrincipal() == null ||
+                    "anonymousUser".equals(existingAuth.getPrincipal()) ||
+                    !(existingAuth.getPrincipal() instanceof UserDetails))) {
                 try {
-                    UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+                    CustomUserDetails userDetails = (CustomUserDetails) userDetailsService
+                            .loadUserByUsername(userEmail);
                     System.out.println("[JWT] UserDetailsService 조회 성공: " + userDetails.getUsername());
                     if (jwtProvider.validateToken(jwt, userDetails)) {
                         System.out.println("[JWT] 토큰 유효성 검증 성공");
-                        // principal을 UserDetails(User)로 명확하게 세팅
+
+                        // ✅ 1. JWT에서 role 클레임 추출
+                        String role = io.jsonwebtoken.Jwts.parserBuilder()
+                                .setSigningKey(jwtProvider.getKey()) // 🔒 getKey()는 public으로 열어줘야 함
+                                .build()
+                                .parseClaimsJws(jwt)
+                                .getBody()
+                                .get("role", String.class);
+
+                        // ✅ 2. ROLE_ 접두어 붙여 권한 생성
+                        List<org.springframework.security.core.authority.SimpleGrantedAuthority> authorities = List.of(
+                                new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role));
+
+                        // ✅ 3. 인증 객체 생성
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities());
+                                userDetails, null, authorities);
+
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
-                        System.out.println("[JWT] SecurityContextHolder에 인증 객체 세팅 완료");
+                        System.out.println("[JWT] SecurityContextHolder에 인증 객체 세팅 완료 (role = " + role + ")");
                     } else {
                         System.out.println("[JWT] 토큰 유효성 검증 실패");
                     }
@@ -74,4 +90,4 @@ if (userEmail != null && (existingAuth == null ||
         }
         chain.doFilter(request, response);
     }
-} 
+}

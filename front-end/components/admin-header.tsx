@@ -16,17 +16,23 @@ export default function AdminHeader() {
   const { user, isLoggedIn, logout } = useAuth()
 
   useEffect(() => {
+    // 스크롤 상태 처리
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10
       if (isScrolled !== scrolled) {
         setScrolled(isScrolled)
       }
     }
-
     window.addEventListener("scroll", handleScroll)
+  
+    // ✅ admin 영역 벗어날 경우 토큰 제거 및 로그아웃
+    if (!pathname.startsWith("/admin")) {
+      console.log("[AdminHeader] admin 영역 벗어남. 로그아웃 실행")
+      logout()
+    }
+  
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [scrolled])
-
+  }, [scrolled, pathname])
   const handleLogout = () => {
     logout()
     router.push("/")

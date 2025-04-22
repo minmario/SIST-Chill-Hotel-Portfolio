@@ -20,7 +20,7 @@ public interface AdminUserRepository extends JpaRepository<User, Long> {
     Optional<User> findById(String id);
 
     /** 최근 7일 이내 가입한 회원 조회 */
-    List<User> findByCreatedAtAfterOrderByCreatedAtDesc(LocalDateTime date);
+    List<User> findByRoleAndCreatedAtAfterOrderByCreatedAtDesc(UserRole role, LocalDateTime createdAt);
 
     /** 특정 권한(role)을 가진 회원 수 */
     Long countByRole(UserRole role);

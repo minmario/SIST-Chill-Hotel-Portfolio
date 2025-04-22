@@ -1,4 +1,5 @@
 package sist.backend.domain.reservation.entity;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import jakarta.persistence.Column;
@@ -21,7 +22,6 @@ import lombok.NoArgsConstructor;
 import sist.backend.domain.room.entity.Room;
 import sist.backend.domain.room.entity.RoomType;
 import sist.backend.domain.user.entity.User;
-
 
 @Entity
 @Table(name = "reservation")
@@ -62,7 +62,7 @@ public class Reservation {
     private LocalDate checkOut;
 
     @Column(name = "room_count", nullable = false)
-    private int roomCount;
+    private Integer roomCount;
 
     @Column(name = "adults", nullable = false)
     private int adultCount;
@@ -77,19 +77,19 @@ public class Reservation {
     private String specialRequests;
 
     @Column(name = "room_price", nullable = false)
-    private int roomPrice;
+    private Integer roomPrice;
 
     @Column(name = "adult_breakfast_price")
-    private int adultBreakfastPrice;
+    private Integer adultBreakfastPrice;
 
     @Column(name = "child_breakfast_price")
-    private int childBreakfastPrice;
+    private Integer childBreakfastPrice;
 
     @Column(name = "subtotal")
-    private int subtotal;
+    private Integer subtotal;
 
     @Column(name = "discount")
-    private int discount;
+    private Integer discount;
 
     @Column(name = "total")
     private int total;
@@ -111,7 +111,6 @@ public class Reservation {
 
     @Column(name = "card_expiry", nullable = false)
     private String cardExpiry;
-
 
     // 비즈니스 메서드
     public void updateStatus(ReservationStatus status) {

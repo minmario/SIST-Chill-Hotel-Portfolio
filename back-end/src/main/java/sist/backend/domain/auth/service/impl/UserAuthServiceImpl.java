@@ -57,7 +57,11 @@ public class UserAuthServiceImpl implements UserAuthService {
         userActivityLogService.logLogin(user, ipAddress);
 
         // user.getId()를 JWT subject로 사용
-String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
+        Long membershipIdx = user.getMembership() != null ? user.getMembership().getMembershipIdx() : null;
+        String token = jwtProvider.generateToken(
+                user.getId(),
+                user.getRole().name(),
+                membershipIdx);
 
         return new UserLoginResponse(token, user.getRole().name());
     }
@@ -91,7 +95,12 @@ String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
         userRepository.save(user);
 
         // JWT 토큰 생성
-        String token = jwtProvider.generateToken(user.getId(), user.getRole().name());
+        Long membershipIdx = user.getMembership() != null ? user.getMembership().getMembershipIdx() : null;
+
+        String token = jwtProvider.generateToken(
+                user.getId(),
+                user.getRole().name(),
+                membershipIdx);
         // 사용자 저장 후 결제 수단 등록
         if (request.getPaymentMethod() != null) {
             PaymentMethodRequest pm = request.getPaymentMethod();

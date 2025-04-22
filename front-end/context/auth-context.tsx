@@ -2,11 +2,18 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+interface User {
+  userId: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 interface AuthContextType {
   isLoggedIn: boolean;
   userRole: string | null;
   userId: string | null;
-  login: (token: string, userId: string, role: string) => void;
+  login: (user: User,token: string) => void;  // ✅ 수정
   logout: () => void;
 }
 
@@ -77,19 +84,16 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     initialize();
   }, []);
 
-  const login = (token: string, userId: string, role: string) => {
-    console.log('[Auth] 로그인 시도: ', { token, userId, role });
-    
-    localStorage.setItem('accessToken', token);
-    localStorage.setItem('userId', userId);
-    localStorage.setItem('userRole', role);
-    
-    console.log('[Auth] 저장된 토큰: ', localStorage.getItem('accessToken'));
-    console.log('[Auth] 로그인 상태 변경: true');
-    
+  const login = (user: User, token: string) => {
+    console.log('[Auth] 로그인 시도: ', user);
+  
+    localStorage.setItem('accessToken', token); // ✅ 실제 토큰 저장
+    localStorage.setItem('userId', user.userId);
+    localStorage.setItem('userRole', user.role);
+  
     setIsLoggedIn(true);
-    setUserId(userId);
-    setUserRole(role);
+    setUserId(user.userId);
+    setUserRole(user.role);
   };
 
   const logout = async () => {

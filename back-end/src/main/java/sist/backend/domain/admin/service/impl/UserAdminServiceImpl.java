@@ -57,7 +57,9 @@ public class UserAdminServiceImpl implements UserAdminService {
     @Override
     public List<UserResponse> getRecentUsers() {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
-        return userRepository.findByCreatedAtAfterOrderByCreatedAtDesc(sevenDaysAgo)
+        
+        
+        return userRepository.findByRoleAndCreatedAtAfterOrderByCreatedAtDesc(UserRole.USER, sevenDaysAgo)
                 .stream()
                 .map(UserResponse::fromEntity)
                 .collect(Collectors.toList());

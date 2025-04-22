@@ -26,23 +26,31 @@ public class PaymentController {
 
     @PostMapping
     public ResponseEntity<?> pay(@RequestBody PaymentRequest request, HttpServletRequest httpRequest, @org.springframework.security.core.annotation.AuthenticationPrincipal sist.backend.domain.user.entity.User user) {
-        String ipAddress = httpRequest.getRemoteAddr();
-        System.out.println("[pay] called");
-        System.out.println("[pay] ipAddress: " + ipAddress);
-        System.out.println("[pay] user: " + (user != null ? user.getId() : "null"));
-        System.out.println("[pay] PaymentRequest: " + request);
-        sist.backend.domain.shop.entity.Order order = paymentService.processPayment(request, ipAddress, user);
-        Map<String, Object> result = new HashMap<>();
-        if (order != null) {
-            System.out.println("[pay] orderIdx: " + order.getOrderIdx());
-            result.put("orderIdx", order.getOrderIdx());
-        } else if (request.getReservationNum() != null) {
-            System.out.println("[pay] reservationNum: " + request.getReservationNum());
-            result.put("reservationNum", request.getReservationNum());
+        try {
+            String ipAddress = httpRequest.getRemoteAddr();
+            System.out.println("[pay] called");
+            System.out.println("[pay] ipAddress: " + ipAddress);
+            System.out.println("[pay] user: " + (user != null ? user.getId() : "null"));
+            System.out.println("[pay] PaymentRequest: " + request);
+            if (user == null) {
+                return ResponseEntity.status(401).body(Map.of("message", "로그인 정보가 없습니다. 인증이 필요합니다."));
+            }
+            sist.backend.domain.shop.entity.Order order = paymentService.processPayment(request, ipAddress, user);
+            Map<String, Object> result = new HashMap<>();
+            if (order != null) {
+                System.out.println("[pay] orderIdx: " + order.getOrderIdx());
+                result.put("orderIdx", order.getOrderIdx());
+            } else if (request.getReservationNum() != null) {
+                System.out.println("[pay] reservationNum: " + request.getReservationNum());
+                result.put("reservationNum", request.getReservationNum());
+            }
+            // 항상 JSON 객체 반환
+            System.out.println("[pay] response: " + result);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("message", e.getMessage() != null ? e.getMessage() : "서버 내부 오류"));
         }
-        // 항상 JSON 객체 반환
-        System.out.println("[pay] response: " + result);
-        return ResponseEntity.ok(result);
     }
     
     @PostMapping("/toss/success")

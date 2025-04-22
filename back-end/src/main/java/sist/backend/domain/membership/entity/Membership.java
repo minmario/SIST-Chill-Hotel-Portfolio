@@ -39,6 +39,8 @@ public class Membership extends BaseTimeEntity {
 
     @Column(nullable = false)
     private Integer requiredStays;
+    @Column(name = "save_percent")
+    private int savePercent;
 
     // 비즈니스 메서드
     public void upgradeTier(MembershipTier tier) {

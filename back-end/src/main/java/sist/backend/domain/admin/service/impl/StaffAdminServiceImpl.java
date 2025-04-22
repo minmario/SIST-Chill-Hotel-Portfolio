@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import sist.backend.domain.admin.dto.response.StaffAdminResponse;
 import sist.backend.domain.admin.repository.AdminUserRepository;
 import sist.backend.domain.admin.dto.request.StaffAdminRequest;
+import sist.backend.domain.admin.dto.request.UpdateStaffPasswordRequest;
 import sist.backend.domain.admin.service.service.StaffAdminService;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.entity.UserRole;
@@ -21,20 +22,21 @@ public class StaffAdminServiceImpl implements StaffAdminService {
 
     private final AdminUserRepository adminUserRepository;
     private final PasswordEncoder passwordEncoder;
-    
+
     @Override
     public List<StaffAdminResponse> getAllStaff() {
         return adminUserRepository.findByRoleIn(List.of(UserRole.STAFF, UserRole.ADMIN)).stream()
                 .map(StaffAdminResponse::from)
                 .collect(Collectors.toList());
     }
+
     @Override
     public void addStaff(StaffAdminRequest request) {
         // ✅ null일 경우 STAFF로 기본값 지정
         UserRole role = request.getRole() != null ? request.getRole() : UserRole.STAFF;
 
-    User staff = User.builder()
-            .id(request.getId())
+        User staff = User.builder()
+                .id(request.getId())
                 .pwd(passwordEncoder.encode(request.getPwd()))
                 .name(request.getName())
                 .email(request.getEmail())
@@ -79,4 +81,33 @@ public class StaffAdminServiceImpl implements StaffAdminService {
 
         adminUserRepository.delete(staff);
     }
+
+    @Override
+
+    public void updateStaffStatus(Long userIdx, String status) {
+        User staff = adminUserRepository.findById(userIdx)
+                .orElseThrow(() -> new IllegalArgumentException("해당 스태프를 찾을 수 없습니다."));
+
+        if (staff.getRole() == UserRole.ADMIN) {
+            throw new IllegalStateException("관리자 계정은 상태를 변경할 수 없습니다.");
+        }
+
+        UserStatus newStatus = UserStatus.valueOf(status.toUpperCase());
+        staff.setStatus(newStatus);
+        adminUserRepository.save(staff);
+    }
+
+    @Override
+    public void changePassword(Long id, UpdateStaffPasswordRequest request) {
+        User staff = adminUserRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("스태프를 찾을 수 없습니다."));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), staff.getPassword())) {
+            throw new IllegalArgumentException("기존 비밀번호가 일치하지 않습니다.");
+        }
+
+        staff.setPwd(passwordEncoder.encode(request.getNewPassword()));
+        adminUserRepository.save(staff);
+    }
+
 }

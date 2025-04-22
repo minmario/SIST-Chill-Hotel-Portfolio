@@ -59,17 +59,23 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
       // 토큰 디코딩하여 만료 시간 확인
       try {
-        const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-        const expirationTime = tokenPayload.exp * 1000; // JWT exp는 초 단위
-        
+        if (!token || token.split('.').length !== 3) {
+          throw new Error('JWT 토큰 형식이 잘못되었습니다.');
+        }
+      
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const tokenPayload = JSON.parse(atob(base64));
+      
+        const expirationTime = tokenPayload.exp * 1000;
         if (Date.now() >= expirationTime) {
           console.error('토큰이 만료되었습니다. 다시 로그인이 필요합니다.');
           localStorage.removeItem('accessToken');
-          return; // 로컬 데이터 유지
+          return;
         }
       } catch (decodeError) {
         console.error('토큰 디코딩 오류:', decodeError);
-        // 토큰 디코딩 실패 시 계속 진행
+        return;
       }
 
       console.log('장바구니 데이터 요청 중...');

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import sist.backend.domain.reservation.dto.request.ReservationRequest;
 import sist.backend.domain.reservation.dto.response.ReservationLookupResponse;
 import sist.backend.domain.reservation.dto.response.ReservationResponse;
+import sist.backend.domain.reservation.dto.response.StaySummaryResponse;
 import sist.backend.domain.reservation.entity.Reservation;
 import sist.backend.domain.reservation.entity.ReservationStatus;
 import sist.backend.domain.reservation.repository.ReservationRepository;
@@ -26,10 +28,10 @@ import sist.backend.domain.user.repository.UserRepository;
 @RequiredArgsConstructor
 public class ReservationService {
 
-    private final ReservationRepository reservationRepository;
-    private final RoomRepository roomRepository;
-    private final UserRepository userRepository;
-    private final RoomTypeRepository roomTypeRepository;
+        private final ReservationRepository reservationRepository;
+        private final RoomRepository roomRepository;
+        private final UserRepository userRepository;
+        private final RoomTypeRepository roomTypeRepository;
 
         public ReservationResponse getReservation(Long userIdx, String reservationNum) {
                 Reservation entity = reservationRepository.findByUser_UserIdxAndReservationNum(userIdx, reservationNum)
@@ -85,47 +87,84 @@ public class ReservationService {
         private String generateReservationCode() {
                 return "LX" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         }
-        
-    @Transactional(readOnly = true)
-    public ReservationLookupResponse getReservationByNumber(String reservationNum) {
-        Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
-                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
-        return toLookupDto(reservation); // ✅ 이걸 내부 메서드로 처리
-    }
 
-    @Transactional(readOnly = true)
-    public ReservationLookupResponse getReservationByGuest(String lastName, String firstName, String phone) {
-        Reservation reservation = reservationRepository
-                .findByLastNameAndFirstNameAndPhone(lastName, firstName, phone)
-                .orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다."));
-        return toLookupDto(reservation);
-    }
+        @Transactional(readOnly = true)
+        public ReservationLookupResponse getReservationByNumber(String reservationNum) {
+                Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
+                                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+                return toLookupDto(reservation); // ✅ 이걸 내부 메서드로 처리
+        }
 
-    private ReservationLookupResponse toLookupDto(Reservation r) {
-    int nights = (int) ChronoUnit.DAYS.between(r.getCheckIn(), r.getCheckOut());
+        @Transactional(readOnly = true)
+        public ReservationLookupResponse getReservationByGuest(String lastName, String firstName, String phone) {
+                Reservation reservation = reservationRepository
+                                .findByLastNameAndFirstNameAndPhone(lastName, firstName, phone)
+                                .orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다."));
+                return toLookupDto(reservation);
+        }
 
-    return ReservationLookupResponse.builder()
-            .reservationNum(r.getReservationNum())
-            .fullName(r.getLastName() + r.getFirstName())
-            .phone(r.getPhone())
-            .email(r.getEmail())
-            .roomName(r.getRoom().getRoomType().getRoomName())
-            .roomGrade(r.getRoomType().getGrade())
-            .checkIn(r.getCheckIn())
-            .checkOut(r.getCheckOut())
-            .adultCount(r.getAdultCount())
-            .childCount(r.getChildCount())
-            .totalNights(nights)
-            .totalPrice(r.getTotal())
-            .status(r.getStatus().toString())
-            .build();
+        private ReservationLookupResponse toLookupDto(Reservation r) {
+                int nights = (int) ChronoUnit.DAYS.between(r.getCheckIn(), r.getCheckOut());
+
+                return ReservationLookupResponse.builder()
+                                .reservationNum(r.getReservationNum())
+                                .fullName(r.getLastName() + r.getFirstName())
+                                .phone(r.getPhone())
+                                .email(r.getEmail())
+                                .roomName(r.getRoom().getRoomType().getRoomName())
+                                .roomGrade(r.getRoomType().getGrade())
+                                .checkIn(r.getCheckIn())
+                                .checkOut(r.getCheckOut())
+                                .adultCount(r.getAdultCount())
+                                .childCount(r.getChildCount())
+                                .totalNights(nights)
+                                .totalPrice(r.getTotal())
+                                .status(r.getStatus().toString())
+                                .build();
         }
 
         @Transactional
         public void cancelReservation(String reservationNum) {
-        Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
-            .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+                Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
+                                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
 
-        reservation.setStatus(ReservationStatus.CANCELLED); // ENUM 업데이트
+                reservation.setStatus(ReservationStatus.CANCELLED); // ENUM 업데이트
+        }
+
+        @Transactional(readOnly = true)
+        public StaySummaryResponse getUserStaySummary(Long userIdx) {
+                LocalDate oneYearAgo = LocalDate.now().minusYears(1);
+
+                List<Reservation> reservations = reservationRepository.findValidReservationsWithinOneYear(userIdx,
+                                oneYearAgo);
+
+                double totalStay = reservations.stream()
+                                .mapToDouble(Reservation::getDurationDays)
+                                .sum();
+
+                List<Level> levels = List.of(
+                                new Level("VIP", 50),
+                                new Level("GOLD", 20),
+                                new Level("SILVER", 5),
+                                new Level("BRONZE", 0));
+
+                for (int i = 0; i < levels.size(); i++) {
+                        Level current = levels.get(i);
+                        Level next = (i > 0) ? levels.get(i - 1) : null;
+
+                        if (totalStay >= current.required) {
+                                return new StaySummaryResponse(
+                                                totalStay,
+                                                next != null ? Math.max(0, next.required - totalStay) : 0,
+                                                current.tier,
+                                                next != null ? next.tier : null);
+                        }
+                }
+
+                return new StaySummaryResponse(totalStay, 5 - totalStay, "BRONZE", "SILVER");
+        }
+
+        // 내부 등급 클래스
+        private record Level(String tier, double required) {
         }
 }
