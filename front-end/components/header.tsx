@@ -12,14 +12,11 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const { totalItems } = useCart()
-  const [isClient, setIsClient] = useState(false)
   const pathname = usePathname()
   const { logout, isLoggedIn } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    setIsClient(true)
-
     const handleScroll = () => {
       if (window.scrollY > 10) {
         setIsScrolled(true)
@@ -35,21 +32,6 @@ const Header = () => {
   const handleLogout = () => {
     logout()
     router.push('/')
-  }
-
-  // 서버 사이드 렌더링 중에는 기본 헤더 반환
-  if (!isClient) {
-    return (
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md" style={{ height: "80px" }}>
-        <div className="container h-full flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold">
-            <span style={{ color: "#2dd4bf" }}>Chill</span>
-            <span style={{ color: "#333333" }}>Haven</span>
-          </Link>
-          <div className="hidden md:flex items-center gap-6">{/* 기본 네비게이션 링크 */}</div>
-        </div>
-      </header>
-    )
   }
 
   return (
@@ -239,7 +221,6 @@ const Header = () => {
               </Link>
 
               <div className="mt-8">
-                console.log("[Header] isLoggedIn 상태:", isLoggedIn)
                 {isLoggedIn ? (
                   <>
                     <Link
@@ -254,8 +235,7 @@ const Header = () => {
                         handleLogout()
                         setIsMenuOpen(false)
                       }}
-                      className="block py-2 w-full text-center text-white rounded"
-                      style={{ backgroundColor: "#2dd4bf" }}
+                      className="block py-2 w-full text-center bg-red-500 text-white rounded"
                     >
                       로그아웃
                     </button>
@@ -263,8 +243,8 @@ const Header = () => {
                 ) : (
                   <Link
                     href="/login"
-                    className="block py-2 w-full text-center text-white rounded"
-                    style={{ backgroundColor: "#2dd4bf" }}
+                    className="block py-2 w-full text-center"
+                    style={{ backgroundColor: "#2dd4bf", color: "#fff", borderRadius: "0.375rem" }}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     로그인

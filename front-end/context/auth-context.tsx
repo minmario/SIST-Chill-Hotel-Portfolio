@@ -22,48 +22,59 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // 세션 스토리지에 앱 시작 여부를 확인
-    const isAppStarted = sessionStorage.getItem('appStarted');
-    
-    // 앱이 처음 시작되는 경우 (새로운 세션)
-    if (!isAppStarted) {
-      console.log('[Auth] 앱 첫 시작 감지: 토큰과 장바구니 초기화');
-      
-      // 로컬 스토리지 정보 제거
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('userRole');
-      
-      // 장바구니 데이터 제거
-      localStorage.removeItem('guestCart');
-      
-      // 장바구니 상태 초기화 (등록된 함수가 있으면 호출)
-      if (cartClearFunction) {
-        cartClearFunction();
+    // 초기화 시작
+    const initialize = () => {
+      try {
+        // 세션 스토리지에 앱 시작 여부를 확인
+        const isAppStarted = sessionStorage.getItem('appStarted');
+        
+        // 앱이 처음 시작되는 경우 (새로운 세션)
+        if (!isAppStarted) {
+          console.log('[Auth] 앱 첫 시작 감지: 토큰과 장바구니 초기화');
+          
+          // 로컬 스토리지 정보 제거
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('userRole');
+          
+          // 장바구니 데이터 제거
+          localStorage.removeItem('guestCart');
+          
+          // 장바구니 상태 초기화 (등록된 함수가 있으면 호출)
+          if (cartClearFunction) {
+            cartClearFunction();
+          }
+          
+          // 앱 시작 상태 저장
+          sessionStorage.setItem('appStarted', 'true');
+        }
+        
+        // 초기 로드 시 로그인 상태 확인
+        const token = localStorage.getItem('accessToken');
+        const storedUserId = localStorage.getItem('userId');
+        const storedUserRole = localStorage.getItem('userRole');
+        
+        if (token) {
+          console.log('[Auth] 저장된 토큰: ', token);
+          console.log('[Auth] 로그인 상태: true');
+        } else {
+          console.log('[Auth] 저장된 토큰 없음');
+          console.log('[Auth] 로그인 상태: false');
+        }
+        
+        setIsLoggedIn(!!token);
+        setUserId(storedUserId);
+        setUserRole(storedUserRole);
+      } finally {
+        // 초기화 완료 표시
+        setInitialized(true);
       }
-      
-      // 앱 시작 상태 저장
-      sessionStorage.setItem('appStarted', 'true');
-    }
-    
-    // 초기 로드 시 로그인 상태 확인
-    const token = localStorage.getItem('accessToken');
-    const storedUserId = localStorage.getItem('userId');
-    const storedUserRole = localStorage.getItem('userRole');
-    
-    if (token) {
-      console.log('[Auth] 저장된 토큰: ', token);
-      console.log('[Auth] 로그인 상태: true');
-    } else {
-      console.log('[Auth] 저장된 토큰 없음');
-      console.log('[Auth] 로그인 상태: false');
-    }
-    
-    setIsLoggedIn(!!token);
-    setUserId(storedUserId);
-    setUserRole(storedUserRole);
+    };
+
+    initialize();
   }, []);
 
   const login = (token: string, userId: string, role: string) => {
@@ -124,6 +135,23 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     setUserId(null);
     setUserRole(null);
   };
+
+  // 초기화가 완료되기 전에는 로딩 상태를 반환
+  if (!initialized) {
+    return (
+      <AuthContext.Provider 
+        value={{ 
+          isLoggedIn: false, 
+          userRole: null, 
+          userId: null, 
+          login,
+          logout 
+        }}
+      >
+        {children}
+      </AuthContext.Provider>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ isLoggedIn, userRole, userId, login, logout }}>

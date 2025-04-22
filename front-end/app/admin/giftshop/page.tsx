@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import * as React from "react"
 
 import { useState, useEffect } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Package, Plus, Pencil, Trash2, Search, CheckSquare, Square, AlertCircle, X, RefreshCw, ArrowUp, ArrowDown } from "lucide-react"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination"
 
 // 물품 타입 정의
 type Item = {
@@ -92,15 +93,37 @@ interface ModalProps {
 }
 
 function Modal({ isOpen, onClose, title, children, footer }: ModalProps) {
+  // 모달이 열리면 body에 overflow hidden 적용, 닫히면 제거
+  useEffect(() => {
+    // 서버 사이드 렌더링 중이면 동작하지 않음
+    if (typeof window === 'undefined') return;
+
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      // 스크롤바 너비만큼 padding-right 추가하여 레이아웃 이동 방지
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+    
+    // 컴포넌트 언마운트 시 원래대로 복원
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
       {/* 배경 오버레이 */}
       <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
 
       {/* 모달 컨텐츠 */}
-      <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 z-10">
+      <div className="relative bg-white rounded-lg shadow-lg w-full max-w-md mx-4 z-10 overflow-visible">
         {/* 헤더 */}
         <div className="flex justify-between items-center p-4 border-b">
           <h3 className="text-lg font-semibold">{title}</h3>
@@ -110,7 +133,7 @@ function Modal({ isOpen, onClose, title, children, footer }: ModalProps) {
         </div>
 
         {/* 본문 */}
-        <div className="p-4">{children}</div>
+        <div className="p-4 overflow-visible">{children}</div>
 
         {/* 푸터 */}
         {footer && <div className="p-4 border-t flex justify-end gap-2">{footer}</div>}
@@ -131,6 +154,10 @@ export default function ItemsPage() {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null)
   const [sortField, setSortField] = useState<string>("itemIdx") // 기본 정렬 필드를 itemIdx로 변경
   const [sortDirection, setSortDirection] = useState<string>("desc") // 내림차순 정렬
+
+  // 페이지네이션 상태 추가
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
 
   // 선택된 항목 관리
   const [selectedItems, setSelectedItems] = useState<number[]>([])
@@ -201,10 +228,29 @@ export default function ItemsPage() {
     return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
   });
 
+  // 현재 페이지에 표시할 아이템
+  const currentItems = filteredItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // 전체 페이지 수 계산
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
   // 초기 데이터 로드
   useEffect(() => {
     fetchItems()
   }, [])
+
+  // 필터 변경 시 페이지 초기화
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedSubcategory, sortField, sortDirection]);
 
   // 아이템 목록 가져오기
   const fetchItems = async () => {
@@ -336,17 +382,17 @@ export default function ItemsPage() {
       }
 
       const newItem = await response.json()
-      setItems([...items, newItem])
-      setCurrentItem({
+    setItems([...items, newItem])
+    setCurrentItem({
         itemName: "",
-        price: 0,
+      price: 0,
         stockQuantity: 0,
         createdAt: "",
         updatedAt: "",
-        category: "",
-        description: "",
-      })
-      setIsAddModalOpen(false)
+      category: "",
+      description: "",
+    })
+    setIsAddModalOpen(false)
       toast.success('상품이 추가되었습니다')
     } catch (error: unknown) {
       console.error('Error adding item:', error)
@@ -383,12 +429,12 @@ export default function ItemsPage() {
       }
 
       const updatedItem = await response.json()
-      const updatedItems = items.map((item) =>
+    const updatedItems = items.map((item) =>
         item.itemIdx === currentItem.itemIdx ? updatedItem : item
-      )
+    )
 
-      setItems(updatedItems)
-      setIsEditModalOpen(false)
+    setItems(updatedItems)
+    setIsEditModalOpen(false)
       toast.success('상품이 수정되었습니다')
     } catch (error: unknown) {
       console.error('Error updating item:', error)
@@ -422,8 +468,8 @@ export default function ItemsPage() {
       }
 
       const updatedItems = items.filter((item) => item.itemIdx !== currentItem.itemIdx)
-      setItems(updatedItems)
-      setIsDeleteModalOpen(false)
+    setItems(updatedItems)
+    setIsDeleteModalOpen(false)
       toast.success('상품이 삭제되었습니다')
     } catch (error: unknown) {
       console.error('Error deleting item:', error)
@@ -603,51 +649,55 @@ export default function ItemsPage() {
           </div>
           
           <div className="flex gap-2 items-center w-full sm:w-auto">
-            <Select 
-              value={
-                selectedCategory 
-                ? Object.entries(categoryIdMap)
-                    .find(([_, id]) => id === selectedCategory)?.[0] || "all" 
-                : "all"
-              } 
-              onValueChange={handleCategoryChange}
-            >
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="전체 카테고리" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 카테고리</SelectItem>
-          {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-              {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            {selectedCategory && subcategories[selectedCategory] && (
+            <div className="relative z-[100]">
               <Select 
                 value={
-                  selectedSubcategory && selectedSubcategory !== "none"
-                    ? selectedSubcategory
-                    : "none"
+                  selectedCategory 
+                  ? Object.entries(categoryIdMap)
+                      .find(([_, id]) => id === selectedCategory)?.[0] || "all" 
+                  : "all"
                 } 
-                onValueChange={handleSubcategoryChange}
+                onValueChange={handleCategoryChange}
               >
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="서브카테고리">
-                    {selectedSubcategory === "none" ? "전체" : undefined}
-                  </SelectValue>
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="전체 카테고리" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">전체</SelectItem>
-                  {subcategories[selectedCategory].map((subcategory) => (
-                    <SelectItem key={subcategory.id} value={subcategory.id || "no-value"}>
-                      {subcategory.name}
+                <SelectContent className="bg-white">
+                  <SelectItem value="all">전체 카테고리</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            
+            {selectedCategory && subcategories[selectedCategory] && (
+              <div className="relative z-[99]">
+                <Select 
+                  value={
+                    selectedSubcategory && selectedSubcategory !== "none"
+                      ? selectedSubcategory
+                      : "none"
+                  } 
+                  onValueChange={handleSubcategoryChange}
+                >
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="서브카테고리">
+                      {selectedSubcategory === "none" ? "전체" : undefined}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="none">전체</SelectItem>
+                    {subcategories[selectedCategory].map((subcategory) => (
+                      <SelectItem key={subcategory.id} value={subcategory.id || "no-value"}>
+                        {subcategory.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
             
             <Button variant="outline" size="icon" onClick={handleRefresh} disabled={refreshing}>
@@ -753,7 +803,7 @@ export default function ItemsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-              filteredItems.map((item) => (
+              currentItems.map((item) => (
                   <TableRow key={item.itemIdx}>
                   <TableCell>
                       <div
@@ -821,6 +871,42 @@ export default function ItemsPage() {
           </TableBody>
         </Table>
         </div>
+        
+        {/* 페이지네이션 추가 */}
+        {!loading && filteredItems.length > 0 && (
+          <div className="px-4 py-2 flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink 
+                        isActive={page === currentPage}
+                        onClick={() => handlePageChange(page)}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </div>
 
       {/* 상품 추가 모달 */}
@@ -852,61 +938,65 @@ export default function ItemsPage() {
           
           <div>
             <Label htmlFor="category">카테고리</Label>
-            <Select 
-              value={currentItem.category?.split('-')[0] || currentItem.category?.split('/')[0] || "none"} 
-              onValueChange={(value) => {
-                if (value === "none") {
-                  handleSelectChange("category", "");
-                } else {
-                  // 서브카테고리가 선택되어 있을 경우, 카테고리와 함께 저장
-                  // 아니면 카테고리만 저장
-                  const subcatValue = currentItem.category?.split(/[-\/]/)[1] || "";
-                  handleSelectChange("category", subcatValue ? `${value}-${subcatValue}` : value);
-                }
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="카테고리 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">카테고리 선택</SelectItem>
-                {Object.entries(categoryIdMap).map(([name, id]) => (
-                  id !== "all" && <SelectItem key={id} value={id}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="relative z-[200]">
+              <Select 
+                value={currentItem.category?.split('-')[0] || currentItem.category?.split('/')[0] || "none"} 
+                onValueChange={(value) => {
+                  if (value === "none") {
+                    handleSelectChange("category", "");
+                  } else {
+                    // 서브카테고리가 선택되어 있을 경우, 카테고리와 함께 저장
+                    // 아니면 카테고리만 저장
+                    const subcatValue = currentItem.category?.split(/[-\/]/)[1] || "";
+                    handleSelectChange("category", subcatValue ? `${value}-${subcatValue}` : value);
+                  }
+                }}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="카테고리 선택" />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-[300]">
+                  <SelectItem value="none">카테고리 선택</SelectItem>
+                  {Object.entries(categoryIdMap).map(([name, id]) => (
+                    id !== "all" && <SelectItem key={id} value={id}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           {/* 서브카테고리 선택 */}
           {currentItem.category && currentItem.category !== "none" && (
             <div>
               <Label htmlFor="subcategory">서브카테고리</Label>
-              <Select 
-                value={currentItem.category?.split(/[-\/]/)[1] || "none"} 
-                onValueChange={(subcatValue) => {
-                  const mainCat = currentItem.category?.split(/[-\/]/)[0] || "";
-                  if (subcatValue === "none") {
-                    handleSelectChange("category", mainCat);
-                  } else {
-                    handleSelectChange("category", `${mainCat}-${subcatValue}`);
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="서브카테고리 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">서브카테고리 선택</SelectItem>
-                  {currentItem.category && 
-                    subcategories[currentItem.category.split(/[-\/]/)[0]] && 
-                    subcategories[currentItem.category.split(/[-\/]/)[0]].map((subcategory) => (
-                      <SelectItem key={subcategory.id} value={subcategory.id || "no-value"}>
-                        {subcategory.name}
-                      </SelectItem>
-                    ))
-                  }
-                </SelectContent>
-              </Select>
+              <div className="relative z-[190]">
+                <Select 
+                  value={currentItem.category?.split(/[-\/]/)[1] || "none"} 
+                  onValueChange={(subcatValue) => {
+                    const mainCat = currentItem.category?.split(/[-\/]/)[0] || "";
+                    if (subcatValue === "none") {
+                      handleSelectChange("category", mainCat);
+                    } else {
+                      handleSelectChange("category", `${mainCat}-${subcatValue}`);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="서브카테고리 선택" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-[290]">
+                    <SelectItem value="none">서브카테고리 선택</SelectItem>
+                    {currentItem.category && 
+                      subcategories[currentItem.category.split(/[-\/]/)[0]] && 
+                      subcategories[currentItem.category.split(/[-\/]/)[0]].map((subcategory) => (
+                        <SelectItem key={subcategory.id} value={subcategory.id || "no-value"}>
+                          {subcategory.name}
+                        </SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
           
@@ -980,61 +1070,65 @@ export default function ItemsPage() {
           
           <div>
             <Label htmlFor="edit-category">카테고리</Label>
-            <Select 
-              value={currentItem.category?.split('-')[0] || currentItem.category?.split('/')[0] || "none"} 
-              onValueChange={(value) => {
-                if (value === "none") {
-                  handleSelectChange("category", "");
-                } else {
-                  // 서브카테고리가 선택되어 있을 경우, 카테고리와 함께 저장
-                  // 아니면 카테고리만 저장
-                  const subcatValue = currentItem.category?.split(/[-\/]/)[1] || "";
-                  handleSelectChange("category", subcatValue ? `${value}-${subcatValue}` : value);
-                }
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="카테고리 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">카테고리 선택</SelectItem>
-                {Object.entries(categoryIdMap).map(([name, id]) => (
-                  id !== "all" && <SelectItem key={id} value={id}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="relative z-[200]">
+              <Select 
+                value={currentItem.category?.split('-')[0] || currentItem.category?.split('/')[0] || "none"} 
+                onValueChange={(value) => {
+                  if (value === "none") {
+                    handleSelectChange("category", "");
+                  } else {
+                    // 서브카테고리가 선택되어 있을 경우, 카테고리와 함께 저장
+                    // 아니면 카테고리만 저장
+                    const subcatValue = currentItem.category?.split(/[-\/]/)[1] || "";
+                    handleSelectChange("category", subcatValue ? `${value}-${subcatValue}` : value);
+                  }
+                }}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue placeholder="카테고리 선택" />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-[300]">
+                  <SelectItem value="none">카테고리 선택</SelectItem>
+                  {Object.entries(categoryIdMap).map(([name, id]) => (
+                    id !== "all" && <SelectItem key={id} value={id}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           {/* 서브카테고리 선택 */}
           {currentItem.category && currentItem.category !== "none" && (
             <div>
               <Label htmlFor="edit-subcategory">서브카테고리</Label>
-              <Select 
-                value={currentItem.category?.split(/[-\/]/)[1] || "none"} 
-                onValueChange={(subcatValue) => {
-                  const mainCat = currentItem.category?.split(/[-\/]/)[0] || "";
-                  if (subcatValue === "none") {
-                    handleSelectChange("category", mainCat);
-                  } else {
-                    handleSelectChange("category", `${mainCat}-${subcatValue}`);
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="서브카테고리 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">서브카테고리 선택</SelectItem>
-                  {currentItem.category && 
-                    subcategories[currentItem.category.split(/[-\/]/)[0]] && 
-                    subcategories[currentItem.category.split(/[-\/]/)[0]].map((subcategory) => (
-                      <SelectItem key={subcategory.id} value={subcategory.id || "no-value"}>
-                        {subcategory.name}
-                      </SelectItem>
-                    ))
-                  }
-                </SelectContent>
-              </Select>
+              <div className="relative z-[190]">
+                <Select 
+                  value={currentItem.category?.split(/[-\/]/)[1] || "none"} 
+                  onValueChange={(subcatValue) => {
+                    const mainCat = currentItem.category?.split(/[-\/]/)[0] || "";
+                    if (subcatValue === "none") {
+                      handleSelectChange("category", mainCat);
+                    } else {
+                      handleSelectChange("category", `${mainCat}-${subcatValue}`);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="서브카테고리 선택" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white z-[290]">
+                    <SelectItem value="none">서브카테고리 선택</SelectItem>
+                    {currentItem.category && 
+                      subcategories[currentItem.category.split(/[-\/]/)[0]] && 
+                      subcategories[currentItem.category.split(/[-\/]/)[0]].map((subcategory) => (
+                        <SelectItem key={subcategory.id} value={subcategory.id || "no-value"}>
+                          {subcategory.name}
+                        </SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
           

@@ -12,6 +12,8 @@ import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.entity.UserStatus;
 import sist.backend.domain.user.repository.UserRepository;
 import sist.backend.global.jwt.JwtProvider;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
@@ -39,6 +41,29 @@ public class UserInfoController {
 
         // ✅ 수정된 버전:
         return ResponseEntity.ok(UserResponse.from(user));
+    }
+
+    @GetMapping("/checkout-info")
+    public ResponseEntity<?> getCheckoutUserInfo(HttpServletRequest request) {
+        String userId = jwtProvider.extractUserId(request);
+        if (userId == null) {
+            return ResponseEntity.status(401).body("토큰 오류 또는 만료");
+        }
+
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(404).body("사용자 없음");
+        }
+
+        Map<String, String> userInfoMap = new HashMap<>();
+        // 이름에서 공백 제거
+        userInfoMap.put("name", user.getName().replaceAll("\\s+", ""));
+        // 전화번호에서 '-' 제거
+        userInfoMap.put("phone", user.getPhone().replaceAll("-", ""));
+        // 이메일 추가
+        userInfoMap.put("email", user.getEmail());
+
+        return ResponseEntity.ok(userInfoMap);
     }
 
     @PatchMapping("/update")

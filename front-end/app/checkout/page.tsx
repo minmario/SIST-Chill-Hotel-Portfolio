@@ -1,6 +1,7 @@
 "use client"
 
 import { useCart } from "@/context/cart-context"
+import { useAuth } from "@/context/auth-context"
 import { initTossPayment } from "@/lib/toss-payments"
 import { ChevronLeft } from "lucide-react"
 import Link from "next/link"
@@ -11,6 +12,7 @@ import styles from "./checkout.module.css"
 export default function Checkout() {
   const router = useRouter()
   const { items: cartItems, totalPrice, clearCart } = useCart()
+  const { isLoggedIn } = useAuth()
   const [mounted, setMounted] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState("card")
@@ -19,9 +21,6 @@ export default function Checkout() {
     name: "",
     phone: "",
     email: "",
-    address: "",
-    addressDetail: "",
-    postcode: "",
     memo: ""
   })
 
@@ -29,6 +28,36 @@ export default function Checkout() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // 사용자 정보 로드
+  useEffect(() => {
+    if (mounted && isLoggedIn) {
+      const fetchUserInfo = async () => {
+        try {
+          const token = localStorage.getItem('accessToken');
+          const response = await fetch('http://localhost:8080/api/user/checkout-info', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setFormData(prev => ({
+              ...prev,
+              name: data.name || "",
+              phone: data.phone || "",
+              email: data.email || ""
+            }));
+          }
+        } catch (error) {
+          console.error("사용자 정보 로드 오류:", error);
+        }
+      };
+      
+      fetchUserInfo();
+    }
+  }, [mounted, isLoggedIn]);
 
   useEffect(() => {
     if (mounted && cartItems.length === 0) {
@@ -202,39 +231,7 @@ export default function Checkout() {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium mb-1">주소</label>
-                      <input
-                        type="text"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full p-2 border rounded mb-2"
-                      />
-                      <input
-                        type="text"
-                        name="addressDetail"
-                        value={formData.addressDetail}
-                        onChange={handleInputChange}
-                        placeholder="상세주소"
-                        className="w-full p-2 border rounded"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-1">우편번호</label>
-                      <input
-                        type="text"
-                        name="postcode"
-                        value={formData.postcode}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full p-2 border rounded"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium mb-1">배송 메모</label>
+                      <label className="block text-sm font-medium mb-1">요청 사항</label>
                       <textarea
                         name="memo"
                         value={formData.memo}
