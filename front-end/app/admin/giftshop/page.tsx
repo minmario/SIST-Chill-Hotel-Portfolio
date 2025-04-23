@@ -384,11 +384,63 @@ export default function ItemsPage() {
     }
   }
 
+  // 필수 입력 필드의 오류 상태 관리
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // 필수 필드 검증 함수
+  const validateRequiredFields = () => {
+    const newErrors: Record<string, string> = {}
+    
+    // 필수 필드 목록과 오류 메시지
+    const requiredFields: Record<string, string> = {
+      itemName: "상품명을 입력해주세요",
+      price: "가격을 입력해주세요",
+      stockQuantity: "재고 수량을 입력해주세요",
+    }
+    
+    // 각 필수 필드 검증
+    Object.entries(requiredFields).forEach(([field, message]) => {
+      if (!currentItem[field as keyof Item]) {
+        newErrors[field] = message
+      } else if (field === "price" && (currentItem.price as number) <= 0) {
+        newErrors[field] = "가격은 0보다 커야 합니다"
+      } else if (field === "stockQuantity" && (currentItem.stockQuantity as number) < 0) {
+        newErrors[field] = "재고 수량은 0 이상이어야 합니다"
+      }
+    })
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0 // 오류가 없으면 true 반환
+  }
+
+  // 입력 필드 변경 핸들러 - 오류 상태도 함께 관리
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+
+    // 오류 상태 초기화
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" })
+    }
+
+    // 숫자 필드 처리
+    if (name === "price" || name === "stockQuantity") {
+      setCurrentItem({
+        ...currentItem,
+        [name]: Number.parseInt(value) || 0,
+      })
+    } else {
+      setCurrentItem({
+        ...currentItem,
+        [name]: value,
+      })
+    }
+  }
+
   // 물품 추가 핸들러
   const handleAddItem = async () => {
     // 필수 필드 검증
-    if (!currentItem.itemName || currentItem.price === 0) {
-      toast.error('상품명과 가격은 필수 입력 항목입니다')
+    if (!validateRequiredFields()) {
+      toast.error('필수 입력 항목을 모두 작성해주세요')
       return
     }
 
@@ -431,6 +483,12 @@ export default function ItemsPage() {
 
   // 물품 편집 핸들러
   const handleEditItem = async () => {
+    // 필수 필드 검증
+    if (!validateRequiredFields()) {
+      toast.error('필수 입력 항목을 모두 작성해주세요')
+      return
+    }
+
     try {
       const token = localStorage.getItem("accessToken");
       const response = await fetch(`${API_URL}/${currentItem.itemIdx}`, {
@@ -542,6 +600,8 @@ export default function ItemsPage() {
       ...item,
       imageUrl: item.imageUrl || "", // 이미지 URL이 없을 경우 빈 문자열로 처리
     })
+    // 오류 상태 초기화
+    setErrors({})
     setIsEditModalOpen(true)
   }
 
@@ -551,26 +611,13 @@ export default function ItemsPage() {
     setIsDeleteModalOpen(true)
   }
 
-  // 입력 필드 변경 핸들러
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-
-    // 숫자 필드 처리
-    if (name === "price" || name === "stockQuantity") {
-      setCurrentItem({
-        ...currentItem,
-        [name]: Number.parseInt(value) || 0,
-      })
-    } else {
-      setCurrentItem({
-        ...currentItem,
-        [name]: value,
-      })
-    }
-  }
-
   // 셀렉트 변경 핸들러
   const handleSelectChange = (name: string, value: string) => {
+    // 오류 상태 초기화
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" })
+    }
+    
     setCurrentItem({
       ...currentItem,
       [name]: value,
@@ -622,6 +669,8 @@ export default function ItemsPage() {
       description: "",
       imageUrl: "", // 이미지 URL도 명시적으로 초기화
     })
+    // 오류 상태도 초기화
+    setErrors({})
     setIsAddModalOpen(true)
   }
 
@@ -1032,11 +1081,17 @@ export default function ItemsPage() {
       {/* 상품 추가 모달 */}
       <Modal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false)
+          setErrors({})
+        }}
         title="상품 추가"
         footer={
           <>
-            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setIsAddModalOpen(false)
+              setErrors({})
+            }}>
               취소
             </Button>
             <Button onClick={handleAddItem}>추가</Button>
@@ -1044,8 +1099,29 @@ export default function ItemsPage() {
         }
       >
         <div className="space-y-4">
+          {/* 필수 입력 항목 경고 메시지 */}
+          {Object.keys(errors).length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+              <div className="flex items-start">
+                <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 mr-2" />
+                <div>
+                  <h3 className="text-sm font-medium text-red-800">
+                    필수 입력 정보가 누락되었습니다
+                  </h3>
+                  <ul className="mt-1 text-xs text-red-700 list-disc list-inside">
+                    {Object.entries(errors).map(([field, message]) => (
+                      <li key={field}>{message}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div>
-            <Label htmlFor="itemName">상품명 *</Label>
+            <Label htmlFor="itemName" className="flex items-center">
+              상품명 <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input
               id="itemName"
               name="itemName"
@@ -1053,7 +1129,11 @@ export default function ItemsPage() {
               onChange={handleInputChange}
               placeholder="상품명을 입력하세요"
               required
+              className={errors.itemName ? "border-red-500" : ""}
             />
+            {errors.itemName && (
+              <p className="text-red-500 text-xs mt-1">{errors.itemName}</p>
+            )}
           </div>
           
           <div>
@@ -1122,29 +1202,41 @@ export default function ItemsPage() {
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="price">가격 (원) *</Label>
-            <Input
-              id="price"
-              name="price"
-              type="number"
+              <Label htmlFor="price" className="flex items-center">
+                가격 (원) <span className="text-red-500 ml-1">*</span>
+              </Label>
+              <Input
+                id="price"
+                name="price"
+                type="number"
                 min="0"
                 value={currentItem.price || 0}
-              onChange={handleInputChange}
+                onChange={handleInputChange}
                 required
-            />
-          </div>
+                className={errors.price ? "border-red-500" : ""}
+              />
+              {errors.price && (
+                <p className="text-red-500 text-xs mt-1">{errors.price}</p>
+              )}
+            </div>
             <div>
-              <Label htmlFor="stockQuantity">재고 수량 *</Label>
-            <Input
+              <Label htmlFor="stockQuantity" className="flex items-center">
+                재고 수량 <span className="text-red-500 ml-1">*</span>
+              </Label>
+              <Input
                 id="stockQuantity"
                 name="stockQuantity"
-              type="number"
+                type="number"
                 min="0"
                 value={currentItem.stockQuantity || 0}
-              onChange={handleInputChange}
+                onChange={handleInputChange}
                 required
-            />
-          </div>
+                className={errors.stockQuantity ? "border-red-500" : ""}
+              />
+              {errors.stockQuantity && (
+                <p className="text-red-500 text-xs mt-1">{errors.stockQuantity}</p>
+              )}
+            </div>
           </div>
           
           <div>
@@ -1220,11 +1312,17 @@ export default function ItemsPage() {
       {/* 상품 편집 모달 */}
       <Modal
         isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setErrors({})
+        }}
         title="상품 편집"
         footer={
           <>
-            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setIsEditModalOpen(false)
+              setErrors({})
+            }}>
               취소
             </Button>
             <Button onClick={handleEditItem}>저장</Button>
@@ -1232,8 +1330,29 @@ export default function ItemsPage() {
         }
       >
         <div className="space-y-4">
+          {/* 필수 입력 항목 경고 메시지 */}
+          {Object.keys(errors).length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+              <div className="flex items-start">
+                <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 mr-2" />
+                <div>
+                  <h3 className="text-sm font-medium text-red-800">
+                    필수 입력 정보가 누락되었습니다
+                  </h3>
+                  <ul className="mt-1 text-xs text-red-700 list-disc list-inside">
+                    {Object.entries(errors).map(([field, message]) => (
+                      <li key={field}>{message}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div>
-            <Label htmlFor="edit-itemName">상품명 *</Label>
+            <Label htmlFor="edit-itemName" className="flex items-center">
+              상품명 <span className="text-red-500 ml-1">*</span>
+            </Label>
             <Input
               id="edit-itemName"
               name="itemName"
@@ -1241,7 +1360,11 @@ export default function ItemsPage() {
               onChange={handleInputChange}
               placeholder="상품명을 입력하세요"
               required
+              className={errors.itemName ? "border-red-500" : ""}
             />
+            {errors.itemName && (
+              <p className="text-red-500 text-xs mt-1">{errors.itemName}</p>
+            )}
           </div>
           
           <div>
@@ -1310,29 +1433,41 @@ export default function ItemsPage() {
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="edit-price">가격 (원) *</Label>
-            <Input
+              <Label htmlFor="edit-price" className="flex items-center">
+                가격 (원) <span className="text-red-500 ml-1">*</span>
+              </Label>
+              <Input
                 id="edit-price"
-              name="price"
-              type="number"
+                name="price"
+                type="number"
                 min="0"
                 value={currentItem.price || 0}
-              onChange={handleInputChange}
+                onChange={handleInputChange}
                 required
-            />
-          </div>
+                className={errors.price ? "border-red-500" : ""}
+              />
+              {errors.price && (
+                <p className="text-red-500 text-xs mt-1">{errors.price}</p>
+              )}
+            </div>
             <div>
-              <Label htmlFor="edit-stockQuantity">재고 수량 *</Label>
-            <Input
+              <Label htmlFor="edit-stockQuantity" className="flex items-center">
+                재고 수량 <span className="text-red-500 ml-1">*</span>
+              </Label>
+              <Input
                 id="edit-stockQuantity"
                 name="stockQuantity"
-              type="number"
+                type="number"
                 min="0"
                 value={currentItem.stockQuantity || 0}
-              onChange={handleInputChange}
+                onChange={handleInputChange}
                 required
-            />
-          </div>
+                className={errors.stockQuantity ? "border-red-500" : ""}
+              />
+              {errors.stockQuantity && (
+                <p className="text-red-500 text-xs mt-1">{errors.stockQuantity}</p>
+              )}
+            </div>
           </div>
           
           <div>
