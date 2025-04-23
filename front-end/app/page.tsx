@@ -1,15 +1,25 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, Suspense } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import styles from "./page.module.css"
-import { useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 
+// 동적 import를 사용하여 컴포넌트 지연 로딩 - Suspense 추가
+const MainSlider = dynamic(() => import("@/components/Home/MainSlider"), {
+  loading: () => <div className="h-[80vh] bg-gray-100 animate-pulse flex items-center justify-center"><span className="text-gray-500">슬라이더 로딩 중...</span></div>,
+  ssr: true
+})
 
+const BookingSearch = dynamic(() => import("@/components/Home/BookingSearch"), {
+  ssr: true
+})
 
-
+const RoomSection = dynamic(() => import("@/components/Home/RoomSection"), {
+  ssr: true
+})
 
 const slides = [
   {
@@ -38,69 +48,96 @@ const slides = [
   },
 ]
 
+// 객실 정보
+const rooms = [
+  {
+    id: 1,
+    name: "Chill Harmony Room",
+    image: "/images/rooms/harmony/harmony1.png?height=300&width=400",
+    description: "A peaceful retreat with panoramic mountain views with harmonious design elements.",
+    size: "30m²",
+    capacity: "성인 2인 기준",
+    link: "/rooms/2",
+  },
+  {
+    id: 2,
+    name: "Chill Serenity Room",
+    image: "/images/rooms/serenity/serenity1.png?height=300&width=400",
+    description: "A tranquil space with modern amenities and soothing natural views.",
+    size: "35m²",
+    capacity: "성인 2인 기준",
+    link: "/rooms/3",
+  },
+  {
+    id: 3,
+    name: "Chill Family Suite",
+    image: "/images/rooms/family/family1.png?height=300&width=400",
+    description: "A spacious suite with separate living areas and a luxurious suite designed for family well-being.",
+    size: "50m²",
+    capacity: "성인 2인 기준",
+    link: "/rooms/4",
+  },
+]
+
+// 다이닝 정보
+const diningOptions = [
+  {
+    id: 1,
+    name: "Sunset Lounge",
+    image: "/placeholder.svg?height=400&width=800",
+    description: "석양을 바라보며 즐기는 커피향과 가벼운 식사",
+    hours: "매일 17:00 - 22:00",
+    link: "/dining/sunset-lounge",
+  },
+  {
+    id: 2,
+    name: "Ocean View Restaurant",
+    image: "/placeholder.svg?height=400&width=800",
+    description: "신선한 해산물과 지역 식재료로 준비한 정통 요리",
+    hours: "매일 07:00 - 22:00",
+    link: "/dining/ocean-view",
+  },
+  {
+    id: 3,
+    name: "Harmony Bar",
+    image: "/placeholder.jpg?height=400&width=800",
+    description: "프리미엄 위스키와 칵테일을 즐길 수 있는 분위기 있는 바",
+    hours: "매일 18:00 - 01:00",
+    link: "/dining/harmony-bar",
+  },
+]
+
+// 기프트샵 상품 정보
+const storeItems = [
+  {
+    id: 1,
+    name: "Chill Haven 시그니처 배스로브",
+    image: "/placeholder.svg?height=400&width=800",
+    description: "최고급 면소재로 제작된 호텔 시그니처 배스로브",
+    price: "120,000원",
+    link: "/store/1",
+  },
+  {
+    id: 2,
+    name: "Chill Haven 베개",
+    image: "/placeholder.svg?height=400&width=800",
+    description: "최상의 수면을 위한 프리미엄 구스다운 베개",
+    price: "89,000원",
+    link: "/store/2",
+  },
+  {
+    id: 3,
+    name: "Chill Haven 씨솔트 바디 스크럽",
+    image: "/placeholder.svg?height=400&width=800",
+    description: "호텔 스파에서 사용하는 동일한 천연 스크럽",
+    price: "45,000원",
+    link: "/store/3",
+  },
+]
+
 export default function Home() {
-  const router = useRouter()
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const [checkInDate, setCheckInDate] = useState("")
-  const [checkOutDate, setCheckOutDate] = useState("")
-
-  // 컴포넌트 마운트 시 체크인=오늘, 체크아웃=내일로 자동 설정
-  useEffect(() => {
-    const today = new Date();
-    const tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
-    const todayStr = today.toISOString().split('T')[0];
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
-    setCheckInDate(todayStr);
-    setCheckOutDate(tomorrowStr);
-  }, []);
-
   const [currentDiningSlide, setCurrentDiningSlide] = useState(0)
   const [currentStoreSlide, setCurrentStoreSlide] = useState(0)
-  const [adults, setAdults] = useState(2)
-  const [children, setChildren] = useState(0)
-  const [roomCount, setRoomCount] = useState(1)
-
-  const totalPeople = adults + children
-  const maxPeople = roomCount * 4
-
-  const handleRoomChange = (delta: number) => {
-    const newRoomCount = roomCount + delta
-    if (newRoomCount < 1) return
-    const newMax = newRoomCount * 4
-    if (totalPeople > newMax) {
-      const adjusted = Math.max(1, newMax - children)
-      setAdults(adjusted)
-    }
-    setRoomCount(newRoomCount)
-  }
-
-  const handleAdultsChange = (delta: number) => {
-    const newAdults = adults + delta
-    if (newAdults < 1 || newAdults + children > maxPeople) return
-    setAdults(newAdults)
-  }
-
-  const handleChildrenChange = (delta: number) => {
-    const newChildren = children + delta
-    if (newChildren < 0 || adults + newChildren > maxPeople) return
-    setChildren(newChildren)
-  }
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1))
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const goToNextSlide = () => {
-    setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1))
-  }
-
-  const goToPrevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1))
-  }
 
   const goToNextDiningSlide = () => {
     setCurrentDiningSlide((prev) => (prev === diningOptions.length - 1 ? 0 : prev + 1))
@@ -118,429 +155,181 @@ export default function Home() {
     setCurrentStoreSlide((prev) => (prev === 0 ? storeItems.length - 1 : prev - 1))
   }
 
-  const formatDate = (date: string | number | Date) => {
-    const d = new Date(date)
-    const day = d.getDate().toString().padStart(2, "0")
-    const month = (d.getMonth() + 1).toString().padStart(2, "0")
-    const year = d.getFullYear()
-    const dayOfWeek = ["일", "월", "화", "수", "목", "금", "토"][d.getDay()]
-    return `${year}.${month}.${day} (${dayOfWeek})`
-  }
-  const handleSearch = () => {
-    router.push(`/booking?checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&roomCount=${roomCount}&adults=${adults}&children=${children}`)
-  }
-  // 객실 정보
-  const rooms = [
-    {
-      id: 1,
-      name: "Chill Harmony Room",
-      image: "/images/rooms/harmony/harmony1.png?height=300&width=400",
-      description: "A peaceful retreat with panoramic mountain views with harmonious design elements.",
-      size: "30m²",
-      capacity: "성인 2인 기준",
-      link: "/rooms/2",
-    },
-    {
-      id: 2,
-      name: "Chill Serenity Room",
-      image: "/images/rooms/serenity/serenity1.png?height=300&width=400",
-      description: "A tranquil space with modern amenities and soothing natural views.",
-      size: "35m²",
-      capacity: "성인 2인 기준",
-      link: "/rooms/3",
-    },
-    {
-      id: 3,
-      name: "Chill Family Suite",
-      image: "/images/rooms/family/family1.png?height=300&width=400",
-      description: "A spacious suite with separate living areas and a luxurious suite designed for family well-being.",
-      size: "50m²",
-      capacity: "성인 2인 기준",
-      link: "/rooms/4",
-    },
-  ]
-
-  // 다이닝 정보
-  const diningOptions = [
-    {
-      id: 1,
-      name: "Sunset Lounge",
-      image: "/placeholder.svg?height=400&width=800",
-      description: "석양을 바라보며 즐기는 커피향과 가벼운 식사",
-      hours: "매일 17:00 - 22:00",
-      link: "/dining/sunset-lounge",
-    },
-    {
-      id: 2,
-      name: "Ocean View Restaurant",
-      image: "/placeholder.svg?height=400&width=800",
-      description: "신선한 해산물과 지역 식재료로 준비한 정통 요리",
-      hours: "매일 07:00 - 22:00",
-      link: "/dining/ocean-view",
-    },
-    {
-      id: 3,
-      name: "Harmony Bar",
-      image: "/placeholder.jpg?height=400&width=800",
-      description: "프리미엄 위스키와 칵테일을 즐길 수 있는 분위기 있는 바",
-      hours: "매일 18:00 - 01:00",
-      link: "/dining/harmony-bar",
-    },
-  ]
-
-  // 기프트샵 상품 정보
-  const storeItems = [
-    {
-      id: 1,
-      name: "Chill Haven 시그니처 배스로브",
-      image: "/placeholder.svg?height=400&width=800",
-      description: "최고급 면소재로 제작된 호텔 시그니처 배스로브",
-      price: "120,000원",
-      link: "/store/1",
-    },
-    {
-      id: 2,
-      name: "Chill Haven 아로마 디퓨저",
-      image: "/placeholder.svg?height=400&width=800",
-      description: "호텔에서 경험한 그 향기 그대로, 프리미엄 아로마 디퓨저",
-      price: "85,000원",
-      link: "/store/2",
-    },
-    {
-      id: 3,
-      name: "Chill Haven 오가닉 티 세트",
-      image: "/placeholder.svg?height=400&width=800",
-      description: "유기농 재료로 만든 5가지 블렌드 티 컬렉션",
-      price: "48,000원",
-      link: "/store/3",
-    },
-  ]
-
   return (
-    <div className={styles.main}>
-      {/* 히어로 섹션 */}
-      <section className={styles.heroSection}>
-        {slides.map((slide, index) => (
-          <div key={slide.id} className={`${styles.slide} ${index === currentSlide ? styles.activeSlide : ""}`}>
-            <div className={styles.slideBackground} style={{ backgroundImage: `url(${slide.image})` }}></div>
-            <div className={styles.slideContent}>
-              <h1>{slide.title}</h1>
-              <p>{slide.description}</p>
-              <Link href={slide.buttonLink} className={`button button-primary ${styles.heroButton}`}>
-                {slide.buttonText}
-              </Link>
-            </div>
-          </div>
-        ))}
+    <>
+      {/* 메인 슬라이더 - Suspense로 감싸기 */}
+      <Suspense fallback={<div className="h-[80vh] bg-gray-100 animate-pulse flex items-center justify-center"><span className="text-gray-500">슬라이더 로딩 중...</span></div>}>
+        <MainSlider slides={slides} />
+      </Suspense>
 
-        <button
-          className={`${styles.sliderControl} ${styles.prevControl}`}
-          onClick={goToPrevSlide}
-          aria-label="이전 슬라이드"
-        >
-          <ChevronLeft size={24} />
-        </button>
-        <button
-          className={`${styles.sliderControl} ${styles.nextControl}`}
-          onClick={goToNextSlide}
-          aria-label="다음 슬라이드"
-        >
-          <ChevronRight size={24} />
-        </button>
+      {/* 예약 검색 */}
+      <BookingSearch />
 
-        <div className={styles.sliderIndicators}>
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              className={`${styles.indicator} ${index === currentSlide ? styles.activeIndicator : ""}`}
-              onClick={() => setCurrentSlide(index)}
-              aria-label={`슬라이드 ${index + 1}로 이동`}
-            ></button>
-          ))}
-        </div>
-
-        {/* 예약 폼 */}
-        <div className={styles.heroBookingBarContainer}>
-          <div className="container">
-            <div className={styles.bookingForm} >
-              <div className="flex flex-row gap-6 w-full items-end">
-                <div className={styles.bookingFormField} >
-                  <label htmlFor="check-in">체크인</label>
-                  <input
-                    type="date"
-                    id="check-in"
-                    value={checkInDate}
-                    min={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => {
-                      setCheckInDate(e.target.value);
-                      if (checkOutDate && e.target.value && checkOutDate <= e.target.value) {
-                        const nextDay = new Date(e.target.value);
-                        nextDay.setDate(nextDay.getDate() + 1);
-                        setCheckOutDate(nextDay.toISOString().split('T')[0]);
-                      }
-                    }}
-                    onClick={() => {
-                      if (!checkInDate) {
-                        const today = new Date().toISOString().split('T')[0];
-                        setCheckInDate(today);
-                      }
-                    }}
-                    className={styles.bookingInput + ' no-calendar-icon'}
-                  />
-                  {checkInDate && <div className={styles.formattedDate}>{formatDate(checkInDate)}</div>}
-                </div>
-                <div className={styles.bookingFormField}>
-                  <label htmlFor="check-out">체크아웃</label>
-                  <input
-                    type="date"
-                    id="check-out"
-                    value={checkOutDate}
-                    min={checkInDate ? (() => {
-                      const nextDay = new Date(checkInDate);
-                      nextDay.setDate(nextDay.getDate() + 1);
-                      return nextDay.toISOString().split('T')[0];
-                    })() : new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setCheckOutDate(e.target.value)}
-                    onClick={() => {
-                      if (!checkOutDate) {
-                        let minDate = new Date();
-                        if (checkInDate) {
-                          minDate = new Date(checkInDate);
-                          minDate.setDate(minDate.getDate() + 1);
-                        }
-                        setCheckOutDate(minDate.toISOString().split('T')[0]);
-                      }
-                    }}
-                    className={styles.bookingInput + ' no-calendar-icon'}
-                  />
-                  {checkOutDate && <div className={styles.formattedDate}>{formatDate(checkOutDate)}</div>}
-                </div>
-              </div>
-                              {/* 객실/인원수 한 줄 */}
-                <div className="flex flex-col w-full items-center">
-                  <div className="flex flex-row gap-6 items-end">
-                    {/* 객실 수 */}
-                    <div className="flex flex-col items-center">
-                      <label className="font-semibold mb-1">객실 수</label>
-                      <div className="flex items-center space-x-2">
-                        <button onClick={() => handleRoomChange(-1)} className="px-3 py-1 border rounded">-</button>
-                        <span>{roomCount}</span>
-                        <button onClick={() => handleRoomChange(1)} className="px-3 py-1 border rounded">+</button>
-                      </div>
-                    </div>
-                    {/* 성인 수 */}
-                    <div className="flex flex-col items-center">
-                      <label className="font-semibold mb-1">성인</label>
-                      <div className="flex items-center space-x-2">
-                        <button onClick={() => handleAdultsChange(-1)} className="px-3 py-1 border rounded">-</button>
-                        <span>{adults}</span>
-                        <button onClick={() => handleAdultsChange(1)} className="px-3 py-1 border rounded">+</button>
-                      </div>
-                    </div>
-                    {/* 어린이 수 */}
-                    <div className="flex flex-col items-center">
-                      <label className="font-semibold mb-1">어린이</label>
-                      <div className="flex items-center space-x-2">
-                        <button onClick={() => handleChildrenChange(-1)} className="px-3 py-1 border rounded">-</button>
-                        <span>{children}</span>
-                        <button onClick={() => handleChildrenChange(1)} className="px-3 py-1 border rounded">+</button>
-                      </div>
-                    </div>
-                  </div>
-                  {/* 총 인원 안내 */}
-                  <p className="text-sm text-gray-500 mt-2">총 인원: {totalPeople}명 / 최대 {maxPeople}명 (객실 {roomCount}개)</p>
-                </div>
-              <div className={styles.bookingFormButton + " flex flex-col justify-center items-center mt-4"}>
-                <button onClick={handleSearch} className={styles.searchButton}>
-                  객실 검색
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </section>
-      {/* 객실 소개 섹션 */}
-      <section className={styles.roomsSection}>
-        <div className="container">
-          <h2 className={styles.sectionTitle}>객실 안내</h2>
-          <p className={styles.sectionDescription}>
-            Chill Haven Resort & Spa의 다양한 객실에서 편안한 휴식을 경험해보세요. 고객님의 취향과 필요에 맞는 최적의
-            공간을 제공합니다.
-          </p>
-
-          <div className={styles.roomsGrid}>
-            {rooms.map((room) => (
-              <div key={room.id} className={styles.roomCard}>
-                <div className={styles.roomImageContainer}>
-                  <Image
-                    src={room.image || "/placeholder.svg"}
-                    alt={room.name}
-                    width={400}
-                    height={300}
-                    className={styles.roomImage}
-                  />
-                </div>
-                <div className={styles.roomInfo}>
-                  <h3 className={styles.roomName}>{room.name}</h3>
-                  <p className={styles.roomDescription}>{room.description}</p>
-                  <div className={styles.roomDetails}>
-                    <span className={styles.roomSize}>{room.size}</span>
-                    <span className={styles.roomCapacity}>{room.capacity}</span>
-                  </div>
-                  <Link href={room.link} className={styles.roomDetailsButton}>
-                    자세히 보기 →
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className={styles.viewAllContainer}>
-            <Link href="/booking" className={styles.viewAllButton}>
-              객실 예약하기
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* 객실 섹션 */}
+      <RoomSection rooms={rooms} />
 
       {/* 다이닝 섹션 */}
-      <section className={styles.diningSection}>
+      <section className="py-16 bg-white">
         <div className="container">
-          <h2 className={styles.sectionTitle}>다이닝</h2>
-          <p className={styles.sectionDescription}>
-            지역과 함께 즐기는 고품격 다이닝 경험을 통해 오감을 만족시켜 드립니다.
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">다이닝 옵션</h2>
+          <p className="text-lg text-gray-600 mb-12 text-center max-w-3xl mx-auto">
+            세계적인 셰프들이 선보이는 신선한 지역 식재료로 준비한 다양한 요리를 즐기세요.
           </p>
 
-          <div className={styles.diningSlider}>
+          <div className="relative">
+            <div
+              className="overflow-hidden"
+              style={{ borderRadius: "1rem" }}
+            >
+              <div
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentDiningSlide * 100}%)` }}
+              >
+                {diningOptions.map((option) => (
+                  <div key={option.id} className="w-full flex-shrink-0 overflow-hidden">
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                      <div className="relative h-64 md:h-96">
+                        <Image
+                          src={option.image}
+                          alt={option.name}
+                          fill
+                          style={{ objectFit: "cover" }}
+                        />
+                      </div>
+                      <div className="p-8 md:p-12 bg-gray-50 flex flex-col justify-center">
+                        <h3 className="text-2xl font-bold mb-4">{option.name}</h3>
+                        <p className="text-gray-600 mb-4">{option.description}</p>
+                        <p className="text-sm font-medium mb-6">{option.hours}</p>
+                        <Link
+                          href={option.link}
+                          className="inline-flex items-center justify-center py-3 px-6 rounded-md font-medium text-white transition-colors self-start"
+                          style={{ backgroundColor: "#2dd4bf" }}
+                        >
+                          자세히 보기
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <button
-              className={`${styles.sliderControl} ${styles.prevControl}`}
               onClick={goToPrevDiningSlide}
-              aria-label="이전 다이닝"
+              className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white text-gray-800 p-3 rounded-full shadow-lg"
+              aria-label="이전 다이닝 옵션"
             >
               <ChevronLeft size={24} />
             </button>
-
-            {diningOptions.map((dining, index) => (
-              <div
-                key={dining.id}
-                className={`${styles.diningSlide} ${index === currentDiningSlide ? styles.activeDiningSlide : ""}`}
-              >
-                <div className={styles.diningImageContainer}>
-                  <Image
-                    src={dining.image || "/placeholder.svg"}
-                    alt={dining.name}
-                    width={800}
-                    height={400}
-                    className={styles.diningImage}
-                  />
-                </div>
-                <div className={styles.diningInfo}>
-                  <h3 className={styles.diningName}>{dining.name}</h3>
-                  <p className={styles.diningDescription}>{dining.description}</p>
-                  <p className={styles.diningHours}>{dining.hours}</p>
-                </div>
-              </div>
-            ))}
-
             <button
-              className={`${styles.sliderControl} ${styles.nextControl}`}
               onClick={goToNextDiningSlide}
-              aria-label="다음 다이닝"
+              className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white text-gray-800 p-3 rounded-full shadow-lg"
+              aria-label="다음 다이닝 옵션"
             >
               <ChevronRight size={24} />
             </button>
           </div>
 
-          <div className={styles.diningIndicators}>
-            {diningOptions.map((_, index) => (
-              <button
-                key={index}
-                className={`${styles.indicator} ${index === currentDiningSlide ? styles.activeIndicator : ""}`}
-                onClick={() => setCurrentDiningSlide(index)}
-                aria-label={`다이닝 ${index + 1}로 이동`}
-              ></button>
-            ))}
-          </div>
-
-          <div className={styles.viewAllContainer}>
-            <Link href="/dining" className={styles.viewAllButton}>
-              전체 다이닝 보기
+          <div className="text-center mt-12">
+            <Link
+              href="/dining"
+              className="inline-flex items-center justify-center py-3 px-6 rounded-md font-medium border border-[#2dd4bf] text-[#2dd4bf] hover:bg-[#2dd4bf] hover:text-white transition-colors"
+            >
+              모든 다이닝 보기
             </Link>
           </div>
         </div>
       </section>
 
       {/* 기프트샵 섹션 */}
-      <section className={styles.storeSection}>
+      <section className="py-16 bg-gray-50">
         <div className="container">
-          <h2 className={styles.sectionTitle}>기프트샵</h2>
-          <p className={styles.sectionDescription}>
-            Chill Haven의 특별한 경험을 집에서도 느낄 수 있는 프리미엄 상품들을 만나보세요.
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">기프트샵</h2>
+          <p className="text-lg text-gray-600 mb-12 text-center max-w-3xl mx-auto">
+            Chill Haven의 럭셔리한 경험을 집에서도 느낄 수 있는 특별한 제품들을 만나보세요.
           </p>
 
-          <div className={styles.storeSlider}>
+          <div className="relative">
+            <div
+              className="overflow-hidden"
+              style={{ borderRadius: "1rem" }}
+            >
+              <div
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentStoreSlide * 100}%)` }}
+              >
+                {storeItems.map((item) => (
+                  <div key={item.id} className="w-full flex-shrink-0 overflow-hidden">
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                      <div className="relative h-64 md:h-96">
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          fill
+                          style={{ objectFit: "cover" }}
+                        />
+                      </div>
+                      <div className="p-8 md:p-12 bg-white flex flex-col justify-center">
+                        <h3 className="text-2xl font-bold mb-4">{item.name}</h3>
+                        <p className="text-gray-600 mb-4">{item.description}</p>
+                        <p className="text-xl font-medium mb-6">{item.price}</p>
+                        <Link
+                          href={item.link}
+                          className="inline-flex items-center justify-center py-3 px-6 rounded-md font-medium text-white transition-colors self-start"
+                          style={{ backgroundColor: "#2dd4bf" }}
+                        >
+                          구매하기
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <button
-              className={`${styles.sliderControl} ${styles.prevControl}`}
               onClick={goToPrevStoreSlide}
+              className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white text-gray-800 p-3 rounded-full shadow-lg"
               aria-label="이전 상품"
             >
               <ChevronLeft size={24} />
             </button>
-
-            {storeItems.map((item, index) => (
-              <div
-                key={item.id}
-                className={`${styles.storeSlide} ${index === currentStoreSlide ? styles.activeStoreSlide : ""}`}
-              >
-                <div className={styles.storeImageContainer}>
-                  <Image
-                    src={item.image || "/placeholder.svg"}
-                    alt={item.name}
-                    width={800}
-                    height={400}
-                    className={styles.storeImage}
-                  />
-                </div>
-                <div className={styles.storeInfo}>
-                  <h3 className={styles.storeName}>{item.name}</h3>
-                  <p className={styles.storeDescription}>{item.description}</p>
-                  <p className={styles.storePrice}>{item.price}</p>
-                  <Link href={item.link} className={styles.storeDetailsButton}>
-                    자세히 보기 →
-                  </Link>
-                </div>
-              </div>
-            ))}
-
             <button
-              className={`${styles.sliderControl} ${styles.nextControl}`}
               onClick={goToNextStoreSlide}
+              className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white text-gray-800 p-3 rounded-full shadow-lg"
               aria-label="다음 상품"
             >
               <ChevronRight size={24} />
             </button>
           </div>
 
-          <div className={styles.storeIndicators}>
-            {storeItems.map((_, index) => (
-              <button
-                key={index}
-                className={`${styles.indicator} ${index === currentStoreSlide ? styles.activeIndicator : ""}`}
-                onClick={() => setCurrentStoreSlide(index)}
-                aria-label={`상품 ${index + 1}로 이동`}
-              ></button>
-            ))}
-          </div>
-
-          <div className={styles.viewAllContainer}>
-            <Link href="/store" className={styles.viewAllButton}>
-              전체 상품 보기
+          <div className="text-center mt-12">
+            <Link
+              href="/store"
+              className="inline-flex items-center justify-center py-3 px-6 rounded-md font-medium border border-[#2dd4bf] text-[#2dd4bf] hover:bg-[#2dd4bf] hover:text-white transition-colors"
+            >
+              기프트샵 방문하기
             </Link>
           </div>
         </div>
       </section>
-    </div>
+
+      {/* 하단 CTA 섹션 */}
+      <section className={styles.ctaSection}>
+        <div className="container relative z-10 text-center py-20">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">특별한 경험이 여러분을 기다립니다</h2>
+          <p className="text-xl text-white mb-10 max-w-2xl mx-auto">
+            여행의 새로운 차원을 발견하고 Chill Haven에서 잊을 수 없는 추억을 만들어보세요.
+          </p>
+          <Link
+            href="/booking"
+            className="inline-flex items-center justify-center py-4 px-8 rounded-md font-medium text-teal-500 bg-white hover:bg-gray-100 transition-colors text-lg"
+          >
+            지금 예약하기
+          </Link>
+        </div>
+      </section>
+    </>
   )
 }
 

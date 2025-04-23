@@ -1,236 +1,241 @@
 // app/store/[id]/page.tsx
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { useParams, useRouter } from 'next/navigation';
-import { fetchProductById } from '@/lib/api';
-import { useCart } from '@/context/cart-context';
+import { useState, useEffect, useCallback } from "react"
+import { ChevronLeft, ChevronRight, Plus, Minus, ShoppingCart } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
+import { useCart } from "@/context/cart-context"
+import { fetchProductById, Product } from "@/lib/api"
+import styles from "../store.module.css"
+import { usePathname } from "next/navigation"
 
-interface Product {
-  itemIdx: number;
-  itemName: string;
-  price: number;
-  description: string;
-  category: string;
-  stockQuantity: number;
-  imageUrl?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+export default function ProductDetail({ params }: { params: { id: string } }) {
+  // URL 경로에서 ID 추출
+  const pathname = usePathname();
+  const idFromPath = pathname.split('/').pop() || '';
+  const productId = parseInt(idFromPath, 10);
 
-// 카테고리 문자열 포맷 함수
-const formatCategory = (category: string): string => {
-  if (!category) return '기타';
-  
-  // 카테고리 경로에서 메인 카테고리와 서브 카테고리 추출
-  const segments = category.split('/');
-  
-  // 카테고리 표시 맵핑
-  const categoryMap: Record<string, string> = {
-    'signature': '시그니처 컬렉션',
-    'wellness': '힐링 & 웰니스 컬렉션',
-    'eco': '에코 & 지속가능한 라이프스타일',
-    'food': '휴식을 위한 식음료 제품',
-    'room': '객실 등급별 맞춤 컬렉션',
-    'memory': '메모리 & 컬렉터블 아이템',
-    // 서브 카테고리
-    'aroma': '아로마 & 디퓨저',
-    'bath': '목욕 제품',
-    'bedding': '침구 & 가운',
-    'meditation': '명상 & 요가',
-    'sleep': '수면 & 릴렉스',
-    'aromatherapy': '아로마테라피',
-    'eco-living': '친환경 생활용품',
-    'organic': '유기농 퍼스널 케어',
-    'travel': '지속가능한 여행용품',
-    'tea': '차 & 티웨어',
-    'organic-food': '유기농 식품',
-    'wine': '와인 & 음료',
-    'comfort': '컴포트 & 하모니 컬렉션',
-    'family': '패밀리 & 레이크 컬렉션',
-    'ultimate': '얼티메이트 컬렉션',
-    'photo': '포토 & 아트',
-    'miniature': '미니어처 & 피규어',
-    'seasonal': '시즌 & 한정판 컬렉션',
-  };
-  
-  if (segments.length === 1) {
-    return categoryMap[segments[0]] || segments[0];
-  }
-  
-  const mainCategory = categoryMap[segments[0]] || segments[0];
-  const subCategory = categoryMap[segments[1]] || segments[1];
-  
-  return `${mainCategory} > ${subCategory}`;
-};
-
-export default function ProductDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const { addItem } = useCart();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(1);
+  const [product, setProduct] = useState<Product | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [quantity, setQuantity] = useState(1)
+  const { addItem } = useCart()
 
   useEffect(() => {
-    const productId = Number(params.id);
-    if (isNaN(productId)) {
-      setError('유효하지 않은 상품 ID입니다.');
-      setLoading(false);
-      return;
-    }
-
-    const loadProduct = async () => {
+    async function loadProduct() {
       try {
-        const data = await fetchProductById(productId);
-        setProduct(data);
-        setLoading(false);
+        setLoading(true)
+        setError(null)
+        
+        if (isNaN(productId)) {
+          throw new Error("유효하지 않은 상품 ID입니다.")
+        }
+        
+        const data = await fetchProductById(productId)
+        setProduct(data)
+        
+        // 재고가 있는 경우에만 수량을 1로 초기화, 없으면 0
+        setQuantity(data.stockQuantity > 0 ? 1 : 0)
       } catch (err) {
-        setError(err instanceof Error ? err.message : '상품을 불러오는데 실패했습니다.');
-        setLoading(false);
+        setError(err instanceof Error ? err.message : '상품 정보를 불러오는데 실패했습니다.')
+        setProduct(null)
+      } finally {
+        setLoading(false)
       }
-    };
-
-    loadProduct();
-  }, [params.id]);
-
-  if (loading) return <div className="container mx-auto p-4">로딩 중...</div>;
-  if (error) return <div className="container mx-auto p-4 text-red-500">오류: {error}</div>;
-  if (!product) return <div className="container mx-auto p-4">상품을 찾을 수 없습니다.</div>;
-
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    if (value > 0 && value <= product.stockQuantity) {
-      setQuantity(value);
     }
-  };
 
-  const handleQuantityIncrement = () => {
-    if (quantity < product.stockQuantity) {
-      setQuantity(prev => prev + 1);
+    loadProduct()
+  }, [productId])
+
+  const incrementQuantity = useCallback(() => {
+    if (product && quantity < product.stockQuantity) {
+      setQuantity(quantity + 1)
     }
-  };
+  }, [quantity, product])
 
-  const handleQuantityDecrement = () => {
+  const decrementQuantity = useCallback(() => {
     if (quantity > 1) {
-      setQuantity(prev => prev - 1);
+      setQuantity(quantity - 1)
     }
-  };
+  }, [quantity])
 
-  const handleAddToCart = () => {
-    if (!product) return;
-    
-    addItem({
-      id : product.itemIdx,
-      productIdx: product.itemIdx,
-      productName: product.itemName,
-      price: product.price,
-      quantity: quantity,
-      image: product.imageUrl
-    });
-    
-    alert(`${product.itemName} ${quantity}개를 장바구니에 추가했습니다.`);
-  };
+  const handleAddToCart = useCallback(() => {
+    if (product && quantity > 0) {
+      addItem({
+        id: product.itemIdx,
+        productIdx: product.itemIdx,
+        productName: product.itemName,
+        price: product.price,
+        quantity,
+        image: product.imageUrl || '/placeholder.jpg'
+      })
+      
+      // 카트에 추가 후 수량 초기화
+      setQuantity(1)
+    }
+  }, [product, quantity, addItem])
 
-  // 재고 유무에 따른 상태 확인
-  const isOutOfStock = product.stockQuantity <= 0;
+  const formatCategory = useCallback((category: string | undefined): string => {
+    if (!category) return "기타"
+
+    // 카테고리 맵핑
+    const categoryMap: { [key: string]: string } = {
+      "signature": "시그니처 컬렉션",
+      "wellness": "힐링 & 웰니스",
+      "eco": "에코 & 지속가능",
+      "food": "식음료 제품",
+      "room": "객실별 컬렉션",
+      "memory": "메모리 아이템",
+      // 서브카테고리
+      "aroma": "아로마 & 디퓨저",
+      "bath": "목욕 제품",
+      "bedding": "침구 & 가운",
+      // 기타 서브카테고리...
+    }
+
+    // 슬래시 또는 하이픈 형식의 카테고리 처리
+    if (category.includes("/") || category.includes("-")) {
+      const separator = category.includes("/") ? "/" : "-"
+      const [main, sub] = category.split(separator)
+      
+      const mainLabel = categoryMap[main] || main
+      const subLabel = categoryMap[sub] || sub
+      
+      return `${mainLabel} > ${subLabel}`
+    }
+    
+    return categoryMap[category] || category
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+      </div>
+    )
+  }
+
+  if (error || !product) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-red-500 py-8 text-center">
+          {error || '상품을 찾을 수 없습니다.'}
+        </div>
+        <div className="text-center mt-4">
+          <Link href="/store" className="inline-block px-6 py-2 bg-teal-500 text-white rounded-md hover:bg-teal-600 transition">
+            스토어로 돌아가기
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="md:w-1/2">
-          <div className="relative h-96 w-full">
+    <div className="bg-gray-50 min-h-screen">
+      {/* 제품 헤더 */}
+      <div className={styles.header}>
+        <div className="container mx-auto px-4">
+          <h1>{product.itemName}</h1>
+          <div className={styles.breadcrumbs}>
+            <Link href="/" className={styles.breadcrumbLink}>홈</Link>
+            <span className={styles.breadcrumbSeparator}><ChevronRight size={14} /></span>
+            <Link href="/store" className={styles.breadcrumbLink}>기프트샵</Link>
+            <span className={styles.breadcrumbSeparator}><ChevronRight size={14} /></span>
+            <span className={styles.breadcrumbCurrent}>{product.itemName}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 제품 상세 */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* 제품 이미지 */}
+          <div className="relative aspect-square bg-white rounded-lg overflow-hidden shadow-md">
             <Image
-              src={product.imageUrl || '/placeholder.jpg'}
+              src={product.imageUrl || "/placeholder.jpg"}
               alt={product.itemName}
               fill
               className="object-contain"
+              sizes="(max-width: 768px) 100vw, 50vw"
+              priority
             />
           </div>
-        </div>
-        
-        <div className="md:w-1/2">
-          <h1 className="text-3xl font-bold mb-2">{product.itemName}</h1>
-          <p className="text-gray-600 mb-4">{formatCategory(product.category)}</p>
-          <p className="text-2xl font-bold mb-6">{Number(product.price).toLocaleString()}원</p>
-          
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">상품 설명</h2>
-            <p className="text-gray-700">{product.description}</p>
-          </div>
-          
-          {isOutOfStock ? (
-            <div className="mb-6">
-              <p className="text-red-600 font-bold">품절되었습니다.</p>
+
+          {/* 제품 정보 */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="mb-2 text-teal-600">
+              {formatCategory(product.category)}
             </div>
-          ) : (
+            <h1 className="text-2xl font-bold mb-4">{product.itemName}</h1>
+            <p className="text-3xl font-semibold mb-6 text-teal-700">
+              {new Intl.NumberFormat('ko-KR').format(product.price)}원
+            </p>
+            
+            <div className="border-t border-b py-6 my-6">
+              <p className="text-gray-700 whitespace-pre-line">{product.description}</p>
+            </div>
+            
+            {/* 재고 및 수량 선택 */}
             <div className="mb-6">
-              <label htmlFor="quantity" className="block mb-2">수량 (재고: {product.stockQuantity}개)</label>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleQuantityDecrement}
-                  className="w-10 h-10 flex items-center justify-center border rounded-l hover:bg-gray-100"
-                  disabled={quantity <= 1}
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  id="quantity"
-                  min="1"
-                  max={product.stockQuantity}
-                  value={quantity}
-                  onChange={handleQuantityChange}
-                  className="w-20 h-10 text-center border-t border-b [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <button
-                  onClick={handleQuantityIncrement}
-                  className="w-10 h-10 flex items-center justify-center border rounded-r hover:bg-gray-100"
-                  disabled={quantity >= product.stockQuantity}
-                >
-                  +
-                </button>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium">수량</span>
+                <span className={`${product.stockQuantity > 0 ? 'text-green-600' : 'text-red-500'} font-medium`}>
+                  {product.stockQuantity > 0 
+                    ? `재고: ${product.stockQuantity}개 남음` 
+                    : '품절'}
+                </span>
               </div>
+              
+              {product.stockQuantity > 0 ? (
+                <div className="flex items-center">
+                  <button 
+                    onClick={decrementQuantity}
+                    disabled={quantity <= 1}
+                    className="p-2 border rounded-l-md bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                  >
+                    <Minus size={18} />
+                  </button>
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (!isNaN(val) && val >= 1 && val <= product.stockQuantity) {
+                        setQuantity(val);
+                      }
+                    }}
+                    className="w-16 text-center border-t border-b h-full py-2"
+                    min="1"
+                    max={product.stockQuantity}
+                  />
+                  <button 
+                    onClick={incrementQuantity}
+                    disabled={quantity >= product.stockQuantity}
+                    className="p-2 border rounded-r-md bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
+              ) : (
+                <div className="py-2 px-4 rounded bg-gray-100 text-gray-500 text-center">
+                  현재 재고가 없습니다
+                </div>
+              )}
             </div>
-          )}
-          
-          <button
-            onClick={handleAddToCart}
-            className={`w-full py-3 px-6 rounded transition-colors ${isOutOfStock 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-            disabled={isOutOfStock}
-          >
-            {isOutOfStock ? '품절' : '장바구니에 추가'}
-          </button>
-        </div>
-      </div>
-      
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">상품 정보</h2>
-        <div className="border-t border-gray-200">
-          <div className="py-3 flex border-b border-gray-200">
-            <span className="w-1/3 font-semibold">카테고리</span>
-            <span className="w-2/3">{formatCategory(product.category)}</span>
+            
+            {/* 장바구니 추가 버튼 */}
+            <button
+              onClick={handleAddToCart}
+              disabled={product.stockQuantity <= 0}
+              className="w-full py-3 bg-teal-600 text-white rounded-md flex items-center justify-center gap-2 hover:bg-teal-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+            >
+              <ShoppingCart size={20} />
+              {product.stockQuantity > 0 ? '장바구니에 추가' : '품절된 상품입니다'}
+            </button>
           </div>
-          <div className="py-3 flex border-b border-gray-200">
-            <span className="w-1/3 font-semibold">등록일</span>
-            <span className="w-2/3">{new Date(product.createdAt).toLocaleDateString()}</span>
-          </div>
-          <div className="py-3 flex border-b border-gray-200">
-            <span className="w-1/3 font-semibold">최종 수정일</span>
-            <span className="w-2/3">{new Date(product.updatedAt).toLocaleDateString()}</span>
-          </div>
-          {!isOutOfStock && (
-            <div className="py-3 flex border-b border-gray-200">
-              <span className="w-1/3 font-semibold">재고</span>
-              <span className="w-2/3">{product.stockQuantity}개</span>
-            </div>
-          )}
         </div>
       </div>
     </div>
-  );
+  )
 }
