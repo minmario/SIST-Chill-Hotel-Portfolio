@@ -422,6 +422,11 @@ export default function Store() {
                           fill
                           style={{ objectFit: "cover" }}
                         />
+                        {product.stockQuantity <= 0 && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                            <span className="text-white font-bold px-2 py-1 rounded">품절</span>
+                          </div>
+                        )}
                       </div>
                       <div className={styles.productContent}>
                         <div className={styles.productCategory}>
@@ -429,6 +434,11 @@ export default function Store() {
                         </div>
                         <h3 className={styles.productTitle}>{product.itemName}</h3>
                         <div className={styles.productPrice}>{Number(product.price).toLocaleString()}원</div>
+                        {product.stockQuantity > 0 && (
+                          <div className="text-sm text-gray-500 mt-1">
+                            재고: {product.stockQuantity}개
+                          </div>
+                        )}
                       </div>
                     </Link>
                   ))

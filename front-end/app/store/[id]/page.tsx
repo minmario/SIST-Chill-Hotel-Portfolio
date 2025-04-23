@@ -134,6 +134,9 @@ export default function ProductDetailPage() {
     alert(`${product.itemName} ${quantity}개를 장바구니에 추가했습니다.`);
   };
 
+  // 재고 유무에 따른 상태 확인
+  const isOutOfStock = product.stockQuantity <= 0;
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex flex-col md:flex-row gap-8">
@@ -158,41 +161,49 @@ export default function ProductDetailPage() {
             <p className="text-gray-700">{product.description}</p>
           </div>
           
-          <div className="mb-6">
-            <label htmlFor="quantity" className="block mb-2">수량 (재고: {product.stockQuantity}개)</label>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleQuantityDecrement}
-                className="w-10 h-10 flex items-center justify-center border rounded-l hover:bg-gray-100"
-                disabled={quantity <= 1}
-              >
-                -
-              </button>
-              <input
-                type="number"
-                id="quantity"
-                min="1"
-                max={product.stockQuantity}
-                value={quantity}
-                onChange={handleQuantityChange}
-                className="w-20 h-10 text-center border-t border-b [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <button
-                onClick={handleQuantityIncrement}
-                className="w-10 h-10 flex items-center justify-center border rounded-r hover:bg-gray-100"
-                disabled={quantity >= product.stockQuantity}
-              >
-                +
-              </button>
+          {isOutOfStock ? (
+            <div className="mb-6">
+              <p className="text-red-600 font-bold">품절되었습니다.</p>
             </div>
-          </div>
+          ) : (
+            <div className="mb-6">
+              <label htmlFor="quantity" className="block mb-2">수량 (재고: {product.stockQuantity}개)</label>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleQuantityDecrement}
+                  className="w-10 h-10 flex items-center justify-center border rounded-l hover:bg-gray-100"
+                  disabled={quantity <= 1}
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  id="quantity"
+                  min="1"
+                  max={product.stockQuantity}
+                  value={quantity}
+                  onChange={handleQuantityChange}
+                  className="w-20 h-10 text-center border-t border-b [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <button
+                  onClick={handleQuantityIncrement}
+                  className="w-10 h-10 flex items-center justify-center border rounded-r hover:bg-gray-100"
+                  disabled={quantity >= product.stockQuantity}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          )}
           
           <button
             onClick={handleAddToCart}
-            className="w-full bg-blue-600 text-white py-3 px-6 rounded hover:bg-blue-700 transition-colors"
-            disabled={product.stockQuantity < 1}
+            className={`w-full py-3 px-6 rounded transition-colors ${isOutOfStock 
+              ? 'bg-gray-400 cursor-not-allowed' 
+              : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+            disabled={isOutOfStock}
           >
-            {product.stockQuantity < 1 ? '품절' : '장바구니에 추가'}
+            {isOutOfStock ? '품절' : '장바구니에 추가'}
           </button>
         </div>
       </div>
@@ -212,6 +223,12 @@ export default function ProductDetailPage() {
             <span className="w-1/3 font-semibold">최종 수정일</span>
             <span className="w-2/3">{new Date(product.updatedAt).toLocaleDateString()}</span>
           </div>
+          {!isOutOfStock && (
+            <div className="py-3 flex border-b border-gray-200">
+              <span className="w-1/3 font-semibold">재고</span>
+              <span className="w-2/3">{product.stockQuantity}개</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
