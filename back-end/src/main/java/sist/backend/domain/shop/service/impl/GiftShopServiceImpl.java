@@ -136,11 +136,13 @@ public class GiftShopServiceImpl implements GiftShopService {
                 .price(requestDto.getPrice())
                 .stockQuantity(requestDto.getStockQuantity())
                 .category(requestDto.getCategory())
+                .imageUrl(requestDto.getImageUrl())
                 .createdAt(existingGiftShop.getCreatedAt()) // 기존 생성일자 유지
                 .updatedAt(java.time.LocalDateTime.now()) // 현재 시간으로 업데이트일자 설정
                 .build();
         
         GiftShop savedGiftShop = giftShopRepository.save(updatedGiftShop);
+        log.info("상품 {} 업데이트 완료, 이미지 URL: {}", itemIdx, requestDto.getImageUrl());
         return giftShopMapper.toDto(savedGiftShop);
     }
 

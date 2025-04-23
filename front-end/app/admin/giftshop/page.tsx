@@ -386,6 +386,12 @@ export default function ItemsPage() {
 
   // 물품 추가 핸들러
   const handleAddItem = async () => {
+    // 필수 필드 검증
+    if (!currentItem.itemName || currentItem.price === 0) {
+      toast.error('상품명과 가격은 필수 입력 항목입니다')
+      return
+    }
+
     try {
       const token = localStorage.getItem("accessToken");
       const response = await fetch(API_URL, {
@@ -405,24 +411,14 @@ export default function ItemsPage() {
         }),
       })
 
-      if (!response.ok) {
-        throw new Error('상품 추가에 실패했습니다')
+      if (response.ok) {
+        // 추가 후 전체 상품 목록 다시 불러오기
+        await fetchItems()
+        setIsAddModalOpen(false)
+        toast.success('상품이 추가되었습니다')
+      } else {
+        toast.error('상품 추가에 실패했습니다')
       }
-
-      const newItem = await response.json()
-    setItems([...items, newItem])
-    setCurrentItem({
-        itemName: "",
-      price: 0,
-        stockQuantity: 0,
-        createdAt: "",
-        updatedAt: "",
-      category: "",
-      description: "",
-      imageUrl: "",
-    })
-    setIsAddModalOpen(false)
-      toast.success('상품이 추가되었습니다')
     } catch (error: unknown) {
       console.error('Error adding item:', error)
       if (error instanceof Error) {
@@ -458,13 +454,9 @@ export default function ItemsPage() {
         throw new Error('상품 수정에 실패했습니다')
       }
 
-      const updatedItem = await response.json()
-    const updatedItems = items.map((item) =>
-        item.itemIdx === currentItem.itemIdx ? updatedItem : item
-    )
-
-    setItems(updatedItems)
-    setIsEditModalOpen(false)
+      // 수정 후 전체 상품 목록 다시 불러오기
+      await fetchItems()
+      setIsEditModalOpen(false)
       toast.success('상품이 수정되었습니다')
     } catch (error: unknown) {
       console.error('Error updating item:', error)
@@ -545,7 +537,11 @@ export default function ItemsPage() {
 
   // 편집 모달 열기
   const openEditModal = (item: Item) => {
-    setCurrentItem(item)
+    // 깊은 복사를 통해 모든 속성값을 새로운 객체로 복사
+    setCurrentItem({
+      ...item,
+      imageUrl: item.imageUrl || "", // 이미지 URL이 없을 경우 빈 문자열로 처리
+    })
     setIsEditModalOpen(true)
   }
 
@@ -615,13 +611,16 @@ export default function ItemsPage() {
 
   // 추가 모달 열기
   const handleOpenAddModal = () => {
+    // 모든 필드를 초기화
     setCurrentItem({
       itemName: "",
       price: 0,
       stockQuantity: 0,
+      createdAt: "",
+      updatedAt: "",
       category: "",
       description: "",
-      imageUrl: "",
+      imageUrl: "", // 이미지 URL도 명시적으로 초기화
     })
     setIsAddModalOpen(true)
   }

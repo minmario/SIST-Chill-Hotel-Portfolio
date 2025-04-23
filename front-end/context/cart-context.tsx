@@ -34,26 +34,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const [items, setItems] = useState<CartItem[]>([]);
   const { isLoggedIn } = useAuth();
   
-  // 초기 로드 및 로그인 상태 체크
-  useEffect(() => {
-    // 시작할 때는 로컬 데이터 먼저 로드
-    const guestCart = localStorage.getItem('guestCart');
-    if (guestCart) {
-      try {
-        setItems(JSON.parse(guestCart));
-      } catch (e) {
-        console.error('장바구니 데이터 파싱 오류:', e);
-        localStorage.removeItem('guestCart');
-      }
-    }
-    
-    // 로그인 상태라면 서버 데이터 로드 시도
-    if (isLoggedIn) {
-      fetchUserCart();
-    }
-  }, [isLoggedIn]);
-
-  // 장바구니 데이터 로드
+  // 장바구니 데이터 로드 함수를 먼저 선언
   const fetchUserCart = useCallback(async () => {
     try {
       const token = localStorage.getItem('accessToken');
@@ -93,6 +74,47 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
       }
     }
   }, []);
+  
+  // 초기 로드 및 로그인 상태 체크
+  useEffect(() => {
+    // 결제 완료 플래그 확인
+    const paymentCompleted = localStorage.getItem('paymentCompleted');
+    if (paymentCompleted === 'true') {
+      // 장바구니 비우기
+      setItems([]);
+      localStorage.removeItem('guestCart');
+      localStorage.removeItem('paymentCompleted');
+      console.log('결제 완료 플래그 감지: 장바구니 초기화 완료');
+      return;
+    }
+    
+    // 결제 성공 페이지에서 설정한 cartCleared 플래그 확인
+    const cartCleared = localStorage.getItem('cartCleared');
+    if (cartCleared === 'true') {
+      // 장바구니 비우기
+      setItems([]);
+      localStorage.removeItem('guestCart');
+      localStorage.removeItem('cartCleared');
+      console.log('장바구니 비우기 플래그 감지: 장바구니 초기화 완료');
+      return;
+    }
+    
+    // 시작할 때는 로컬 데이터 먼저 로드
+    const guestCart = localStorage.getItem('guestCart');
+    if (guestCart) {
+      try {
+        setItems(JSON.parse(guestCart));
+      } catch (e) {
+        console.error('장바구니 데이터 파싱 오류:', e);
+        localStorage.removeItem('guestCart');
+      }
+    }
+    
+    // 로그인 상태라면 서버 데이터 로드 시도
+    if (isLoggedIn) {
+      fetchUserCart();
+    }
+  }, [isLoggedIn, fetchUserCart]);
 
   // 상품 추가
   const addItem = useCallback(async (item: Omit<CartItem, 'cartItemIdx' | 'subtotal'>) => {

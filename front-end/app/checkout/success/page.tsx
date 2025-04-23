@@ -26,8 +26,14 @@ export default function PaymentSuccessPage() {
         // 결제 상태 확인
         await checkPaymentStatus(paymentKey, orderId, parseInt(amount))
         
-        // 장바구니 비우기
-        clearCart()
+        // 장바구니 비우기 - 여러 방법으로 시도하여 확실히 비우기
+        clearCart() // context API를 통한 장바구니 비우기
+        
+        // localStorage에 직접 접근하여 장바구니 강제 비우기
+        localStorage.removeItem('guestCart')
+        
+        // 서버 동기화 문제 방지를 위한 로컬 스토리지 설정
+        localStorage.setItem('cartCleared', 'true')
         
         setIsLoading(false)
       } catch (error) {
@@ -38,8 +44,17 @@ export default function PaymentSuccessPage() {
     }
 
     verifyPayment()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    
+    // 컴포넌트 마운트 시 장바구니 강제 비우기
+    clearCart()
+    localStorage.removeItem('guestCart')
+    
+    // 언마운트 시 한번 더 장바구니 비우기 시도
+    return () => {
+      clearCart()
+      localStorage.removeItem('guestCart')
+    }
+  }, [clearCart])
 
   const handleGoHome = () => {
     router.push('/')

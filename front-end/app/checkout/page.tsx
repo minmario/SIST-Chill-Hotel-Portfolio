@@ -15,7 +15,7 @@ export default function Checkout() {
   const { isLoggedIn } = useAuth()
   const [mounted, setMounted] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState("card")
+  const [paymentMethod, setPaymentMethod] = useState("")
   const [paymentError, setPaymentError] = useState("")
   const [formData, setFormData] = useState({
     name: "",
@@ -96,6 +96,13 @@ export default function Checkout() {
     e.preventDefault()
     setIsProcessing(true)
     setPaymentError("")
+
+    // 결제 수단 선택 확인
+    if (!paymentMethod) {
+      setPaymentError('결제 수단을 선택해주세요.');
+      setIsProcessing(false);
+      return;
+    }
 
     // 로그인 상태 재확인
     if (!isLoggedIn) {
@@ -219,6 +226,10 @@ export default function Checkout() {
 
       // 결제가 성공하면 장바구니 비우기
       clearCart();
+      // 로컬 스토리지에서도 직접 제거하여 동기화 문제 방지
+      localStorage.removeItem('guestCart');
+      // 결제 완료 플래그 설정
+      localStorage.setItem('paymentCompleted', 'true');
       console.log('주문 완료 후 장바구니 비우기 완료');
 
       // 성공 처리는 successUrl로 리다이렉트되어 백엔드에서 처리됨
@@ -349,7 +360,7 @@ export default function Checkout() {
                 
                 <button
                   type="submit"
-                  disabled={isProcessing}
+                  disabled={isProcessing || !paymentMethod}
                   className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 disabled:bg-gray-400"
                 >
                   {isProcessing ? "처리 중..." : "결제하기"}

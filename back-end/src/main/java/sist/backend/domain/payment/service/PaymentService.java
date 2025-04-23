@@ -38,6 +38,17 @@ public class PaymentService {
 
     @Transactional
     public sist.backend.domain.shop.entity.Order processPayment(PaymentRequest request, String ipAddress, User user) {
+        // 결제 수단 검증 - 필수 필드 확인
+        if (request.getPaymentMethod() == null || request.getPaymentMethod().isEmpty()) {
+            throw new IllegalArgumentException("결제 수단을 선택해주세요.");
+        }
+        
+        // 허용된 결제 수단인지 확인
+        String paymentMethod = request.getPaymentMethod();
+        if (!paymentMethod.equals("카드") && !paymentMethod.equals("가상계좌") && !paymentMethod.equals("계좌이체")) {
+            throw new IllegalArgumentException("유효하지 않은 결제 수단입니다: " + paymentMethod);
+        }
+        
         // 1. 호텔 예약 결제 (reservationNum 기반)
         if (request.getReservationNum() != null && !request.getReservationNum().isEmpty()) {
             Reservation reservation = reservationRepository.findByReservationNum(request.getReservationNum())
