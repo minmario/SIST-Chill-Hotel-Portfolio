@@ -28,7 +28,7 @@ interface ReservationCell {
 
 interface TimeSlot {
   time: string
-  [restaurantId: string]: ReservationCell | null | string
+  [restaurantId: string]: ReservationCell[] | null | string
 }
 
 interface ApiReservation {
@@ -76,7 +76,8 @@ export default function AdminDiningSchedulePage() {
     const fetchRestaurants = async () => {
       const res = await fetch("http://localhost:8080/api/restaurants")
       const data = await res.json()
-      setRestaurants(data)
+      console.log("restaurant data:", data.content)
+      setRestaurants(data.content)
     }
     fetchRestaurants()
   }, [])
@@ -93,7 +94,10 @@ export default function AdminDiningSchedulePage() {
         restaurants.forEach((r) => { row[r.id] = null })
         data.forEach((r) => {
           if (r.reservationTime === time) {
-            row[r.restaurantId] = {
+            if (!row[r.restaurantId]) {
+              row[r.restaurantId] = [] as ReservationCell[];
+            }
+            (row[r.restaurantId] as ReservationCell[]).push({
               guestName: r.guestName,
               partySize: r.partySize,
               reservationNum: r.reservationNum,
@@ -105,9 +109,9 @@ export default function AdminDiningSchedulePage() {
               reservationTime: r.reservationTime,
               reservationDate: r.reservationDate,
               request: r.request
-            }
+            });
           }
-        })
+        });
         times.push(row)
       })
     }
@@ -228,19 +232,20 @@ export default function AdminDiningSchedulePage() {
                     return (
                       <td
                         key={r.id}
-                        className={`px-4 py-2 border text-center text-sm cursor-pointer hover:bg-teal-50 ${cell && typeof cell !== "string" ? getStatusColor(cell.status) : ""}`}
-                        onClick={() => cell && typeof cell !== "string" && setSelectedReservation(cell)}
+                        className="px-4 py-2 border text-center text-sm cursor-pointer hover:bg-teal-50"
                       >
-                        {cell && typeof cell !== "string" ? (
-                          <div title={cell.guestName}>
-                            <div className="font-semibold">{cell.guestName}</div>
-                            <div className="text-xs">{cell.partySize}명</div>
-                            <div className="mt-1">
-                              {/* <span className="inline-block rounded px-2 py-0.5 text-xs font-semibold bg-white bg-opacity-50">
-                                {getStatusLabel(cell.status)}
-                              </span> */}
+                        {Array.isArray(cell) ? (
+                          cell.map((res) => (
+                            <div
+                              key={res.reservationNum}
+                              title={res.guestName}
+                              onClick={() => setSelectedReservation(res)}
+                              className={`mb-1 last:mb-0 ${getStatusColor(res.status)}`}
+                            >
+                              <div className="font-semibold">{res.guestName}</div>
+                              <div className="text-xs">{res.partySize}명</div>
                             </div>
-                          </div>
+                          ))
                         ) : "-"}
                       </td>
                     )
@@ -254,19 +259,20 @@ export default function AdminDiningSchedulePage() {
         <div className="space-y-3">
           {schedule.flatMap((slot) =>
             restaurants.map((r) => {
-              const cell = slot[r.id]
-              if (!cell || typeof cell === "string") return null
-              return (
-                <div
-                  key={`${slot.time}-${r.id}`}
-                  className={`border rounded p-3 ${getStatusColor(cell.status)}`}
-                  onClick={() => setSelectedReservation(cell)}
-                >
-                  <div className="font-semibold">{slot.time} | {r.name}</div>
-                  <div className="text-sm">👤 {cell.guestName} | 👪 {cell.partySize}명 (성인 {cell.adults} / 어린이 {cell.children})</div>
-                  <div className="text-xs mt-1">상태: {getStatusLabel(cell.status)}</div>
-                </div>
-              )
+              const cellArray = slot[r.id]
+                if (!Array.isArray(cellArray)) return null
+
+                return cellArray.map((cell) => (
+                  <div
+                    key={cell.reservationNum}
+                    className={`border rounded p-3 ${getStatusColor(cell.status)}`}
+                    onClick={() => setSelectedReservation(cell)}
+                  >
+                    <div className="font-semibold">{slot.time} | {r.name}</div>
+                    <div className="text-sm">👤 {cell.guestName} | 👪 {cell.partySize}명 (성인 {cell.adults} / 어린이 {cell.children})</div>
+                    <div className="text-xs mt-1">상태: {getStatusLabel(cell.status)}</div>
+                  </div>
+                ))
             })
           )}
         </div>

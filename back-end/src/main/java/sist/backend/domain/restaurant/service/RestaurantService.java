@@ -1,8 +1,9 @@
 package sist.backend.domain.restaurant.service;
 
-import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -16,10 +17,9 @@ public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
 
-    public List<RestaurantResponse> getAllRestaurants() {
-        return restaurantRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
+    public Page<RestaurantResponse> getAllRestaurants(Pageable pageable) {
+        return restaurantRepository.findAll(pageable) // ✅ Page<Restaurant>
+                .map(this::toResponse); // ✅ Page.map()
     }
 
     public Optional<RestaurantResponse> getById(Long id) {
@@ -52,4 +52,11 @@ public class RestaurantService {
     private static String formatTime(java.time.LocalTime time) {
         return time != null ? time.toString().substring(0, 5) : null;
     }
+
+    public Page<RestaurantResponse> getRestaurantsWithSearch(String keyword, Pageable pageable) {
+        return restaurantRepository
+                .findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword, pageable)
+                .map(this::toResponse);
+    }
+
 }

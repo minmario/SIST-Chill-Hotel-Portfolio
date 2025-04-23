@@ -105,3 +105,18 @@
   background-color: var(--gray-100);
 }
 
+/* 이미 있는 스타일 */
+.searchContainer {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem; /* ✅ 검색창 아래 여백 */
+}
+
+.searchInput {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius-sm);
+  margin-right: 0.5rem; /* ✅ 버튼과의 간격 */
+}
