@@ -64,4 +64,24 @@ public class GiftShop {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+    
+    // 재고 수량 변경 메서드
+    public void setStockQuantity(Integer stockQuantity) {
+        // 재고는 음수가 될 수 없음
+        if (stockQuantity < 0) {
+            this.stockQuantity = 0;
+        } else {
+            this.stockQuantity = stockQuantity;
+        }
+    }
+    
+    // 재고 차감 메서드
+    public boolean decreaseStock(int quantity) {
+        if (this.stockQuantity < quantity) {
+            return false; // 재고 부족
+        }
+        
+        this.stockQuantity -= quantity;
+        return true;
+    }
 }
