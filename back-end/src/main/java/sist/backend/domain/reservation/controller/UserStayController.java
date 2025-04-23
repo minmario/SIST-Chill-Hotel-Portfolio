@@ -19,8 +19,14 @@ public class UserStayController {
 
     @GetMapping("/summary")
     public ResponseEntity<StaySummaryResponse> getStaySummary(
-            @AuthenticationPrincipal(expression = "user") CustomUserDetails userDetails) {
-        StaySummaryResponse summary = reservationService.getUserStaySummary(userDetails.getUser().getUserIdx());
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        if (userDetails == null || userDetails.getUser() == null) {
+            return ResponseEntity.status(401).build(); // 인증 실패 처리
+        }
+
+        Long userIdx = userDetails.getUser().getUserIdx();
+        StaySummaryResponse summary = reservationService.getUserStaySummary(userIdx);
         return ResponseEntity.ok(summary);
     }
 }

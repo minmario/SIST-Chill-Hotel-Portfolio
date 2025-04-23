@@ -15,6 +15,15 @@ export default function MyPage() {
     totalPoints: 0,
     availablePoints: 0,
     expiringPoints: 0,
+    currentTier: "",
+    nextTier: "",
+    pointForNextTier: 0,
+  })
+  const [staySummary, setStaySummary] = useState({
+    totalStay: 0,
+    stayForNextTier: 0,
+    currentTier: "",
+    nextTier: "",
   })
 
 const [filteredHistory, setFilteredHistory] = useState<
@@ -29,13 +38,24 @@ const [filteredHistory, setFilteredHistory] = useState<
   }[]
 >([])
 const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-
+const total = staySummary.totalStay + staySummary.stayForNextTier
+const progress = total === 0 ? 0 : staySummary.totalStay / total
+const dashOffset = (339.3 - 339.3 * progress).toString()
+const pointTotal = pointSummary.totalPoints + pointSummary.pointForNextTier
+const pointProgress = pointTotal === 0 ? 0 : pointSummary.totalPoints / pointTotal
+const pointDashOffset = (339.3 - 339.3 * pointProgress).toString()
+const formatK = (num: number): string => {
+  if (num >= 1000) {
+    return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1) + "K"
+  }
+  return num.toString()
+}
 
 useEffect(() => {
   const loggedIn = localStorage.getItem("isLoggedIn") === "true"
   const token = localStorage.getItem("accessToken")
   console.log("[MyPage] accessToken:", token)
+ 
 
   setIsLoggedIn(loggedIn)
 
@@ -51,6 +71,7 @@ useEffect(() => {
   const format = (d: Date) => d.toISOString().split("T")[0]
   const startDateStr = format(sixMonthsAgo)
   const endDateStr = format(today)
+  
 
   const fetchSummary = async () => {
     try {
@@ -64,6 +85,19 @@ useEffect(() => {
       console.error("요약 정보 fetch 실패:", err)
     }
   }
+  const fetchStaySummary = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/user/stays/summary", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error("등급 요약 응답 오류")
+      const data = await res.json()
+      setStaySummary(data)
+    } catch (err) {
+      console.error("숙박 등급 요약 fetch 실패:", err)
+    }
+  }
+  
 
   const fetchPoints = async () => {
     try {
@@ -81,11 +115,27 @@ useEffect(() => {
       setFilteredHistory([])
     }
   }
-
+  const fetchUserInfo = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/user/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("사용자 정보 응답 오류");
+      const data = await res.json();
+      setUserName(data.name || data.id); // name이 있으면 name, 없으면 id
+    } catch (err) {
+      console.error("사용자 정보 fetch 실패:", err);
+    }
+  };
+  
   fetchSummary()
   fetchPoints()
+  fetchStaySummary()
+  fetchUserInfo();
+  
 }, [router])
   return (
+    
     <>
       <div className={styles.header}>
         <div className="container">
@@ -149,9 +199,9 @@ useEffect(() => {
                 <div className={styles.membershipInfo}>
                   <div className={styles.membershipTitle}>회원 등급</div>
                   <div className={styles.membershipName}>
-                    테스트 사용자님은{" "}
+                    {userName || "회원"}님은{" "}
                     <span className="text-primary-color font-bold" style={{ color: "var(--primary-color)" }}>
-                      BRONZE
+                      {pointSummary.currentTier || "-"}
                     </span>{" "}
                     회원입니다.
                   </div>
@@ -185,33 +235,39 @@ useEffect(() => {
 
               {/* 등급 현황 */}
               <div className={styles.statsContainer}>
-                <div className={styles.statCard}>
-                  <div className={styles.statTitle}>
-                    <Calendar size={18} className={styles.statIcon} />
-                    박수기준
-                  </div>
-                  <div className={styles.statCircle}>
-                    <svg width="120" height="120" viewBox="0 0 120 120">
-                      <circle cx="60" cy="60" r="54" fill="none" stroke="#e6e6e6" strokeWidth="12" />
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r="54"
-                        fill="none"
-                        stroke="var(--primary-color)"
-                        strokeWidth="12"
-                        strokeDasharray="339.3"
-                        strokeDashoffset="322.3"
-                        transform="rotate(-90 60 60)"
-                      />
-                    </svg>
-                    <div className={styles.statValue}>
-                      0.5
-                      <span className={styles.statUnit}>박</span>
-                    </div>
-                  </div>
-                  <div className={styles.statTarget}>SILVER 등급까지 0.5박</div>
+              <div className={styles.statCard}>
+                <div className={styles.statTitle}>
+                  <Calendar size={18} className={styles.statIcon} />
+                  박수기준
                 </div>
+                <div className={styles.statCircle}>
+                  <svg width="120" height="120" viewBox="0 0 120 120">
+                    <circle cx="60" cy="60" r="54" fill="none" stroke="#e6e6e6" strokeWidth="12" />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="54"
+                      fill="none"
+                      stroke="var(--primary-color)"
+                      strokeWidth="12"
+                      strokeDasharray="339.3"
+                      strokeDashoffset={
+                        339.3 - 339.3 * (staySummary.totalStay / (staySummary.totalStay + staySummary.stayForNextTier))
+                      }
+                      transform="rotate(-90 60 60)"
+                    />
+                  </svg>
+                  <div className={styles.statValue}>
+                    {staySummary.totalStay}
+                    <span className={styles.statUnit}>박</span>
+                  </div>
+                </div>
+                <div className={styles.statTarget}>
+                  {pointSummary.nextTier
+                    ? `${pointSummary.nextTier} 등급까지 ${pointSummary.pointForNextTier.toLocaleString()} P`
+                    : `${userName || "회원"}는 최고 등급입니다`}
+                </div>
+              </div>
 
                 <div className={styles.statCard}>
                   <div className={styles.statTitle}>
@@ -220,8 +276,7 @@ useEffect(() => {
                   </div>
                   <div className={styles.statCircle}>
                     <svg width="120" height="120" viewBox="0 0 120 120">
-                      <circle cx="60" cy="60" r="54" fill="none" stroke="#e6e6e6" strokeWidth="12" />
-                      <circle
+                    <circle
                         cx="60"
                         cy="60"
                         r="54"
@@ -229,16 +284,20 @@ useEffect(() => {
                         stroke="var(--primary-color)"
                         strokeWidth="12"
                         strokeDasharray="339.3"
-                        strokeDashoffset="254.5"
+                        strokeDashoffset={pointDashOffset}
                         transform="rotate(-90 60 60)"
                       />
                     </svg>
                     <div className={styles.statValue}>
-                      50
+                      {formatK(pointSummary.totalPoints)}
                       <span className={styles.statUnit}>P</span>
                     </div>
                   </div>
-                  <div className={styles.statTarget}>SILVER 등급까지 50 P</div>
+                  <div className={styles.statTarget}>
+                    {pointSummary.nextTier
+                      ? `${pointSummary.nextTier} 등급까지 ${pointSummary.pointForNextTier.toLocaleString()} P`
+                      : `${userName || "회원"}는 최고 등급입니다`}
+                  </div>
                 </div>
               </div>
 

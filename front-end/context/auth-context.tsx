@@ -72,9 +72,15 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
           console.log('[Auth] 로그인 상태: false');
         }
         
-        setIsLoggedIn(!!token);
-        setUserId(storedUserId);
-        setUserRole(storedUserRole);
+        if (token && storedUserId && storedUserRole) {
+          setIsLoggedIn(true);
+          setUserId(storedUserId);
+          setUserRole(storedUserRole);
+        } else {
+          setIsLoggedIn(false);
+          setUserId(null);
+          setUserRole(null);
+        }
       } finally {
         // 초기화 완료 표시
         setInitialized(true);
@@ -138,6 +144,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     setIsLoggedIn(false);
     setUserId(null);
     setUserRole(null);
+    sessionStorage.removeItem("appStarted");
   };
 
   // 초기화가 완료되기 전에는 로딩 상태를 반환

@@ -3,11 +3,17 @@ package sist.backend.domain.membership.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
 import sist.backend.domain.membership.dto.response.PointSummaryResponse;
+import sist.backend.domain.membership.dto.response.PointTierSummaryResponse;
 import sist.backend.domain.membership.dto.response.PointTransactionResponse;
+import sist.backend.domain.membership.entity.Membership;
 import sist.backend.domain.membership.entity.PointTransaction;
+import sist.backend.domain.membership.repository.MembershipRepository;
 import sist.backend.domain.membership.repository.PointTransactionRepository;
 import sist.backend.domain.membership.service.interfaces.PointTransactionService;
+import sist.backend.domain.user.entity.User;
+import sist.backend.domain.user.repository.UserRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,6 +26,9 @@ import java.util.List;
 public class PointTransactionServiceImpl implements PointTransactionService {
 
     private final PointTransactionRepository pointRepo;
+    private final UserRepository userRepository;
+    private final PointTransactionRepository pointTransactionRepository;
+    private final MembershipRepository membershipRepository;
 
     @Override
     public List<PointTransactionResponse> getUserPointHistory(Long userIdx, LocalDate start, LocalDate end) {
@@ -49,15 +58,50 @@ public class PointTransactionServiceImpl implements PointTransactionService {
         return result;
     }
 
-    @Override
+    @Transactional(readOnly = true)
     public PointSummaryResponse getUserPointSummary(Long userIdx) {
-        Integer total = pointRepo.findTotalPointByUserIdx(userIdx);
-        if (total == null)
-            total = 0;
+        User user = userRepository.findByUserIdx(userIdx)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
-        // 🔁 expirationDate 기준으로 소멸 예정 포인트 계산
+        int totalPoints = user.getTotalPoints();
+        int availablePoints = pointTransactionRepository.findTotalPointByUserIdx(userIdx);
+
+        // 3개월 이내 소멸 예정 포인트 계산
+        LocalDateTime threeMonthsLater = LocalDateTime.now().plusMonths(3);
+        List<PointTransaction> expiringList = pointTransactionRepository
+                .findByUser_UserIdxAndExpirationDateBefore(userIdx, threeMonthsLater);
+        int expiringPoints = expiringList.stream()
+                .filter(p -> p.getPoint() > 0)
+                .mapToInt(PointTransaction::getPoint)
+                .sum();
+
+        Membership current = user.getMembership();
+
+        List<Membership> levels = membershipRepository.findAllByOrderByRequiredPointAsc();
+        Membership next = null;
+        for (Membership m : levels) {
+            if (m.getRequiredPoint() > totalPoints) {
+                next = m;
+                break;
+            }
+        }
+
+        int pointForNext = next != null ? next.getRequiredPoint() - totalPoints : 0;
+
+        return new PointSummaryResponse(
+                totalPoints,
+                availablePoints,
+                expiringPoints,
+                current != null ? current.getTier().name() : "BRONZE",
+                next != null ? next.getTier().name() : null,
+                pointForNext);
+    }
+
+    @Override
+    public PointTierSummaryResponse getTierSummary(Long userIdx) {
+        int total = pointRepo.findTotalPointByUserIdx(userIdx) != null ? pointRepo.findTotalPointByUserIdx(userIdx) : 0;
+
         LocalDateTime now = LocalDateTime.now();
-
         int expiring = pointRepo
                 .findByUser_UserIdxAndExpirationDateBefore(userIdx, now)
                 .stream()
@@ -65,6 +109,35 @@ public class PointTransactionServiceImpl implements PointTransactionService {
                 .mapToInt(PointTransaction::getPoint)
                 .sum();
 
-        return new PointSummaryResponse(total, total - expiring, expiring);
+        int available = total - expiring;
+
+        String currentTier = "BRONZE";
+        String nextTier = "SILVER";
+        int pointForNextTier = 10000 - total;
+
+        if (total >= 10000) {
+            currentTier = "SILVER";
+            nextTier = "GOLD";
+            pointForNextTier = 50000 - total;
+        }
+        if (total >= 50000) {
+            currentTier = "GOLD";
+            nextTier = "VIP";
+            pointForNextTier = 100000 - total;
+        }
+        if (total >= 100000) {
+            currentTier = "VIP";
+            nextTier = null;
+            pointForNextTier = 0;
+        }
+
+        return PointTierSummaryResponse.builder()
+                .totalPoints(total)
+                .availablePoints(available)
+                .expiringPoints(expiring)
+                .currentTier(currentTier)
+                .nextTier(nextTier)
+                .pointForNextTier(pointForNextTier)
+                .build();
     }
 }

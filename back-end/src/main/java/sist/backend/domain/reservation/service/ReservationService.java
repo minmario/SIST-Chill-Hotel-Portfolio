@@ -10,6 +10,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import sist.backend.domain.membership.entity.Membership;
+import sist.backend.domain.membership.repository.MembershipRepository;
 import sist.backend.domain.reservation.dto.request.ReservationRequest;
 import sist.backend.domain.reservation.dto.response.ReservationLookupResponse;
 import sist.backend.domain.reservation.dto.response.ReservationResponse;
@@ -32,6 +34,7 @@ public class ReservationService {
         private final RoomRepository roomRepository;
         private final UserRepository userRepository;
         private final RoomTypeRepository roomTypeRepository;
+        private final MembershipRepository membershipRepository;
 
         public ReservationResponse getReservation(Long userIdx, String reservationNum) {
                 Reservation entity = reservationRepository.findByUser_UserIdxAndReservationNum(userIdx, reservationNum)
@@ -133,38 +136,48 @@ public class ReservationService {
 
         @Transactional(readOnly = true)
         public StaySummaryResponse getUserStaySummary(Long userIdx) {
-                LocalDate oneYearAgo = LocalDate.now().minusYears(1);
+                User user = userRepository.findByUserIdx(userIdx)
+                                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-                List<Reservation> reservations = reservationRepository.findValidReservationsWithinOneYear(userIdx,
-                                oneYearAgo);
+                int totalStays = user.getTotalStays();
+                Membership current = user.getMembership();
 
-                double totalStay = reservations.stream()
-                                .mapToDouble(Reservation::getDurationDays)
-                                .sum();
+                // 현재 등급보다 높은 등급 중 조건을 만족하지 못한 첫 등급을 찾음
+                List<Membership> levels = membershipRepository.findAllByOrderByRequiredStaysAsc();
 
-                List<Level> levels = List.of(
-                                new Level("VIP", 50),
-                                new Level("GOLD", 20),
-                                new Level("SILVER", 5),
-                                new Level("BRONZE", 0));
-
-                for (int i = 0; i < levels.size(); i++) {
-                        Level current = levels.get(i);
-                        Level next = (i > 0) ? levels.get(i - 1) : null;
-
-                        if (totalStay >= current.required) {
-                                return new StaySummaryResponse(
-                                                totalStay,
-                                                next != null ? Math.max(0, next.required - totalStay) : 0,
-                                                current.tier,
-                                                next != null ? next.tier : null);
+                Membership nextTier = null;
+                for (Membership level : levels) {
+                        if (level.getRequiredStays() > totalStays) {
+                                nextTier = level;
+                                break;
                         }
                 }
 
-                return new StaySummaryResponse(totalStay, 5 - totalStay, "BRONZE", "SILVER");
+                int stayForNext = nextTier != null ? nextTier.getRequiredStays() - totalStays : 0;
+
+                return new StaySummaryResponse(
+                                (double) totalStays,
+                                (double) Math.max(stayForNext, 0),
+                                current != null ? current.getTier().name() : "BRONZE", // ← 여기 수정
+                                nextTier != null ? nextTier.getTier().name() : null // ← 여기도 수정
+                );
         }
 
         // 내부 등급 클래스
         private record Level(String tier, double required) {
         }
+
+        private void updateMembership(User user) {
+                List<Membership> levels = membershipRepository.findAllByOrderByRequiredStaysAsc();
+
+                for (int i = levels.size() - 1; i >= 0; i--) {
+                        Membership m = levels.get(i);
+                        if (user.getTotalStays() >= m.getRequiredStays()
+                                        && user.getTotalPoints() >= m.getRequiredPoint()) {
+                                user.setMembership(m); // membership_idx 자동 반영
+                                break;
+                        }
+                }
+        }
+
 }

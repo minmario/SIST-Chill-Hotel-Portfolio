@@ -20,74 +20,157 @@ export default function AdminDashboard() {
   const [totalUserChange, setTotalUserChange] = useState<TotalUserChange | null>(null)
   // API 호출: 총 회원 수
   useEffect(() => {
-    fetch('http://localhost:8080/api/user/count')
-      .then((res) => res.json())
+    const token = localStorage.getItem("accessToken");
+  
+    fetch('http://localhost:8080/api/user/count', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('응답 실패');
+        return res.json();
+      })
       .then((data) => setTotalUsers(data))
-      .catch((err) => console.error('회원 수 불러오기 실패:', err))
-  }, [])
+      .catch((err) => console.error('회원 수 불러오기 실패:', err));
+  }, []);
   //API 호출: 최근 스태프 수
   useEffect(() => {
-    fetch("http://localhost:8080/api/user/staff-count")
-      .then((res) => res.json())
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.warn("토큰이 없습니다. 로그인 후 이용해주세요.");
+      return;
+    }
+  
+    fetch("http://localhost:8080/api/user/staff-count", {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('응답 실패');
+        return res.json();
+      })
       .then((data) => setStaffCount(data))
-      .catch((err) => console.error("스태프 수 불러오기 실패:", err))
-  }, [])
+      .catch((err) => console.error("스태프 수 불러오기 실패:", err));
+  }, []);
   //API 호출: 최근회원 수
-
   type RecentUser = {
     name: string
     email: string
-    createdAt: string // ← 백엔드에서 LocalDateTime 형태로 오니까 string 처리
+    createdAt: string
   }
   
   useEffect(() => {
-    fetch("http://localhost:8080/api/user/recent")
-      .then((res) => res.json())
-      .then((data) => setRecentUsers(data))
-      .catch((err) => console.error("최근 가입자 불러오기 실패:", err))
-  }, [])
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.warn("토큰이 없습니다. 로그인 필요.");
+      return;
+    }
+  
+    fetch("http://localhost:8080/api/user/recent", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("서버 응답 실패");
+        return res.json();
+      })
+      .then((data: RecentUser[]) => setRecentUsers(data))
+      .catch((err) => console.error("최근 가입자 불러오기 실패:", err));
+  }, []);
   //API 호출: 신규회원 변화량(하루 기준) 
   useEffect(() => {
-    fetch("http://localhost:8080/api/user/daily-change")
-      .then((res) => res.json())
-      .then((data) => {
-        setNewUserStats({ today: data.today, changeRate: data.changeRate })
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.warn("토큰이 없습니다. 로그인 후 이용해주세요.");
+      return;
+    }
+  
+    fetch("http://localhost:8080/api/user/daily-change", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("응답 실패");
+        return res.json();
       })
-      .catch((err) => console.error("신규 가입자 변화량 불러오기 실패:", err))
-  }, [])
+      .then((data) => {
+        setNewUserStats({ today: data.today, changeRate: data.changeRate });
+      })
+      .catch((err) => console.error("신규 가입자 변화량 불러오기 실패:", err));
+  }, []);
   //API 호출: 총회원 변화량(하루 기준)
   type TotalUserChange = {
-    todayTotal: number
-    yesterdayTotal: number
-    changeRate: string
-  }
+    todayTotal: number;
+    yesterdayTotal: number;
+    changeRate: string;
+  };
+  
   useEffect(() => {
-    fetch("http://localhost:8080/api/user/daily-total-change")
-      .then((res) => res.json())
-      .then((data) => setTotalUserChange(data))
-      .catch((err) => console.error("누적 회원 변화율 불러오기 실패:", err))
-  }, [])
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.warn("토큰이 없습니다. 로그인 후 이용해주세요.");
+      return;
+    }
+  
+    fetch("http://localhost:8080/api/user/daily-total-change", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("응답 실패");
+        return res.json();
+      })
+      .then((data: TotalUserChange) => setTotalUserChange(data))
+      .catch((err) => console.error("누적 회원 변화율 불러오기 실패:", err));
+  }, []);
   //API 호출: 스태프회원 변화량(하루 기준)
-  const [staffDailyChange, setStaffDailyChange] = useState<{ today: number, changeRate: string, trend: "up" | "down" | "neutral" }>({
+  const [staffDailyChange, setStaffDailyChange] = useState<{
+    today: number;
+    changeRate: string;
+    trend: "up" | "down" | "neutral";
+  }>({
     today: 0,
     changeRate: "0%",
     trend: "neutral",
-  })
+  });
   
   useEffect(() => {
-    fetch("http://localhost:8080/api/user/daily-staff-change")
-      .then((res) => res.json())
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      console.warn("토큰이 없습니다. 로그인 후 이용해주세요.");
+      return;
+    }
+  
+    fetch("http://localhost:8080/api/user/daily-staff-change", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("API 응답 실패");
+        return res.json();
+      })
       .then((data) => {
-        const rate = parseFloat(data.changeRate.replace("%", ""))
+        const rate = parseFloat(data.changeRate.replace("%", ""));
         setStaffDailyChange({
           today: data.today,
           changeRate: data.changeRate,
-          trend: rate > 0 ? "up" : rate < 0 ? "down" : "neutral"
-        })
+          trend: rate > 0 ? "up" : rate < 0 ? "down" : "neutral",
+        });
       })
-      .catch((err) => console.error("신규 스태프 변화율 불러오기 실패:", err))
-  }, [])
-
+      .catch((err) => console.error("신규 스태프 변화율 불러오기 실패:", err));
+  }, []);
   const stats = [
     {
       title: "전체 회원 누적 변화",

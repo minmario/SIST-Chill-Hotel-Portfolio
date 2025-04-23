@@ -3,6 +3,7 @@ package sist.backend.domain.membership.controller;
 
 import lombok.RequiredArgsConstructor;
 import sist.backend.domain.membership.dto.response.PointSummaryResponse;
+import sist.backend.domain.membership.dto.response.PointTierSummaryResponse;
 import sist.backend.domain.membership.dto.response.PointTransactionResponse;
 import sist.backend.domain.membership.service.interfaces.PointTransactionService;
 import sist.backend.global.security.CustomUserDetailsService;
@@ -34,5 +35,10 @@ public class PointTransactionController {
     @GetMapping("/summary")
     public PointSummaryResponse getSummary(@AuthenticationPrincipal(expression = "user") User user) {
         return pointService.getUserPointSummary(user.getUserIdx());
+    }
+
+    @GetMapping("/summary/tier")
+    public PointTierSummaryResponse getTierSummary(@AuthenticationPrincipal(expression = "user") User user) {
+        return pointService.getTierSummary(user.getUserIdx());
     }
 }
