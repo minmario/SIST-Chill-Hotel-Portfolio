@@ -69,7 +69,6 @@ public class RoomType  {
 
     @Builder.Default
     @OneToMany(mappedBy = "roomType",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @Builder.Default
     private List<Room> rooms = new ArrayList<>();
 
     // 비즈니스 메서드

@@ -43,7 +43,7 @@ export default function BookingCheckPage() {
           return
         }
 
-        url = `/api/reservations/check/guest?lastName=${lastName}&firstName=${firstName}&phone=${phone}`
+        url = `/api/reservations/check/guest?lastName=${firstName}&firstName=${lastName}&phone=${phone}`
       }
   
       const res = await fetch(url)
