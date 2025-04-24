@@ -1,21 +1,19 @@
 package sist.backend.domain.dining_reservation.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "dining_reservation")
 @Getter
 @Setter
-// @NoArgsConstructor
-@AllArgsConstructor
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "dining_reservation")
 public class DiningReservation {
 
     @Id
@@ -31,13 +29,16 @@ public class DiningReservation {
     @Column(name = "reservation_date", nullable = false)
     private LocalDate reservationDate;
 
-    @Column(name = "meal_time", length = 10)
+    @Column(name = "meal_time", nullable = false, length = 10)
     private String mealTime;
 
-    @Column(name = "reservation_time", length = 10)
+    @Column(name = "reservation_time", nullable = false)
     private LocalTime reservationTime;
 
+    @Column(nullable = false)
     private int adults;
+
+    @Column(nullable = false)
     private int children;
 
     @Column(name = "first_name", length = 50)
@@ -49,21 +50,33 @@ public class DiningReservation {
     @Column(length = 20)
     private String phone;
 
-    @Email
     @Column(length = 100)
     private String email;
 
-    @Size(max = 300)
+    @Column(length = 300)
     private String request;
 
-    @Builder.Default
     @Column(length = 20)
-    private String status = "PENDING";
+    private String status;
 
+<<<<<<< HEAD
     @CreationTimestamp
+=======
+>>>>>>> gra1ze3
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

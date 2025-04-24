@@ -248,7 +248,7 @@ export default function Offers() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <button type="submit" className="button button-primary">
+              <button type="submit" className="button button-primary w-32">
                 <Search size={16} className="mr-1" /> 검색
               </button>
             </form>

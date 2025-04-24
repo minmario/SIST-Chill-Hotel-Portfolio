@@ -73,6 +73,7 @@ def querydslDir = "$buildDir/generated/querydsl"
 tasks.withType(JavaCompile) {
     options.generatedSourceOutputDirectory.set(file(querydslDir))
     options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
+    options.compilerArgs += "-parameters"
 }
 
 clean {

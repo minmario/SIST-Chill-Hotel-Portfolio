@@ -2,7 +2,8 @@ package sist.backend.domain.qna.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import sist.backend.global.common.BaseTimeEntity;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "qna")
@@ -11,36 +12,34 @@ import sist.backend.global.common.BaseTimeEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Qna extends BaseTimeEntity {
+public class Qna {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long qnaIdx; // 문의 고유 번호
+    @Column(name = "qna_idx") // ✅ 실제 DB 컬럼명과 일치시킴
+    private Long qna_idx;
 
-    private String type; // 문의 유형
-    private String title; // 제목
+    private String type;
 
-    @Column(columnDefinition = "TEXT")
-    private String content; // 내용
-
-    private String email; // 이메일
+    private String title;
 
     @Column(columnDefinition = "TEXT")
-    private String answer; // 답변 내용
+    private String content;
 
-    // ✅ 아래 두 필드는 삭제했어:
-    // private LocalDateTime writeDate;
-    // private LocalDateTime answerDate;
+    private String email;
 
-    // ✅ 아래 두 메서드도 삭제!
-    // @PrePersist
-    // protected void onCreate() {
-    // this.writeDate = LocalDateTime.now();
-    // }
+    @Column(columnDefinition = "TEXT")
+    private String answer;
 
-    // @PreUpdate
-    // protected void onUpdate() {
-    // this.updatedAt = LocalDateTime.now();
-    // }
+    @Column(name = "write_date")
+    private LocalDateTime writeDate;
 
+    @Column(name = "answer_date")
+    private LocalDateTime answerDate;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
