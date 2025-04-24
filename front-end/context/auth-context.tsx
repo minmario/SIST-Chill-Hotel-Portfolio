@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 
 interface User {
   userId: string;
@@ -13,7 +13,7 @@ interface AuthContextType {
   isLoggedIn: boolean;
   userRole: string | null;
   userId: string | null;
-  login: (user: User,token: string) => void;  // ✅ 수정
+  login: (user: User, token: string) => void;
   logout: () => void;
 }
 
@@ -65,11 +65,9 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
         const storedUserRole = localStorage.getItem('userRole');
         
         if (token) {
-          console.log('[Auth] 저장된 토큰: ', token);
-          console.log('[Auth] 로그인 상태: true');
+          console.log('[Auth] 저장된 토큰: ', token.substring(0, 10) + '...');
         } else {
           console.log('[Auth] 저장된 토큰 없음');
-          console.log('[Auth] 로그인 상태: false');
         }
         
         setIsLoggedIn(!!token);
@@ -84,21 +82,20 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     initialize();
   }, []);
 
-  const login = (user: User, token: string) => {
-    console.log('[Auth] 로그인 시도: ', user);
+  const login = useCallback((user: User, token: string) => {
+    console.log('[Auth] 로그인 시도: ', user.email);
   
-    localStorage.setItem('accessToken', token); // ✅ 실제 토큰 저장
+    localStorage.setItem('accessToken', token);
     localStorage.setItem('userId', user.userId);
     localStorage.setItem('userRole', user.role);
   
     setIsLoggedIn(true);
     setUserId(user.userId);
     setUserRole(user.role);
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     console.log('[Auth] 로그아웃 시도');
-    console.log('[Auth] 제거 전 토큰: ', localStorage.getItem('accessToken'));
 
     // 서버에 로그아웃 요청 전송
     try {
@@ -125,40 +122,37 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     
     // 장바구니 데이터 제거
     localStorage.removeItem('guestCart');
-    console.log('[Auth] 장바구니 데이터 제거');
     
     // 장바구니 상태 초기화 (등록된 함수가 있으면 호출)
     if (cartClearFunction) {
       cartClearFunction();
     }
     
-    console.log('[Auth] 제거 후 토큰: ', localStorage.getItem('accessToken') || '없음');
-    console.log('[Auth] 로그인 상태 변경: false');
-    
     setIsLoggedIn(false);
     setUserId(null);
     setUserRole(null);
-  };
+  }, []);
+
+  // useMemo를 사용하여 context 값 최적화
+  const contextValue = useMemo(() => ({
+    isLoggedIn,
+    userRole,
+    userId,
+    login,
+    logout
+  }), [isLoggedIn, userRole, userId, login, logout]);
 
   // 초기화가 완료되기 전에는 로딩 상태를 반환
   if (!initialized) {
     return (
-      <AuthContext.Provider 
-        value={{ 
-          isLoggedIn: false, 
-          userRole: null, 
-          userId: null, 
-          login,
-          logout 
-        }}
-      >
+      <AuthContext.Provider value={contextValue}>
         {children}
       </AuthContext.Provider>
     );
   }
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, userRole, userId, login, logout }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

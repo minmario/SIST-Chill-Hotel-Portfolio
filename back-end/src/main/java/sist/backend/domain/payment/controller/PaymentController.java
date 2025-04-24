@@ -1,18 +1,18 @@
 package sist.backend.domain.payment.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.CrossOrigin;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import sist.backend.domain.payment.dto.PaymentRequest;
 import sist.backend.domain.payment.dto.TossPaymentResponse;
 import sist.backend.domain.payment.service.PaymentService;
@@ -67,12 +67,8 @@ public class PaymentController {
         System.out.println("[toss/success] status: " + response.getStatus());
         System.out.println("[toss/success] message: " + response.getMessage());
         String ipAddress = httpRequest.getRemoteAddr();
-        boolean success = paymentService.processTossPayment(response, ipAddress, user);
-        if (success) {
-            return ResponseEntity.ok().body(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+        paymentService.processTossPayment(response, ipAddress, user);
+        return ResponseEntity.ok().body(response);
     }
     
     @PostMapping("/toss/fail")

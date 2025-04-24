@@ -67,6 +67,7 @@ public class RoomType  {
     @Column(nullable = false, length = 100)
     private String roomImage;
 
+    @Builder.Default
     @OneToMany(mappedBy = "roomType",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @Builder.Default
     private List<Room> rooms = new ArrayList<>();

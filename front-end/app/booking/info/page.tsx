@@ -1,6 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+export const dynamic = "force-dynamic";
+
+import { Suspense, useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -8,19 +10,33 @@ import { Check, ChevronLeft, Minus, Plus, Search } from "lucide-react"
 import styles from "../../rooms/rooms.module.css"
 
 export default function BookingInfo() {
-  const router = useRouter()
-  const [selectedRoom, setSelectedRoom] = useState<any>(null)
-  const [bookingParams, setBookingParams] = useState<any>(null)
-  const [bedType, setBedType] = useState("킹")
-  const [adultBreakfast, setAdultBreakfast] = useState(0)
-  const [childBreakfast, setChildBreakfast] = useState(0)
-  const [specialRequests, setSpecialRequests] = useState("")
-  const [loginOption, setLoginOption] = useState("member")
+  return (
+    <Suspense>
+      <BookingInfoContent />
+    </Suspense>
+  );
+}
+
+function BookingInfoContent() {
+  const router = useRouter();
+  const [selectedRoom, setSelectedRoom] = useState<any>(null);
+  const [bookingParams, setBookingParams] = useState<any>(null);
+  const [bedType, setBedType] = useState("킹");
+  const [adultBreakfast, setAdultBreakfast] = useState(0);
+  const [childBreakfast, setChildBreakfast] = useState(0);
+  const [specialRequests, setSpecialRequests] = useState("");
+  const [loginOption, setLoginOption] = useState("member");
   // membership_idx 상태 추가
-  const [membershipIdx, setMembershipIdx] = useState<number | null>(null)
+  const [membershipIdx, setMembershipIdx] = useState<number | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // 로컬 스토리지에서 예약 정보 불러오기
   useEffect(() => {
+    if (!hasMounted) return;
     const roomData = localStorage.getItem("selectedRoom")
     const paramsData = localStorage.getItem("bookingParams")
     
@@ -53,8 +69,7 @@ export default function BookingInfo() {
     } else {
       setMembershipIdx(null)
     }
-    // accessToken이 바뀔 때마다 membershipIdx 재설정
-  }, [router, localStorage.getItem("accessToken")])
+  }, [hasMounted, router]);
 
   if (!selectedRoom || !bookingParams) {
     return <div className="container py-20 text-center">로딩 중...</div>

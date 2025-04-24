@@ -1,15 +1,16 @@
 package sist.backend.domain.payment.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import sist.backend.domain.payment.dto.PaymentRequest;
 import sist.backend.domain.payment.dto.TossPaymentResponse;
 import sist.backend.domain.reservation.entity.Reservation;
 import sist.backend.domain.reservation.entity.ReservationStatus;
-import sist.backend.domain.user.entity.ActivityType;
-import sist.backend.domain.user.entity.User;
-import sist.backend.domain.user.service.interfaces.UserActivityLogService;
 import sist.backend.domain.reservation.repository.ReservationRepository;
 import sist.backend.domain.shop.entity.CartItem;
 import sist.backend.domain.shop.entity.GiftShop;
@@ -19,8 +20,9 @@ import sist.backend.domain.shop.entity.OrderStatus;
 import sist.backend.domain.shop.repository.jpa.CartItemRepository;
 import sist.backend.domain.shop.repository.jpa.OrderRepository;
 import sist.backend.domain.shop.service.interfaces.CartService;
-import java.util.List;
-import java.util.Optional;
+import sist.backend.domain.user.entity.ActivityType;
+import sist.backend.domain.user.entity.User;
+import sist.backend.domain.user.service.interfaces.UserActivityLogService;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +38,17 @@ public class PaymentService {
 
     @Transactional
     public sist.backend.domain.shop.entity.Order processPayment(PaymentRequest request, String ipAddress, User user) {
+        // 결제 수단 검증 - 필수 필드 확인
+        if (request.getPaymentMethod() == null || request.getPaymentMethod().isEmpty()) {
+            throw new IllegalArgumentException("결제 수단을 선택해주세요.");
+        }
+        
+        // 허용된 결제 수단인지 확인
+        String paymentMethod = request.getPaymentMethod();
+        if (!paymentMethod.equals("카드") && !paymentMethod.equals("가상계좌") && !paymentMethod.equals("계좌이체")) {
+            throw new IllegalArgumentException("유효하지 않은 결제 수단입니다: " + paymentMethod);
+        }
+        
         // 1. 호텔 예약 결제 (reservationNum 기반)
         if (request.getReservationNum() != null && !request.getReservationNum().isEmpty()) {
             Reservation reservation = reservationRepository.findByReservationNum(request.getReservationNum())
@@ -102,27 +115,52 @@ public class PaymentService {
     
     @Transactional
     public boolean processTossPayment(TossPaymentResponse response, String ipAddress, User user) {
+        try {
+            return processTossPaymentInternal(response, ipAddress, user);
+        } catch (org.springframework.orm.ObjectOptimisticLockingFailureException ex) {
+            // 동시성 예외 발생 시, 주문/예약 상태가 이미 처리된 경우라면 true 반환(중복 결제 방지)
+            String[] orderParts = response.getOrderId() != null ? response.getOrderId().split("_") : new String[0];
+            if (orderParts.length >= 2) {
+                String paymentType = orderParts[0];
+                String id = orderParts[1];
+                if ("ORDER".equals(paymentType)) {
+                    java.util.Optional<Order> orderOpt = orderRepository.findById(Long.parseLong(id));
+                    if (orderOpt.isPresent() && orderOpt.get().getOrderStatus() == OrderStatus.PAID) {
+                        return true; // 이미 결제 완료된 주문이면 성공으로 간주
+                    }
+                }
+                if ("RESERVATION".equals(paymentType)) {
+                    java.util.Optional<Reservation> reservationOpt = reservationRepository.findByReservationNum(id);
+                    if (reservationOpt.isPresent() && reservationOpt.get().getStatus() == ReservationStatus.CONFIRMED) {
+                        return true; // 이미 결제 완료된 예약이면 성공으로 간주
+                    }
+                }
+            }
+            throw ex;
+        }
+    }
+
+    private boolean processTossPaymentInternal(TossPaymentResponse response, String ipAddress, User user) {
         System.out.println("[processTossPayment] called");
         System.out.println("[processTossPayment] paymentKey: " + response.getPaymentKey());
         System.out.println("[processTossPayment] orderId: " + response.getOrderId());
         System.out.println("[processTossPayment] amount: " + response.getAmount());
         System.out.println("[processTossPayment] status: " + response.getStatus());
         System.out.println("[processTossPayment] message: " + response.getMessage());
-        try {
-            // 결제 상태 검증
-            if (!"DONE".equals(response.getStatus())) {
-                userActivityLogService.logActivity(
-                    user, ActivityType.PAYMENT_FAILED,
-                    "토스 결제 실패: " + response.getMessage() + ", 주문번호=" + response.getOrderId(),
-                    ipAddress
-                );
-                return false;
-            }
+        // 결제 상태 검증
+        if (!"DONE".equals(response.getStatus())) {
+            userActivityLogService.logActivity(
+                user, ActivityType.PAYMENT_FAILED,
+                "토스 결제 실패: " + response.getMessage() + ", 주문번호=" + response.getOrderId(),
+                ipAddress
+            );
+            throw new RuntimeException("토스 결제 실패: " + response.getMessage());
+        }
             
-            // 주문 ID에서 결제 유형과 ID를 추출 (예: ORDER_123, RESERVATION_456)
+            // 주문 ID에서 결제 유형과 ID를 추출 (예: ORDER_123_timestamp_random)
             String[] orderParts = response.getOrderId().split("_");
-            String paymentType = orderParts[0];
-            String id = orderParts[1];
+            String paymentType = orderParts[0]; // 첫 번째 부분은 항상 결제 유형
+            String id = orderParts[1]; // 두 번째 부분은 항상 ID
             
             // 결제 유형에 따라 처리
             if ("RESERVATION".equals(paymentType)) {
@@ -144,6 +182,28 @@ public class PaymentService {
                 boolean wasPaid = order.getOrderStatus() == OrderStatus.PAID;
                 if (!wasPaid) {
                     order.updateStatus(OrderStatus.PAID); // 결제완료 등으로 상태 변경
+                    
+                    // 결제 성공 시 재고 차감
+                    for (OrderItem orderItem : order.getOrderItems()) {
+                        GiftShop giftShop = orderItem.getItem();
+                        int orderQuantity = orderItem.getQuantity();
+                        
+                        // 재고 차감 로직 적용
+                        boolean stockDecreasedSuccessfully = giftShop.decreaseStock(orderQuantity);
+                        if (stockDecreasedSuccessfully) {
+                            System.out.println("[processTossPayment] 재고 차감 성공: 상품ID=" + giftShop.getItemIdx() 
+                                + ", 차감수량=" + orderQuantity 
+                                + ", 남은재고=" + giftShop.getStockQuantity());
+                        } else {
+                            // 재고 부족 시 로그만 남기고 계속 진행 (이미 주문은 완료 상태)
+                            System.out.println("[processTossPayment] 재고 부족: 상품ID=" + giftShop.getItemIdx() 
+                                + ", 필요수량=" + orderQuantity 
+                                + ", 현재재고=" + giftShop.getStockQuantity());
+                            // 가용 재고를 모두 차감
+                            giftShop.setStockQuantity(0);
+                        }
+                    }
+                    
                     orderRepository.save(order);
                     System.out.println("[processTossPayment] order DB status(after): " + order.getOrderStatus());
                     
@@ -169,15 +229,5 @@ public class PaymentService {
             } else {
                 throw new IllegalArgumentException("지원하지 않는 결제 유형입니다: " + paymentType);
             }
-            
-        } catch (Exception e) {
-            System.out.println("[processTossPayment] Exception: " + e.getMessage());
-            userActivityLogService.logActivity(
-                user, ActivityType.PAYMENT_FAILED,
-                "토스 결제 처리 중 오류: " + e.getMessage() + ", 주문번호=" + response.getOrderId(),
-                ipAddress
-            );
-            return false;
-        }
     }
 }

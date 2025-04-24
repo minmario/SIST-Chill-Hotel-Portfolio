@@ -26,6 +26,21 @@ export enum SortDirection {
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
+// API 요청시 인증 헤더 추가 함수
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('accessToken');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
+};
+
 // 전체 상품 목록 조회
 export async function fetchProducts(sortBy?: SortBy, sortDirection?: SortDirection): Promise<Product[]> {
   try {
@@ -38,10 +53,7 @@ export async function fetchProducts(sortBy?: SortBy, sortDirection?: SortDirecti
     
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
+      headers: getAuthHeaders(),
       credentials: 'include'
     });
     
@@ -66,10 +78,7 @@ export async function fetchProductById(productIdx: number): Promise<Product> {
   try {
     const response = await fetch(`${API_BASE_URL}/gift-shop/${productIdx}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
+      headers: getAuthHeaders(),
       credentials: 'include'
     });
     
@@ -103,10 +112,7 @@ export async function fetchProductsByCategory(category: string, sortBy?: SortBy,
     
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
+      headers: getAuthHeaders(),
       credentials: 'include'  // 기존과 일관성을 위해 include로 유지
     });
     
@@ -143,10 +149,7 @@ export async function searchProducts(keyword: string, sortBy?: SortBy, sortDirec
     
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
+      headers: getAuthHeaders(),
       credentials: 'include'
     });
     
@@ -157,6 +160,29 @@ export async function searchProducts(keyword: string, sortBy?: SortBy, sortDirec
     return data;
   } catch (error) {
     console.error('Error searching products:', error);
+    throw error;
+  }
+}
+
+// 결제 API 호출
+export async function initiatePayment(paymentData: any): Promise<any> {
+  try {
+    const response = await fetch(`http://localhost:8080/api/payments`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(paymentData),
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`결제 요청 실패: ${response.status} ${response.statusText}`, errorText);
+      throw new Error(`결제 요청에 실패했습니다. 상태 코드: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('결제 초기화 중 오류 발생:', error);
     throw error;
   }
 }

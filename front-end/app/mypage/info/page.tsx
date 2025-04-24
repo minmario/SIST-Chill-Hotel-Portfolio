@@ -17,16 +17,16 @@ export default function UserInfo() {
   const [verificationError, setVerificationError] = useState("")
 
   const [formData, setFormData] = useState({
-    userId: "test",
-    email: "vldhtmxk@naver.com",
+    userId: "",
+    email: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
-    lastName: "이",
+    lastName: "",
     firstName: "",
     englishLastName: "",
-    englishFirstName: "승범",
-    phone: "01023234444",
+    englishFirstName: "",
+    phone: "",
   })
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
@@ -67,11 +67,11 @@ export default function UserInfo() {
     .then((res) => res.json())
     .then((data) => {
       setFormData({
-        userId: data.id,
-        email: data.email,
-        phone: data.phone,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        userId: data.id || "",
+        email: data.email || "",
+        phone: data.phone || "",
+        firstName: data.firstName || "",
+        lastName: data.lastName || "",
         englishFirstName: data.englishFirstName || "",
         englishLastName: data.englishLastName || "",
         currentPassword: "",

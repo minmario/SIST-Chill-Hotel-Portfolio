@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, memo } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Menu, X, ShoppingCart, User } from "lucide-react"
@@ -8,6 +8,26 @@ import { usePathname } from "next/navigation"
 import { useCart } from '@/context/cart-context'
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
+
+// 메모화된 NavLink 컴포넌트
+const NavLink = memo(({ href, children, isScrolled }: { href: string; children: React.ReactNode; isScrolled: boolean }) => (
+  <Link href={href} className="transition-colors" style={{ color: isScrolled ? "#333333" : "#111827" }}>
+    {children}
+  </Link>
+));
+NavLink.displayName = 'NavLink';
+
+// 모바일 메뉴 링크
+const MobileLink = memo(({ href, children, onClick }: { href: string; children: React.ReactNode; onClick: () => void }) => (
+  <Link
+    href={href}
+    className="text-lg py-2 border-b border-gray-100"
+    onClick={onClick}
+  >
+    {children}
+  </Link>
+));
+MobileLink.displayName = 'MobileLink';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -30,10 +50,18 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [pathname])
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout()
     router.push('/')
-  }
+  }, [logout, router])
+
+  const toggleMenu = useCallback(() => {
+    setIsMenuOpen(prev => !prev)
+  }, [])
+
+  const closeMenu = useCallback(() => {
+    setIsMenuOpen(false)
+  }, [])
 
   return (
     <header
@@ -47,7 +75,7 @@ const Header = () => {
           <Image 
             src="/logo1.png"
             alt="ChillHaven 로고"
-            width={120} // 원하는 크기로 조정
+            width={120}
             height={50}
             style={{ objectFit: "contain" }}
             priority
@@ -55,34 +83,14 @@ const Header = () => {
         </Link>
 
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="/service" className="transition-colors" style={{ color: isScrolled ? "#333333" : "#111827" }}>
-            고객센터
-          </Link>
-          <Link href="/rooms" className="transition-colors" style={{ color: isScrolled ? "#333333" : "#111827" }}>
-            객실
-          </Link>
-          <Link href="/offers" className="transition-colors" style={{ color: isScrolled ? "#333333" : "#111827" }}>
-            스페셜 오퍼
-          </Link>
-          <Link href="/dining" className="transition-colors" style={{ color: isScrolled ? "#333333" : "#111827" }}>
-            다이닝
-          </Link>
-          <Link href="/facilities" className="transition-colors" style={{ color: isScrolled ? "#333333" : "#111827" }}>
-            편의시설
-          </Link>
-          <Link href="/membership" className="transition-colors" style={{ color: isScrolled ? "#333333" : "#111827" }}>
-            멤버십
-          </Link>
-          <Link
-            href="/booking/check"
-            className="transition-colors"
-            style={{ color: isScrolled ? "#333333" : "#111827" }}
-          >
-            예약확인
-          </Link>
-          <Link href="/store" className="transition-colors" style={{ color: isScrolled ? "#333333" : "#111827" }}>
-            기프트샵
-          </Link>
+          <NavLink href="/service" isScrolled={isScrolled}>고객센터</NavLink>
+          <NavLink href="/rooms" isScrolled={isScrolled}>객실</NavLink>
+          <NavLink href="/offers" isScrolled={isScrolled}>스페셜 오퍼</NavLink>
+          <NavLink href="/dining" isScrolled={isScrolled}>다이닝</NavLink>
+          <NavLink href="/facilities" isScrolled={isScrolled}>편의시설</NavLink>
+          <NavLink href="/membership" isScrolled={isScrolled}>멤버십</NavLink>
+          <NavLink href="/booking/check" isScrolled={isScrolled}>예약확인</NavLink>
+          <NavLink href="/store" isScrolled={isScrolled}>기프트샵</NavLink>
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
@@ -157,7 +165,7 @@ const Header = () => {
             </Link>
           )}
 
-          <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="메뉴 토글">
+          <button className="md:hidden" onClick={toggleMenu} aria-label="메뉴 토글">
             {isMenuOpen ? (
               <X size={24} color={isScrolled ? "#333333" : "#111827"} />
             ) : (
@@ -170,94 +178,39 @@ const Header = () => {
         {isMenuOpen && (
           <div className="fixed inset-0 bg-white z-40 pt-20">
             <nav className="container flex flex-col gap-4 p-4">
-              <Link
-                href="/service"
-                className="text-lg py-2 border-b border-gray-100"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                고객센터
-              </Link>
-              <Link
-                href="/rooms"
-                className="text-lg py-2 border-b border-gray-100"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                객실
-              </Link>
-              <Link
-                href="/offers"
-                className="text-lg py-2 border-b border-gray-100"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                스페셜 오퍼
-              </Link>
-              <Link
-                href="/dining"
-                className="text-lg py-2 border-b border-gray-100"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                다이닝
-              </Link>
-              <Link
-                href="/facilities"
-                className="text-lg py-2 border-b border-gray-100"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                편의시설
-              </Link>
-              <Link
-                href="/membership"
-                className="text-lg py-2 border-b border-gray-100"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                멤버십
-              </Link>
-              <Link
-                href="/booking/check"
-                className="text-lg py-2 border-b border-gray-100"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                예약확인
-              </Link>
-              <Link
-                href="/store"
-                className="text-lg py-2 border-b border-gray-100"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                기프트샵
-              </Link>
+              <MobileLink href="/service" onClick={closeMenu}>고객센터</MobileLink>
+              <MobileLink href="/rooms" onClick={closeMenu}>객실</MobileLink>
+              <MobileLink href="/offers" onClick={closeMenu}>스페셜 오퍼</MobileLink>
+              <MobileLink href="/dining" onClick={closeMenu}>다이닝</MobileLink>
+              <MobileLink href="/facilities" onClick={closeMenu}>편의시설</MobileLink>
+              <MobileLink href="/membership" onClick={closeMenu}>멤버십</MobileLink>
+              <MobileLink href="/booking/check" onClick={closeMenu}>예약확인</MobileLink>
+              <MobileLink href="/store" onClick={closeMenu}>기프트샵</MobileLink>
 
-              <div className="mt-8">
-                {isLoggedIn ? (
-                  <>
-                    <Link
-                      href="/mypage"
-                      className="block py-2 mb-2 w-full text-center border border-gray-300 rounded"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      마이페이지
-                    </Link>
-                    <button
-                      onClick={() => {
-                        handleLogout()
-                        setIsMenuOpen(false)
-                      }}
-                      className="block py-2 w-full text-center bg-red-500 text-white rounded"
-                    >
-                      로그아웃
-                    </button>
-                  </>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="block py-2 w-full text-center"
-                    style={{ backgroundColor: "#2dd4bf", color: "#fff", borderRadius: "0.375rem" }}
-                    onClick={() => setIsMenuOpen(false)}
+              {isLoggedIn ? (
+                <>
+                  <MobileLink href="/mypage" onClick={closeMenu}>마이페이지</MobileLink>
+                  <button
+                    onClick={() => {
+                      handleLogout()
+                      closeMenu()
+                    }}
+                    className="text-lg py-4 mt-4 text-center rounded-md font-medium text-white"
+                    style={{ backgroundColor: "#2dd4bf" }}
                   >
-                    로그인
-                  </Link>
-                )}
-              </div>
+                    로그아웃
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  className="text-lg py-4 mt-4 text-center rounded-md font-medium text-white"
+                  style={{ backgroundColor: "#2dd4bf" }}
+                  onClick={closeMenu}
+                >
+                  로그인
+                </Link>
+              )}
             </nav>
           </div>
         )}
@@ -266,5 +219,5 @@ const Header = () => {
   )
 }
 
-export default Header
+export default memo(Header)
 

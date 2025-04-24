@@ -76,6 +76,7 @@ public class User extends BaseTimeEntity implements UserDetails {
     @Column(length = 50)
     private String lastName;
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
     @Builder.Default

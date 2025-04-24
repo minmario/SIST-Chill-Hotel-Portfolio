@@ -1,10 +1,19 @@
 "use client"
+export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function PaymentFailPage() {
+  return (
+    <Suspense>
+      <PaymentFailContent />
+    </Suspense>
+  );
+}
+
+function PaymentFailContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [errorMessage, setErrorMessage] = useState('알 수 없는 오류가 발생했습니다.')

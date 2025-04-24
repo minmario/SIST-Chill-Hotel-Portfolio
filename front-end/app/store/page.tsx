@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
@@ -77,6 +77,39 @@ const sortOptions = [
   { value: SortBy.NAME, label: "이름순" },
 ]
 
+// 카테고리 표시 형식 포맷 함수
+const formatCategory = (category: string | undefined): string => {
+  if (!category) return "기타"
+
+  // 카테고리 맵핑
+  const categoryMap: { [key: string]: string } = {
+    "signature": "시그니처 컬렉션",
+    "wellness": "힐링 & 웰니스",
+    "eco": "에코 & 지속가능",
+    "food": "식음료 제품",
+    "room": "객실별 컬렉션",
+    "memory": "메모리 아이템",
+    // 서브카테고리
+    "aroma": "아로마 & 디퓨저",
+    "bath": "목욕 제품",
+    "bedding": "침구 & 가운",
+    // 기타 서브카테고리...
+  }
+
+  // 슬래시 또는 하이픈 형식의 카테고리 처리
+  if (category.includes("/") || category.includes("-")) {
+    const separator = category.includes("/") ? "/" : "-"
+    const [main, sub] = category.split(separator)
+    
+    const mainLabel = categoryMap[main] || main
+    const subLabel = categoryMap[sub] || sub
+    
+    return `${mainLabel} > ${subLabel}`
+  }
+  
+  return categoryMap[category] || category
+}
+
 export default function Store() {
   const [activeCategory, setActiveCategory] = useState("all")
   const [activeSubcategory, setActiveSubcategory] = useState("all")
@@ -101,210 +134,154 @@ export default function Store() {
     loadAllProducts()
   }, [sortBy, sortDirection])
 
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        console.log("상품 목록 로딩 시작")
-        setLoading(true)
-        setError(null) // 이전 오류 초기화
-        
-        // 카테고리가 선택된 경우 해당 카테고리 상품만 로드
-        let data: Product[]
-        
-        try {
-          // 정렬 옵션을 포함하여 API 호출
-          if (activeCategory !== "all") {
-            // 서브카테고리가 선택된 경우 카테고리/서브카테고리 형식으로 조합하여 API 호출
-            if (activeSubcategory !== "all") {
-              // 특정 서브카테고리 선택 - API로 직접 호출
-              const categoryParam = `${activeCategory}-${activeSubcategory}`
-              console.log(`조합된 카테고리 파라미터: ${categoryParam} (하이픈 형식)`)
-              
-              try {
-                console.log(`서브카테고리 API 호출 시작 - 파라미터: ${categoryParam}, 정렬: ${sortBy}, ${sortDirection}`)
-                data = await fetchProductsByCategory(categoryParam, sortBy, sortDirection)
-                console.log(`서브카테고리 API 응답: ${data.length} 개 상품, 첫 번째 상품 카테고리: ${data.length > 0 ? data[0].category : '없음'}`)
-              } catch (apiError) {
-                console.error(`서브카테고리 API 오류:`, apiError)
-                // 오류 발생 시 클라이언트 필터링으로 대체
-                console.log(`전체 상품에서 클라이언트 필터링으로 대체`)
-                data = allProducts.filter((product) => {
-                  // 하이픈 형식과 슬래시 형식 모두 확인
-                  const categoryMatch = product.category === categoryParam || 
-                                      product.category === categoryParam.replace('-', '/');
-                  if (categoryMatch && product.category) {
-                    console.log(`일치하는 상품 발견: ${product.itemName}, 카테고리: ${product.category}`);
-                  }
-                  return categoryMatch;
-                })
-                console.log(`클라이언트 필터링 결과: ${data.length} 개 상품`)
-              }
-            } else {
-              // 전체보기 선택 - 서버에서 접두어 검색으로 조회
-              console.log(`${activeCategory} 카테고리 전체보기 API 호출 - 정렬: ${sortBy}, ${sortDirection}`)
-              
-              try {
-                data = await fetchProductsByCategory(activeCategory, sortBy, sortDirection)
-                console.log(`카테고리 전체보기 API 응답: ${data.length} 개 상품`)
-                if (data.length > 0) {
-                  console.log(`첫 번째 상품: ${data[0].itemName}, 카테고리: ${data[0].category}`)
-                }
-              } catch (apiError) {
-                console.error(`카테고리 API 오류:`, apiError)
-                // 오류 발생 시 클라이언트 필터링으로 대체
-                console.log(`전체 상품에서 클라이언트 필터링으로 대체`)
-                data = allProducts.filter((product) => {
-                  const categoryMatch = product.category === activeCategory || 
-                                      product.category.startsWith(`${activeCategory}-`) || 
-                                      product.category.startsWith(`${activeCategory}/`);
-                  if (categoryMatch && product.category) {
-                    console.log(`일치하는 상품 발견: ${product.itemName}, 카테고리: ${product.category}`);
-                  }
-                  return categoryMatch;
-                })
-                console.log(`클라이언트 필터링 결과: ${data.length} 개 상품`)
-              }
-            }
-          } else {
-            data = await fetchProducts(sortBy, sortDirection)
-          }
-          
-          console.log("받은 상품 데이터:", data ? data.length : 0, "개")
-          
-          // 백엔드에서 정렬이 제대로 작동하지 않는 경우를 대비해 클라이언트 측에서도 정렬 적용
-          const sortedData = sortProducts(data, sortBy, sortDirection)
-          setProducts(sortedData)
-        } catch (err) {
-          console.error("API 호출 오류:", err)
-          // API 오류 발생 시 빈 배열 설정
-          setProducts([])
-          
-          if (err instanceof Error) {
-            setError(err.message)
-          } else {
-            setError('상품을 불러오는데 실패했습니다.')
-          }
-        }
-        
-        setLoading(false)
-      } catch (err) {
-        console.error("상품 로딩 오류:", err)
-        setError(err instanceof Error ? err.message : '상품을 불러오는데 실패했습니다.')
-        setProducts([]) // 오류 시 빈 배열로 설정
-        setLoading(false)
-      }
-    }
-
-    // allProducts가 로드된 후 카테고리 필터링 수행
-    if (allProducts.length > 0 || activeCategory === "all" || activeSubcategory !== "all") {
-      loadProducts()
-    }
-  }, [activeCategory, activeSubcategory, sortBy, sortDirection, allProducts])
-
-  // 카테고리에 속하는지 확인하는 함수
-  const belongsToCategory = (productCategory: string, mainCategory: string): boolean => {
+  // 먼저 belongsToCategory 함수 정의
+  const belongsToCategory = useCallback((productCategory: string | undefined, mainCategory: string): boolean => {
     if (!productCategory) return false
-    
-    // 정확히 일치하는 경우
+    if (mainCategory === "all") return true
+
+    // 하이픈 및 슬래시 카테고리 형식 모두 지원
     if (productCategory === mainCategory) return true
+    if (productCategory.startsWith(`${mainCategory}-`)) return true
+    if (productCategory.startsWith(`${mainCategory}/`)) return true
+
+    return false
+  }, [])
+
+  // 그 다음 loadProducts 함수 정의
+  const loadProducts = useCallback(async () => {
+    setLoading(true)
+    setError(null)
     
-    // 하이픈(-) 또는 슬래시(/) 형식으로 시작하는 경우
-    if (productCategory.startsWith(`${mainCategory}-`) || 
-        productCategory.startsWith(`${mainCategory}/`)) {
-      return true
-    }
-    
-    // 문자열 자체에 카테고리가 포함된 경우 (DB 데이터 구조에 따라 필요 시)
-    if (productCategory.includes(mainCategory)) {
-      // 추가 검증 - 단순 부분 문자열 포함이 아닌 실제 카테고리명과 일치하는지
-      const possibleCategories = ['signature', 'wellness', 'eco', 'food', 'room', 'memory']
-      // 현재 선택된 카테고리가 아닌 다른 메인 카테고리명이 포함된 경우 제외
-      for (const cat of possibleCategories) {
-        if (cat !== mainCategory && productCategory.includes(cat)) {
-          return false
+    try {
+      let data: Product[] = []
+      
+      if (activeCategory === "all") {
+        // 전체 상품 표시 (클라이언트측에서 필터링)
+        data = [...allProducts]
+      } else if (activeSubcategory === "all") {
+        // 특정 메인 카테고리에 속한 상품 표시
+        try {
+          // 먼저 서버에서 카테고리별 데이터 요청 시도
+          data = await fetchProductsByCategory(activeCategory)
+        } catch {
+          // 서버 API 호출 실패 시 클라이언트에서 필터링
+          data = allProducts.filter(product => 
+            belongsToCategory(product.category, activeCategory)
+          )
+        }
+      } else {
+        // 서브카테고리 필터링
+        try {
+          // 형식에 맞춰 카테고리 문자열 구성
+          const categoryPath = `${activeCategory}/${activeSubcategory}`
+          data = await fetchProductsByCategory(categoryPath)
+        } catch {
+          // 서버 API 호출 실패 시 클라이언트에서 필터링
+          data = allProducts.filter(product => {
+            // 카테고리 문자열이 'main/sub' 또는 'main-sub' 형식인지 확인
+            if (!product.category) return false
+            
+            const categoryMatch = product.category === `${activeCategory}/${activeSubcategory}` || 
+                                  product.category === `${activeCategory}-${activeSubcategory}`
+            
+            return categoryMatch
+          })
         }
       }
-      return true
+      
+      // 백엔드에서 정렬이 제대로 작동하지 않는 경우를 대비해 클라이언트 측에서도 정렬 적용
+      const sortedData = sortProducts(data, sortBy, sortDirection)
+      setProducts(sortedData)
+      setLoading(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '상품을 불러오는데 실패했습니다.')
+      setProducts([]) // 오류 시 빈 배열로 설정
+      setLoading(false)
     }
-    
-    return false
-  }
-
-  const filteredProducts = products.filter((product) => {
-    if (activeCategory === "all") {
-      return true // 전체 상품 선택 시 모든 상품 표시
-    }
-    
-    if (activeSubcategory === "all") {
-      // 전체보기 선택 시 해당 메인 카테고리의 모든 상품 표시
-      return belongsToCategory(product.category, activeCategory)
-    }
-    
-    // 서브카테고리까지 선택된 경우
-    // 하이픈(-) 또는 슬래시(/) 형식 모두 확인
-    return product.category === `${activeCategory}-${activeSubcategory}` || 
-           product.category === `${activeCategory}/${activeSubcategory}`
-  })
-
-  const currentCategory = categories.find((cat) => cat.id === activeCategory)
-
-  // 정렬 방향 토글 함수
-  const toggleSortDirection = () => {
-    setSortDirection(
-      sortDirection === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC
-    )
-  }
-
-  // 정렬 기준 변경 함수
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSortBy(e.target.value as SortBy)
-  }
-
-  // 정렬 아이콘 선택 함수
-  const getSortIcon = () => {
-    if (sortDirection === SortDirection.ASC) {
-      return <ArrowUp size={16} />
-    } else {
-      return <ArrowDown size={16} />
-    }
-  }
+  }, [activeCategory, activeSubcategory, sortBy, sortDirection, allProducts, belongsToCategory])
 
   useEffect(() => {
-    // 카테고리가 변경되면 서브카테고리를 'all'로 초기화
-    setActiveSubcategory("all")
-  }, [activeCategory])
+    // 카테고리나 정렬 조건이 변경되면 상품 목록 업데이트
+    loadProducts()
+  }, [activeCategory, activeSubcategory, sortBy, sortDirection, allProducts, loadProducts])
 
-  // 카테고리 표시명 변환 함수
-  const formatCategory = (category: string | undefined): string => {
-    if (!category) return '기타'
-    
-    // 하이픈(-) 또는 슬래시(/)로 구분된 카테고리 처리
-    const separator = category.includes('-') ? '-' : '/'
-    const parts = category.split(separator)
-    
-    if (parts.length === 1) return category
-    
-    // 서브카테고리만 표시 (마지막 부분)
-    return parts[parts.length - 1]
-  }
+  const handleCategoryChange = useCallback((categoryId: string) => {
+    setActiveCategory(categoryId)
+    setActiveSubcategory("all") // 새 카테고리를 선택하면 서브카테고리 초기화
+  }, [])
 
-  if (loading && products.length === 0) return <div className="container mx-auto p-4">상품 로딩 중...</div>
-  if (error) return <div className="container mx-auto p-4 text-red-500">오류: {error}</div>
+  const handleSubcategoryChange = useCallback((subcategoryId: string) => {
+    setActiveSubcategory(subcategoryId)
+  }, [])
+
+  const handleSortChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortBy(e.target.value as SortBy)
+  }, [])
+
+  const toggleSortDirection = useCallback(() => {
+    setSortDirection(prev => 
+      prev === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC
+    )
+  }, [])
+
+  const getSortIcon = useCallback(() => {
+    if (sortBy === SortBy.NEWEST) {
+      return sortDirection === SortDirection.DESC 
+        ? <ArrowDown size={16} /> 
+        : <ArrowUp size={16} />
+    }
+    
+    if (sortBy === SortBy.PRICE || sortBy === SortBy.NAME) {
+      return sortDirection === SortDirection.ASC 
+        ? <ArrowUp size={16} /> 
+        : <ArrowDown size={16} />
+    }
+    
+    return <ArrowUpDown size={16} />
+  }, [sortBy, sortDirection])
+
+  // 현재 카테고리에 해당하는 카테고리 객체 가져오기
+  const currentCategory = categories.find(cat => cat.id === activeCategory)
+  const hasSubcategories = currentCategory && currentCategory.subcategories.length > 0
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-50">
+      {/* 스토어 헤더 */}
       <div className={styles.header}>
-        <div className="container">
-          <h1>기프트샵</h1>
-          <p>
-            럭스 호텔의 특별한 경험을 집에서도 느껴보세요. 호텔에서 직접 사용하는 제품부터 특별히 엄선된 아이템까지
-            다양하게 준비되어 있습니다.
-          </p>
+        <div className="container mx-auto px-4">
+          <h1>Chill Haven 기프트샵</h1>
+          <p>특별한 추억을 만들어 줄 Chill Haven의 프리미엄 상품들을 만나보세요.</p>
         </div>
       </div>
 
-      <section className={styles.storeSection}>
-        <div className="container">
+      {/* 상품 섹션 */}
+      <div className={styles.storeSection}>
+        <div className="container mx-auto px-4">
+          {/* 브레드크럼 */}
+          <div className={styles.breadcrumbs}>
+            <Link href="/" className={styles.breadcrumbLink}>홈</Link>
+            <span className={styles.breadcrumbSeparator}><ChevronRight size={14} /></span>
+            <Link href="/store" className={styles.breadcrumbLink}>기프트샵</Link>
+            
+            {activeCategory !== "all" && (
+              <>
+                <span className={styles.breadcrumbSeparator}><ChevronRight size={14} /></span>
+                <span className={styles.breadcrumbCurrent}>
+                  {categories.find(cat => cat.id === activeCategory)?.name}
+                </span>
+                
+                {activeSubcategory !== "all" && (
+                  <>
+                    <span className={styles.breadcrumbSeparator}><ChevronRight size={14} /></span>
+                    <span className={styles.breadcrumbCurrent}>
+                      {currentCategory?.subcategories.find(sub => sub.id === activeSubcategory)?.name}
+                    </span>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+
           <div className={styles.storeGrid}>
             {/* 카테고리 사이드바 */}
             <div className={styles.categorySidebar}>
@@ -316,38 +293,40 @@ export default function Store() {
                       href="#"
                       className={`${styles.categoryLink} ${activeCategory === category.id ? styles.activeCategory : ""}`}
                       onClick={(e) => {
-                        e.preventDefault()
-                        setActiveCategory(category.id)
+                        e.preventDefault();
+                        handleCategoryChange(category.id);
                       }}
                     >
                       {category.name}
                     </a>
-
-                    {activeCategory === category.id && (
+                    
+                    {/* 서브카테고리 표시 */}
+                    {category.subcategories.length > 0 && activeCategory === category.id && (
                       <ul className={styles.subcategoryList}>
                         <li className={styles.subcategoryItem}>
                           <a
                             href="#"
                             className={`${styles.subcategoryLink} ${activeSubcategory === "all" ? styles.activeSubcategory : ""}`}
                             onClick={(e) => {
-                              e.preventDefault()
-                              setActiveSubcategory("all")
+                              e.preventDefault();
+                              handleSubcategoryChange("all");
                             }}
                           >
-                            전체 보기
+                            전체보기
                           </a>
                         </li>
-                        {category.subcategories.map((subcategory) => (
-                          <li key={subcategory.id} className={styles.subcategoryItem}>
+                        
+                        {category.subcategories.map((sub) => (
+                          <li key={sub.id} className={styles.subcategoryItem}>
                             <a
                               href="#"
-                              className={`${styles.subcategoryLink} ${activeSubcategory === subcategory.id ? styles.activeSubcategory : ""}`}
+                              className={`${styles.subcategoryLink} ${activeSubcategory === sub.id ? styles.activeSubcategory : ""}`}
                               onClick={(e) => {
-                                e.preventDefault()
-                                setActiveSubcategory(subcategory.id)
+                                e.preventDefault();
+                                handleSubcategoryChange(sub.id);
                               }}
                             >
-                              {subcategory.name}
+                              {sub.name}
                             </a>
                           </li>
                         ))}
@@ -358,34 +337,14 @@ export default function Store() {
               </ul>
             </div>
 
-            {/* 상품 목록 */}
+            {/* 상품 목록 섹션 */}
             <div>
-              <div className={styles.breadcrumbs}>
-                <Link href="/store" className={styles.breadcrumbLink}>
-                  기프트샵
-                </Link>
-                <span className={styles.breadcrumbSeparator}>
-                  <ChevronRight size={14} />
-                </span>
-                <span className={styles.breadcrumbCurrent}>{currentCategory?.name}</span>
-                {activeSubcategory !== "all" && (
-                  <>
-                    <span className={styles.breadcrumbSeparator}>
-                      <ChevronRight size={14} />
-                    </span>
-                    <span className={styles.breadcrumbCurrent}>
-                      {currentCategory?.subcategories.find((sub) => sub.id === activeSubcategory)?.name}
-                    </span>
-                  </>
-                )}
-              </div>
-
               {/* 정렬 옵션 */}
               <div className={styles.sortOptions}>
                 <div className={styles.sortContainer}>
-                  <select 
-                    className={styles.sortSelect} 
-                    value={sortBy} 
+                  <select
+                    className={styles.sortSelect}
+                    value={sortBy}
                     onChange={handleSortChange}
                   >
                     {sortOptions.map((option) => (
@@ -394,55 +353,64 @@ export default function Store() {
                       </option>
                     ))}
                   </select>
-                  <button 
-                    className={styles.sortDirectionBtn} 
+                  <button
+                    className={styles.sortDirectionBtn}
                     onClick={toggleSortDirection}
-                    aria-label={sortDirection === SortDirection.ASC ? "오름차순 정렬" : "내림차순 정렬"}
+                    title={sortDirection === SortDirection.ASC ? "오름차순" : "내림차순"}
                   >
                     {getSortIcon()}
                   </button>
                 </div>
               </div>
 
-              {/* 오류 메시지 표시 */}
-              {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
-                  <p>{error}</p>
+              {/* 상품 그리드 */}
+              {loading ? (
+                <div className="flex justify-center items-center min-h-[300px]">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
                 </div>
-              )}
-
-              <div className={styles.productGrid}>
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map((product) => (
-                    <Link href={`/store/${product.itemIdx}`} key={product.itemIdx} className={styles.productCard}>
+              ) : error ? (
+                <div className="text-red-500 py-8 text-center">
+                  {error}
+                </div>
+              ) : products.length === 0 ? (
+                <div className="text-gray-500 py-8 text-center">
+                  상품이 없습니다.
+                </div>
+              ) : (
+                <div className={styles.productGrid}>
+                  {products.map((product) => (
+                    <Link 
+                      href={`/store/${product.itemIdx}`} 
+                      key={product.itemIdx} 
+                      className={styles.productCard}
+                    >
                       <div className={styles.productImage}>
                         <Image
                           src={product.imageUrl || "/placeholder.jpg"}
                           alt={product.itemName}
-                          fill
-                          style={{ objectFit: "cover" }}
+                          width={400}
+                          height={300}
+                          className="object-cover w-full h-full"
                         />
                       </div>
                       <div className={styles.productContent}>
                         <div className={styles.productCategory}>
                           {formatCategory(product.category)}
                         </div>
-                        <h3 className={styles.productTitle}>{product.itemName}</h3>
-                        <div className={styles.productPrice}>{Number(product.price).toLocaleString()}원</div>
+                        <h3 className={styles.productName}>{product.itemName}</h3>
+                        <div className={styles.productPrice}>
+                          {new Intl.NumberFormat('ko-KR').format(product.price)}원
+                        </div>
                       </div>
                     </Link>
-                  ))
-                ) : (
-                  <div className="text-center p-8 w-full">
-                    <p>해당 카테고리에 상품이 없습니다.</p>
-                  </div>
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </div>
   )
 }
 

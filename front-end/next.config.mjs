@@ -28,7 +28,15 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  // 최적화 설정
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
   reactStrictMode: true,
+  // 코드 분할과 캐싱 최적화
+  poweredByHeader: false,
   async rewrites() {
     // 모의 API 사용 시 리다이렉트 비활성화
     if (USE_MOCK_API) {
@@ -85,14 +93,45 @@ const withBundleAnalyzer = (nextConfig = {}) => {
               })
             );
           }
+          
+          // 최적화 설정 강화
           config.optimization = {
             ...config.optimization,
             splitChunks: {
               chunks: 'all',
               minSize: 20000,
               maxSize: 240000,
+              cacheGroups: {
+                commons: {
+                  test: /[\\/]node_modules[\\/]/,
+                  name: 'vendors',
+                  chunks: 'all',
+                  reuseExistingChunk: true,
+                },
+                // 자주 사용되는 컴포넌트나 유틸리티 분리
+                components: {
+                  test: /[\\/]components[\\/]/,
+                  name: 'components',
+                  chunks: 'all',
+                  minChunks: 2,
+                  reuseExistingChunk: true,
+                },
+                // 컨텍스트 분리
+                contexts: {
+                  test: /[\\/]context[\\/]/,
+                  name: 'contexts',
+                  chunks: 'all',
+                  reuseExistingChunk: true,
+                },
+              },
+            },
+            runtimeChunk: {
+              name: 'runtime',
             },
           };
+          
+          // usedExports 제거 (cacheUnaffected 충돌 해결)
+          
           return config;
         }
       : (config, options) => {
@@ -105,14 +144,45 @@ const withBundleAnalyzer = (nextConfig = {}) => {
               })
             );
           }
+          
+          // 최적화 설정 강화
           config.optimization = {
             ...config.optimization,
             splitChunks: {
               chunks: 'all',
               minSize: 20000,
               maxSize: 240000,
+              cacheGroups: {
+                commons: {
+                  test: /[\\/]node_modules[\\/]/,
+                  name: 'vendors',
+                  chunks: 'all',
+                  reuseExistingChunk: true,
+                },
+                // 자주 사용되는 컴포넌트나 유틸리티 분리
+                components: {
+                  test: /[\\/]components[\\/]/,
+                  name: 'components',
+                  chunks: 'all',
+                  minChunks: 2,
+                  reuseExistingChunk: true,
+                },
+                // 컨텍스트 분리
+                contexts: {
+                  test: /[\\/]context[\\/]/,
+                  name: 'contexts',
+                  chunks: 'all',
+                  reuseExistingChunk: true,
+                },
+              },
+            },
+            runtimeChunk: {
+              name: 'runtime',
             },
           };
+          
+          // usedExports 제거 (cacheUnaffected 충돌 해결)
+          
           return config;
         }),
   };
