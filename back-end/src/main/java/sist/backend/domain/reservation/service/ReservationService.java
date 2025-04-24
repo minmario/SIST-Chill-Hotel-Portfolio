@@ -180,4 +180,39 @@ public class ReservationService {
                 }
         }
 
+        /**
+         * 예약 체크아웃이 완료된 경우, 사용자의 누적 숙박일수를 갱신하고 등급도 갱신합니다.
+         * 이 메서드는 프론트 또는 예약 배치 처리에서 호출되어야 합니다.
+         *
+         * @param reservationNum 체크아웃 완료 처리할 예약번호
+         */
+        @Transactional
+        public void completeReservation(String reservationNum) {
+                // ✅ 1. 예약 조회
+                Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
+                                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+
+                // ✅ 2. 이미 완료된 예약은 중복 처리 방지
+                if (reservation.getStatus() == ReservationStatus.COMPLETED) {
+                        return; // 이미 완료 상태면 무시
+                }
+
+                // ✅ 3. 예약 상태 변경
+                reservation.setStatus(ReservationStatus.COMPLETED);
+                reservationRepository.save(reservation);
+
+                // ✅ 4. 숙박일 계산
+                long stayDays = ChronoUnit.DAYS.between(reservation.getCheckIn(), reservation.getCheckOut());
+                if (stayDays <= 0)
+                        stayDays = 1; // 최소 1박 보정
+
+                // ✅ 5. 유저 누적 숙박일수 증가
+                User user = reservation.getUser();
+                user.setTotalStays(user.getTotalStays() + (int) stayDays);
+                userRepository.save(user);
+
+                // ✅ 6. 등급 갱신 트리거 (포인트와 숙박 모두 반영)
+                updateMembership(user); // or membershipUpdaterService.updateUserMembershipIfNeeded(user);
+        }
+
 }

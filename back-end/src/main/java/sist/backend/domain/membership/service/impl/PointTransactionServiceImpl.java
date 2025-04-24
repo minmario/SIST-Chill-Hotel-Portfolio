@@ -9,8 +9,10 @@ import sist.backend.domain.membership.dto.response.PointTierSummaryResponse;
 import sist.backend.domain.membership.dto.response.PointTransactionResponse;
 import sist.backend.domain.membership.entity.Membership;
 import sist.backend.domain.membership.entity.PointTransaction;
+import sist.backend.domain.membership.entity.ReferenceType;
 import sist.backend.domain.membership.repository.MembershipRepository;
 import sist.backend.domain.membership.repository.PointTransactionRepository;
+import sist.backend.domain.membership.service.interfaces.MembershipUpdaterService;
 import sist.backend.domain.membership.service.interfaces.PointTransactionService;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.repository.UserRepository;
@@ -29,6 +31,7 @@ public class PointTransactionServiceImpl implements PointTransactionService {
     private final UserRepository userRepository;
     private final PointTransactionRepository pointTransactionRepository;
     private final MembershipRepository membershipRepository;
+    private final MembershipUpdaterService membershipUpdaterService;
 
     @Override
     public List<PointTransactionResponse> getUserPointHistory(Long userIdx, LocalDate start, LocalDate end) {
@@ -58,12 +61,15 @@ public class PointTransactionServiceImpl implements PointTransactionService {
         return result;
     }
 
-    @Transactional(readOnly = true)
+    @Override
     public PointSummaryResponse getUserPointSummary(Long userIdx) {
         User user = userRepository.findByUserIdx(userIdx)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
 
+        membershipUpdaterService.updateUserMembershipIfNeeded(user);
+
         int totalPoints = user.getTotalPoints();
+        int totalStays = user.getTotalStays();
         int availablePoints = pointTransactionRepository.findTotalPointByUserIdx(userIdx);
 
         // 3개월 이내 소멸 예정 포인트 계산
@@ -79,14 +85,18 @@ public class PointTransactionServiceImpl implements PointTransactionService {
 
         List<Membership> levels = membershipRepository.findAllByOrderByRequiredPointAsc();
         Membership next = null;
+
         for (Membership m : levels) {
-            if (m.getRequiredPoint() > totalPoints) {
+            boolean pointNotEnough = totalPoints < m.getRequiredPoint();
+            boolean stayNotEnough = totalStays < m.getRequiredStays();
+
+            if (pointNotEnough || stayNotEnough) {
                 next = m;
                 break;
             }
         }
 
-        int pointForNext = next != null ? next.getRequiredPoint() - totalPoints : 0;
+        int pointForNext = next != null ? Math.max(0, next.getRequiredPoint() - totalPoints) : 0;
 
         return new PointSummaryResponse(
                 totalPoints,
@@ -139,5 +149,37 @@ public class PointTransactionServiceImpl implements PointTransactionService {
                 .nextTier(nextTier)
                 .pointForNextTier(pointForNextTier)
                 .build();
+    }
+
+    /**
+     * 사용자가 포인트를 적립할 때, 누적 포인트도 함께 업데이트하고 등급도 갱신합니다.
+     *
+     * @param userIdx     포인트를 적립할 사용자 ID
+     * @param amount      적립할 포인트 수치 (양수만)
+     * @param description 적립 사유
+     */
+    @Transactional
+    public void earnPoints(Long userIdx, int amount, String description) {
+        User user = userRepository.findByUserIdx(userIdx)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
+
+        // ✅ 1. 포인트 트랜잭션 저장
+        PointTransaction transaction = PointTransaction.builder()
+                .user(user)
+                .point(amount)
+                .description(description)
+                .transactionDate(LocalDateTime.now())
+                .expirationDate(LocalDateTime.now().plusYears(1)) // 유효기간 예시
+                .referenceType(ReferenceType.USER_ACTIVITY_LOG)
+                .referenceIdx(null)
+                .build();
+        pointTransactionRepository.save(transaction);
+
+        // ✅ 2. 누적 포인트 증가
+        user.setTotalPoints(user.getTotalPoints() + amount);
+        userRepository.save(user);
+
+        // ✅ 3. 등급 갱신 시도 (조건 만족 시 변경됨)
+        membershipUpdaterService.updateUserMembershipIfNeeded(user);
     }
 }

@@ -128,12 +128,35 @@ useEffect(() => {
     }
   };
   
+  
   fetchSummary()
   fetchPoints()
   fetchStaySummary()
   fetchUserInfo();
   
 }, [router])
+const getTierMessage = () => {
+  const isEligible =
+    pointSummary.pointForNextTier === 0 &&
+    staySummary.stayForNextTier === 0;
+
+    const isTopTier = 
+    pointSummary.pointForNextTier === 0 &&
+    staySummary.stayForNextTier === 0 &&
+    !pointSummary.nextTier &&
+    pointSummary.totalPoints > 0 &&
+    staySummary.totalStay > 0;
+
+  if (isTopTier) {
+    return `${userName || "회원"}님은 최고 등급입니다 🎉`;
+  }
+
+  if (isEligible && pointSummary.nextTier) {
+    return `${userName || "회원"}님은 다음 등급(${pointSummary.nextTier}) 조건을 모두 충족했습니다! 🎉`;
+  }
+
+  return `${pointSummary.nextTier} 등급까지 포인트 ${pointSummary.pointForNextTier.toLocaleString()}P, 숙박 ${staySummary.stayForNextTier}박 남음`;
+};
   return (
     
     <>
@@ -252,7 +275,9 @@ useEffect(() => {
                       strokeWidth="12"
                       strokeDasharray="339.3"
                       strokeDashoffset={
-                        339.3 - 339.3 * (staySummary.totalStay / (staySummary.totalStay + staySummary.stayForNextTier))
+                        (staySummary.totalStay + staySummary.stayForNextTier) === 0
+                          ? "339.3"
+                          : (339.3 - 339.3 * (staySummary.totalStay / (staySummary.totalStay + staySummary.stayForNextTier))).toString()
                       }
                       transform="rotate(-90 60 60)"
                     />
@@ -263,10 +288,9 @@ useEffect(() => {
                   </div>
                 </div>
                 <div className={styles.statTarget}>
-                  {pointSummary.nextTier
-                    ? `${pointSummary.nextTier} 등급까지 ${pointSummary.pointForNextTier.toLocaleString()} P`
-                    : `${userName || "회원"}는 최고 등급입니다`}
+                  {getTierMessage()}
                 </div>
+                  
               </div>
 
                 <div className={styles.statCard}>
@@ -294,9 +318,7 @@ useEffect(() => {
                     </div>
                   </div>
                   <div className={styles.statTarget}>
-                    {pointSummary.nextTier
-                      ? `${pointSummary.nextTier} 등급까지 ${pointSummary.pointForNextTier.toLocaleString()} P`
-                      : `${userName || "회원"}는 최고 등급입니다`}
+                    {getTierMessage()}
                   </div>
                 </div>
               </div>
