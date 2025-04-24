@@ -1,12 +1,22 @@
 "use client"
 
+export const dynamic = "force-dynamic";
+
+import { Suspense, useEffect, useState } from 'react'
 import { useCart } from '@/context/cart-context'
 import { checkPaymentStatus } from '@/lib/toss-payments'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
 
 export default function PaymentSuccessPage() {
+  return (
+    <Suspense>
+      <PaymentSuccessContent />
+    </Suspense>
+  );
+}
+
+function PaymentSuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const paymentKey = searchParams.get('paymentKey')
