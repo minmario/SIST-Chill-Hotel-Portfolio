@@ -8,6 +8,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Check, ChevronLeft, Minus, Plus, Search } from "lucide-react"
 import styles from "../../rooms/rooms.module.css"
+import { extractMembershipIdxFromToken } from "./jwt";
 
 export default function BookingInfo() {
   return (
@@ -50,22 +51,12 @@ function BookingInfoContent() {
       setBookingParams(JSON.parse(paramsData))
     }
 
-    // accessToken에서 membership_idx 추출(JWT 디코딩)
+    // accessToken에서 membershipIdx 추출(JWT 디코딩)
     const accessToken = localStorage.getItem("accessToken")
     if (accessToken) {
-      try {
-        const payload = accessToken.split('.')[1]
-        // base64 padding 처리
-        const pad = payload.length % 4 === 2 ? '==' : (payload.length % 4 === 3 ? '=' : '')
-        const decoded = JSON.parse(atob(payload + pad))
-        if (decoded && decoded.membership_idx) {
-          setMembershipIdx(decoded.membership_idx)
-        } else {
-          setMembershipIdx(null)
-        }
-      } catch {
-        setMembershipIdx(null)
-      }
+      const idx = extractMembershipIdxFromToken(accessToken)
+      console.log('[BookingInfo] membershipIdx 추출:', idx)
+      setMembershipIdx(idx)
     } else {
       setMembershipIdx(null)
     }
@@ -121,7 +112,7 @@ function BookingInfoContent() {
 
   const handleContinue = async () => {
     // 회원 예약인데 로그인 상태가 아니면 로그인 페이지로 이동
-    if (loginOption === "member" && !membershipIdx) {
+    if (loginOption === "member" && membershipIdx == null) {
       router.push(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`)
       return
     }
@@ -152,7 +143,7 @@ function BookingInfoContent() {
       }
       // 회원 정보 불러오기
       try {
-        const res = await fetch("/api/user/info", {
+        const res = await fetch("/api/user/me", {
           headers: { Authorization: `Bearer ${accessToken}` },
         })
         if (res.ok) {
@@ -168,6 +159,7 @@ function BookingInfoContent() {
         router.push("/booking/login")
       }
     } else {
+      // 비회원 예약: 바로 customer-info로 이동 (토큰 없어도 에러 없음)
       router.push("/booking/customer-info")
     }
   }
@@ -177,19 +169,32 @@ let memberDiscountPercent = 0;
 let isMemberLoggedIn = false;
 let memberLabel = "회원 등급 할인";
 
+// membershipIdx 값에 따라 할인율 결정
 if (typeof window !== "undefined") {
-  const bookingUserInfo = localStorage.getItem("bookingUserInfo");
-  if (bookingUserInfo) {
-    try {
-      const user = JSON.parse(bookingUserInfo);
-      if (user && user.save_percent) {
-        memberDiscountPercent = Number(user.save_percent);
-        isMemberLoggedIn = true;
-        memberLabel = `회원 등급 할인 (${memberDiscountPercent}%)`;
-      }
-    } catch {}
+  // JWT에서 membershipIdx 추출 (이미 상태로 관리 중)
+  const idx = typeof membershipIdx === 'number' ? membershipIdx : null;
+  if (idx !== null) {
+    isMemberLoggedIn = true;
+    switch (idx) {
+      case 1:
+        memberDiscountPercent = 3;
+        break;
+      case 2:
+        memberDiscountPercent = 5;
+        break;
+      case 3:
+        memberDiscountPercent = 7;
+        break;
+      case 4:
+        memberDiscountPercent = 10;
+        break;
+      default:
+        memberDiscountPercent = 0;
+    }
+    memberLabel = `회원 등급 할인 (${memberDiscountPercent}%)`;
   }
 }
+
 
 const priceInfo = calculateTotal(memberDiscountPercent);
 

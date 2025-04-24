@@ -66,6 +66,15 @@ public class UserInfoController {
         return ResponseEntity.ok(userInfoMap);
     }
 
+    @GetMapping("/find_user")
+    public ResponseEntity<?> findUserByUserName(@RequestParam String userId) {
+        User user = userRepository.findByIdIs(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(404).body("사용자 없음");
+        }
+        return ResponseEntity.ok(UserResponse.from(user));
+    }
+
     @PatchMapping("/update")
     public ResponseEntity<?> updateUserInfo(@RequestBody UserUpdateRequest request, HttpServletRequest httpRequest) {
         String userId = jwtProvider.extractUserId(httpRequest);
