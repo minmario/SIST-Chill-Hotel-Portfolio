@@ -7,6 +7,7 @@ import java.util.stream.*;
 
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import sist.backend.domain.qna.dto.request.QnaRequest;
 import sist.backend.domain.qna.dto.response.QnaResponse;
@@ -31,23 +32,29 @@ public class QnaService {
                 .writeDate(LocalDateTime.now())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .status("PENDING")  // QnaService.submit() 내부에서
                 .build();
 
         qnaRepository.save(qna);
     }
 
+    @Transactional
     public void answer(QnaAnswerRequest request) {
         Qna qna = qnaRepository.findById(request.getQnaIdx())
                 .orElseThrow(() -> new IllegalArgumentException("문의글을 찾을 수 없습니다."));
 
         qna.setAnswer(request.getAnswer());
         qna.setAnswerDate(LocalDateTime.now());
+        qna.setStatus("ANSWERED"); // ✅ 상태 변경
+
+        qnaRepository.save(qna);
 
         mailService.send(
                 qna.getEmail(),
                 "[호텔 문의 답변] " + qna.getTitle(),
                 "고객님께서 작성하신 문의에 대한 답변입니다:\n\n" + request.getAnswer()
         );
+
     }
 
     public List<QnaResponse> getAll() {
@@ -63,6 +70,7 @@ public class QnaService {
                     .type(qna.getType())
                     .answer(qna.getAnswer())
                     .writeDate(qna.getWriteDate())
+                    .status(qna.getStatus())
                     .build();
             })
             .collect(Collectors.toList());

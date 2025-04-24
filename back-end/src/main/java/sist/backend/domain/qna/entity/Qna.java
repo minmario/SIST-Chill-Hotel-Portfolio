@@ -42,4 +42,8 @@ public class Qna {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(length = 20)
+    private String status;
+
 }
