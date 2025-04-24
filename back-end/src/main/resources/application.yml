@@ -1,14 +1,14 @@
 spring:
   profiles:
     active: dev
-    include: secret
+    include: secret, mail # 문의 메일 발송
   main:
     allow-bean-definition-overriding: true
     allow-circular-references: true
   security:
     jwt:
       secret: 3c1fdk93k9d209fk09sdkf033kd93k90
-      expiration: 36000000  # 10시간 (밀리초 단위)
+      expiration: 36000000
       header: Authorization
       prefix: Bearer
   datasource:
@@ -16,7 +16,6 @@ spring:
     url: jdbc:mysql://ted19horse.mysql.database.azure.com:3306/chill?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: sist
     password: 1111
-
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     open-in-view: false
@@ -30,4 +29,3 @@ spring:
 
 server:
   port: 8080
- 
