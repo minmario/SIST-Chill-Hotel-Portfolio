@@ -59,10 +59,6 @@ public class DiningReservation {
     @Column(length = 20)
     private String status;
 
-<<<<<<< HEAD
-    @CreationTimestamp
-=======
->>>>>>> gra1ze3
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
