@@ -11,6 +11,8 @@ import styles from "../store.module.css"
 import { usePathname } from "next/navigation"
 
 export default function ProductDetail({ params }: { params: { id: string } }) {
+  // 안내문 상태 추가
+  const [showAddedAlert, setShowAddedAlert] = useState(false);
   // URL 경로에서 ID 추출
   const pathname = usePathname();
   const idFromPath = pathname.split('/').pop() || '';
@@ -69,12 +71,14 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         price: product.price,
         quantity,
         image: product.imageUrl || '/placeholder.jpg'
-      })
-      
+      });
+      // 안내문 표시
+      setShowAddedAlert(true);
+      setTimeout(() => setShowAddedAlert(false), 2000); // 2초 후 안내문 숨김
       // 카트에 추가 후 수량 초기화
-      setQuantity(1)
+      setQuantity(1);
     }
-  }, [product, quantity, addItem])
+  }, [product, quantity, addItem]);
 
   const formatCategory = useCallback((category: string | undefined): string => {
     if (!category) return "기타"
@@ -133,6 +137,12 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* 장바구니 추가 안내문 */}
+      {showAddedAlert && (
+        <div className="fixed top-6 left-1/2 z-50 -translate-x-1/2 px-6 py-3 bg-teal-600 text-white rounded shadow-md animate-fade-in-out font-semibold">
+          장바구니에 추가되었습니다.
+        </div>
+      )}
       {/* 제품 헤더 */}
       <div className={styles.header}>
         <div className="container mx-auto px-4">

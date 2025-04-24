@@ -115,22 +115,47 @@ public class PaymentService {
     
     @Transactional
     public boolean processTossPayment(TossPaymentResponse response, String ipAddress, User user) {
+        try {
+            return processTossPaymentInternal(response, ipAddress, user);
+        } catch (org.springframework.orm.ObjectOptimisticLockingFailureException ex) {
+            // 동시성 예외 발생 시, 주문/예약 상태가 이미 처리된 경우라면 true 반환(중복 결제 방지)
+            String[] orderParts = response.getOrderId() != null ? response.getOrderId().split("_") : new String[0];
+            if (orderParts.length >= 2) {
+                String paymentType = orderParts[0];
+                String id = orderParts[1];
+                if ("ORDER".equals(paymentType)) {
+                    java.util.Optional<Order> orderOpt = orderRepository.findById(Long.parseLong(id));
+                    if (orderOpt.isPresent() && orderOpt.get().getOrderStatus() == OrderStatus.PAID) {
+                        return true; // 이미 결제 완료된 주문이면 성공으로 간주
+                    }
+                }
+                if ("RESERVATION".equals(paymentType)) {
+                    java.util.Optional<Reservation> reservationOpt = reservationRepository.findByReservationNum(id);
+                    if (reservationOpt.isPresent() && reservationOpt.get().getStatus() == ReservationStatus.CONFIRMED) {
+                        return true; // 이미 결제 완료된 예약이면 성공으로 간주
+                    }
+                }
+            }
+            throw ex;
+        }
+    }
+
+    private boolean processTossPaymentInternal(TossPaymentResponse response, String ipAddress, User user) {
         System.out.println("[processTossPayment] called");
         System.out.println("[processTossPayment] paymentKey: " + response.getPaymentKey());
         System.out.println("[processTossPayment] orderId: " + response.getOrderId());
         System.out.println("[processTossPayment] amount: " + response.getAmount());
         System.out.println("[processTossPayment] status: " + response.getStatus());
         System.out.println("[processTossPayment] message: " + response.getMessage());
-        try {
-            // 결제 상태 검증
-            if (!"DONE".equals(response.getStatus())) {
-                userActivityLogService.logActivity(
-                    user, ActivityType.PAYMENT_FAILED,
-                    "토스 결제 실패: " + response.getMessage() + ", 주문번호=" + response.getOrderId(),
-                    ipAddress
-                );
-                return false;
-            }
+        // 결제 상태 검증
+        if (!"DONE".equals(response.getStatus())) {
+            userActivityLogService.logActivity(
+                user, ActivityType.PAYMENT_FAILED,
+                "토스 결제 실패: " + response.getMessage() + ", 주문번호=" + response.getOrderId(),
+                ipAddress
+            );
+            throw new RuntimeException("토스 결제 실패: " + response.getMessage());
+        }
             
             // 주문 ID에서 결제 유형과 ID를 추출 (예: ORDER_123_timestamp_random)
             String[] orderParts = response.getOrderId().split("_");
@@ -204,15 +229,5 @@ public class PaymentService {
             } else {
                 throw new IllegalArgumentException("지원하지 않는 결제 유형입니다: " + paymentType);
             }
-            
-        } catch (Exception e) {
-            System.out.println("[processTossPayment] Exception: " + e.getMessage());
-            userActivityLogService.logActivity(
-                user, ActivityType.PAYMENT_FAILED,
-                "토스 결제 처리 중 오류: " + e.getMessage() + ", 주문번호=" + response.getOrderId(),
-                ipAddress
-            );
-            return false;
-        }
     }
 }

@@ -72,7 +72,20 @@ export const checkPaymentStatus = async (paymentKey, orderId, amount) => {
     });
     
     if (!response.ok) {
+      // 409(중복 결제)도 성공으로 간주
+      if (response.status === 409) {
+        // 이미 결제된 상태이므로 성공처럼 처리 (alert 제거)
+        return { alreadyPaid: true };
+      }
+      // 나머지 에러는 기존대로 처리
       const errorText = await response.text();
+      if (response.status === 404) {
+        alert('이미 삭제되었거나 존재하지 않는 데이터입니다.');
+      } else if (response.status === 400) {
+        alert('결제 요청이 잘못되었습니다.');
+      } else {
+        alert('결제 상태 확인 중 오류가 발생했습니다.');
+      }
       console.error(`결제 상태 확인 오류: ${response.status}`, errorText);
       throw new Error(`결제 상태 확인 중 오류가 발생했습니다. (${response.status})`);
     }

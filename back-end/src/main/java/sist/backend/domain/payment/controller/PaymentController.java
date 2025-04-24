@@ -67,12 +67,8 @@ public class PaymentController {
         System.out.println("[toss/success] status: " + response.getStatus());
         System.out.println("[toss/success] message: " + response.getMessage());
         String ipAddress = httpRequest.getRemoteAddr();
-        boolean success = paymentService.processTossPayment(response, ipAddress, user);
-        if (success) {
-            return ResponseEntity.ok().body(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+        paymentService.processTossPayment(response, ipAddress, user);
+        return ResponseEntity.ok().body(response);
     }
     
     @PostMapping("/toss/fail")
