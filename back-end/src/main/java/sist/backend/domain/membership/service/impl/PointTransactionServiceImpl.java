@@ -14,6 +14,8 @@ import sist.backend.domain.membership.repository.MembershipRepository;
 import sist.backend.domain.membership.repository.PointTransactionRepository;
 import sist.backend.domain.membership.service.interfaces.MembershipUpdaterService;
 import sist.backend.domain.membership.service.interfaces.PointTransactionService;
+import sist.backend.domain.reservation.entity.Reservation;
+import sist.backend.domain.reservation.repository.ReservationRepository;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.repository.UserRepository;
 
@@ -32,6 +34,7 @@ public class PointTransactionServiceImpl implements PointTransactionService {
     private final PointTransactionRepository pointTransactionRepository;
     private final MembershipRepository membershipRepository;
     private final MembershipUpdaterService membershipUpdaterService;
+    private final ReservationRepository reservationRepository;
 
     @Override
     public List<PointTransactionResponse> getUserPointHistory(Long userIdx, LocalDate start, LocalDate end) {
@@ -181,5 +184,44 @@ public class PointTransactionServiceImpl implements PointTransactionService {
 
         // ✅ 3. 등급 갱신 시도 (조건 만족 시 변경됨)
         membershipUpdaterService.updateUserMembershipIfNeeded(user);
+    }
+
+    @Transactional
+    public void recalculateAndUpdateUserSummary(Long userIdx) {
+        System.out.println("🔥 /summary/update 호출됨, userIdx: " + userIdx);
+
+        // ✅ 사용자 조회
+        User user = userRepository.findByUserIdx(userIdx)
+                .orElseThrow(() -> {
+                    System.out.println("❌ 사용자 없음! userIdx=" + userIdx);
+                    return new IllegalArgumentException("사용자 없음");
+                });
+
+        // ✅ 총 포인트 계산
+        Integer totalPoints = pointTransactionRepository.findTotalPointByUserIdx(userIdx);
+        if (totalPoints == null)
+            totalPoints = 0;
+        System.out.println("📌 총 포인트: " + totalPoints);
+        user.setTotalPoints(totalPoints);
+
+        // ✅ 1년 이내 예약 조회
+        LocalDate oneYearAgo = LocalDate.now().minusYears(1);
+        List<Reservation> reservations = reservationRepository
+                .findCompletedReservationsWithin(userIdx, oneYearAgo, LocalDate.now());
+        System.out.println("📌 완료된 예약 수: " + reservations.size());
+
+        int totalStays = reservations.stream()
+                .mapToInt(Reservation::getDurationDays)
+                .sum();
+        user.setTotalStays(totalStays);
+        System.out.println("📌 총 숙박일수: " + totalStays);
+
+        // ✅ 저장
+        userRepository.save(user);
+        System.out.println("✅ user 저장 완료");
+
+        // ✅ 등급 갱신
+        membershipUpdaterService.updateUserMembershipIfNeeded(user);
+        System.out.println("✅ 등급 갱신 완료");
     }
 }

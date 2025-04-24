@@ -12,50 +12,58 @@ import org.springframework.data.repository.query.Param;
 import jakarta.transaction.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
-    Optional<Reservation> findByUser_UserIdxAndReservationNum(Long userIdx, String reservationNum);
+        Optional<Reservation> findByUser_UserIdxAndReservationNum(Long userIdx, String reservationNum);
 
-    @Query("""
-            SELECT r.room.roomIdx FROM Reservation r
-            WHERE r.status != 'CANCELLED'
-            AND r.checkIn < :checkOut AND r.checkOut > :checkIn
-            """)
-    List<Long> findReservedRoomIds(@Param("checkIn") LocalDate checkIn, @Param("checkOut") LocalDate checkOut);
+        @Query("""
+                        SELECT r.room.roomIdx FROM Reservation r
+                        WHERE r.status != 'CANCELLED'
+                        AND r.checkIn < :checkOut AND r.checkOut > :checkIn
+                        """)
+        List<Long> findReservedRoomIds(@Param("checkIn") LocalDate checkIn, @Param("checkOut") LocalDate checkOut);
 
-    @Query("SELECT r.roomType.roomTypesIdx, COUNT(r) FROM Room r " +
-            "WHERE (:reservedRoomIds IS NULL OR r.roomIdx NOT IN :reservedRoomIds) " +
-            "GROUP BY r.roomType.roomTypesIdx")
-    List<Object[]> countAvailableRoomsByRoomType(@Param("reservedRoomIds") List<Long> reservedRoomIds);
+        @Query("SELECT r.roomType.roomTypesIdx, COUNT(r) FROM Room r " +
+                        "WHERE (:reservedRoomIds IS NULL OR r.roomIdx NOT IN :reservedRoomIds) " +
+                        "GROUP BY r.roomType.roomTypesIdx")
+        List<Object[]> countAvailableRoomsByRoomType(@Param("reservedRoomIds") List<Long> reservedRoomIds);
 
-    @Query("SELECT r FROM Reservation r WHERE r.room = :room " +
-            "AND r.checkOut > :checkInDate " +
-            "AND r.checkIn < :checkOutDate")
-    List<Reservation> findOverlappingReservations(
-            @Param("room") Room room,
-            @Param("checkInDate") LocalDate checkInDate,
-            @Param("checkOutDate") LocalDate checkOutDate);
+        @Query("SELECT r FROM Reservation r WHERE r.room = :room " +
+                        "AND r.checkOut > :checkInDate " +
+                        "AND r.checkIn < :checkOutDate")
+        List<Reservation> findOverlappingReservations(
+                        @Param("room") Room room,
+                        @Param("checkInDate") LocalDate checkInDate,
+                        @Param("checkOutDate") LocalDate checkOutDate);
 
-    Optional<Reservation> findByReservationNum(String reservationNum);
+        Optional<Reservation> findByReservationNum(String reservationNum);
 
-    Optional<Reservation> findByLastNameAndFirstNameAndPhone(String lastName, String firstName, String phone);
+        Optional<Reservation> findByLastNameAndFirstNameAndPhone(String lastName, String firstName, String phone);
 
-    // 선택 사항
-    @Modifying
-    @Transactional
-    @Query("UPDATE Reservation r SET r.status = 'CANCELLED' WHERE r.reservationNum = :reservationNum")
-    void cancelReservationByNum(@Param("reservationNum") String reservationNum);
+        // 선택 사항
+        @Modifying
+        @Transactional
+        @Query("UPDATE Reservation r SET r.status = 'CANCELLED' WHERE r.reservationNum = :reservationNum")
+        void cancelReservationByNum(@Param("reservationNum") String reservationNum);
 
-    @Query("""
-            SELECT r FROM Reservation r
-            WHERE r.user.userIdx = :userIdx
-            AND r.status IN ('CHECKED_IN', 'COMPLETED')
-            AND r.checkOut >= :cutoff
-            """)
-    List<Reservation> findValidReservationsWithinOneYear(
-            @Param("userIdx") Long userIdx,
-            @Param("cutoff") LocalDate cutoff);
+        @Query("""
+                        SELECT r FROM Reservation r
+                        WHERE r.user.userIdx = :userIdx
+                        AND r.status IN ('CHECKED_IN', 'COMPLETED')
+                        AND r.checkOut >= :cutoff
+                        """)
+        List<Reservation> findValidReservationsWithinOneYear(
+                        @Param("userIdx") Long userIdx,
+                        @Param("cutoff") LocalDate cutoff);
+
+        @Query("SELECT r FROM Reservation r WHERE r.user.userIdx = :userIdx AND r.status = 'COMPLETED' AND r.checkIn >= :start AND r.checkOut <= :end")
+        List<Reservation> findCompletedReservationsWithin(
+                        @Param("userIdx") Long userIdx,
+                        @Param("start") LocalDate start,
+                        @Param("end") LocalDate end);
+
 }

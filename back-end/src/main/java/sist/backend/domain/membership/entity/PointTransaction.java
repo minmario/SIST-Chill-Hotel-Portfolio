@@ -61,15 +61,12 @@ public class PointTransaction extends BaseTimeEntity {
             ReferenceType referenceType,
             Long referenceIdx,
             String description) {
-        LocalDateTime now = LocalDateTime.now();
-
         return PointTransaction.builder()
                 .user(user)
                 .point(point)
                 .referenceType(referenceType)
                 .referenceIdx(referenceIdx)
-                .transactionDate(now)
-                .expirationDate(now.plusMonths(3)) // ✅ 3개월 후 소멸로 설정
+                .transactionDate(LocalDateTime.now())
                 .description(description)
                 .build();
     }

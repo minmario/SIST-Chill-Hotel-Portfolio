@@ -48,12 +48,18 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/user/**").permitAll() // API는 누구나 접근 가능
-                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF") // 관리자만
-
+                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF")
                         .requestMatchers("/dining/**").permitAll()
                         .requestMatchers("/api/mypage/**").authenticated()
-                        .anyRequest().permitAll() // 그 외 모두 허용 (개발용)
+                        .requestMatchers(
+                                "/api/user/stays/summary",
+                                "/api/user/summary/update",
+                                "/api/user/points/summary",
+                                "/api/user/points",
+                                "/api/user/me")
+                        .authenticated()
+                        .requestMatchers("/api/user/**").permitAll() // ✅ 여기가 너무 위면 안 됨
+                        .anyRequest().permitAll() // ✅ 항상 마지막!
                 )
                 .formLogin(Customizer.withDefaults()) // 기본 로그인 폼 사용
                 .logout(logout -> logout

@@ -55,7 +55,6 @@ useEffect(() => {
   const loggedIn = localStorage.getItem("isLoggedIn") === "true"
   const token = localStorage.getItem("accessToken")
   console.log("[MyPage] accessToken:", token)
- 
 
   setIsLoggedIn(loggedIn)
 
@@ -71,7 +70,20 @@ useEffect(() => {
   const format = (d: Date) => d.toISOString().split("T")[0]
   const startDateStr = format(sixMonthsAgo)
   const endDateStr = format(today)
-  
+
+  // ✅ 이 부분 추가
+  const triggerMembershipUpdate = async () => {
+    try {
+      await fetch("http://localhost:8080/api/user/summary/update", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+    } catch (err) {
+      console.error("등급 갱신 트리거 실패:", err)
+    }
+  }
 
   const fetchSummary = async () => {
     try {
@@ -85,6 +97,7 @@ useEffect(() => {
       console.error("요약 정보 fetch 실패:", err)
     }
   }
+
   const fetchStaySummary = async () => {
     try {
       const res = await fetch("http://localhost:8080/api/user/stays/summary", {
@@ -97,7 +110,6 @@ useEffect(() => {
       console.error("숙박 등급 요약 fetch 실패:", err)
     }
   }
-  
 
   const fetchPoints = async () => {
     try {
@@ -115,25 +127,31 @@ useEffect(() => {
       setFilteredHistory([])
     }
   }
+
   const fetchUserInfo = async () => {
     try {
       const res = await fetch("http://localhost:8080/api/user/me", {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("사용자 정보 응답 오류");
-      const data = await res.json();
-      setUserName(data.name || data.id); // name이 있으면 name, 없으면 id
+      })
+      if (!res.ok) throw new Error("사용자 정보 응답 오류")
+      const data = await res.json()
+      setUserName(data.name || data.id)
     } catch (err) {
-      console.error("사용자 정보 fetch 실패:", err);
+      console.error("사용자 정보 fetch 실패:", err)
     }
-  };
-  
-  
-  fetchSummary()
-  fetchPoints()
-  fetchStaySummary()
-  fetchUserInfo();
-  
+  }
+
+  // 👇 순서 중요!
+  const initializePage = async () => {
+    await triggerMembershipUpdate()
+    await fetchSummary()
+    await fetchStaySummary()
+    await fetchPoints()
+    await fetchUserInfo()
+  }
+
+  initializePage()
+
 }, [router])
 const getTierMessage = () => {
   const isEligible =
@@ -300,6 +318,7 @@ const getTierMessage = () => {
                   </div>
                   <div className={styles.statCircle}>
                     <svg width="120" height="120" viewBox="0 0 120 120">
+                    <circle cx="60" cy="60" r="54" fill="none" stroke="#e6e6e6" strokeWidth="12" />
                     <circle
                         cx="60"
                         cy="60"
