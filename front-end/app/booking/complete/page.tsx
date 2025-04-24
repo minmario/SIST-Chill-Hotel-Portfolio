@@ -17,13 +17,9 @@ export default function BookingComplete() {
     const info = localStorage.getItem("bookingInfo")
 
     if (info) {
-      setBookingInfo(JSON.parse(info))
-
-      // 예약 번호 생성 (실제로는 서버에서 생성)
-      const randomNum = Math.floor(Math.random() * 1000000)
-        .toString()
-        .padStart(6, "0")
-      setReservationNumber(`LX${randomNum}`)
+      const parsed = JSON.parse(info);
+      setBookingInfo(parsed);
+      setReservationNumber(parsed.reservationNum || "");
     } else {
       router.push("/booking")
     }
@@ -62,7 +58,7 @@ export default function BookingComplete() {
             <div className={styles.bookingCompleteRow}>
               <span className={styles.bookingCompleteLabel}>예약 번호</span>
               <span className={styles.bookingCompleteValue}>
-                {reservationNumber}
+                {bookingInfo.reservationNum || reservationNumber || '-'}
                 <button className={styles.copyButton} onClick={copyReservationNumber}>
                   {copied ? <Check size={16} /> : <Copy size={16} />}
                 </button>
@@ -71,31 +67,33 @@ export default function BookingComplete() {
 
             <div className={styles.bookingCompleteRow}>
               <span className={styles.bookingCompleteLabel}>객실</span>
-              <span className={styles.bookingCompleteValue}>{bookingInfo.room.roomName}</span>
+              <span className={styles.bookingCompleteValue}>{bookingInfo.room?.roomName || '-'}</span>
             </div>
 
             <div className={styles.bookingCompleteRow}>
               <span className={styles.bookingCompleteLabel}>체크인</span>
-              <span className={styles.bookingCompleteValue}>{bookingInfo.params.checkIn}</span>
+              <span className={styles.bookingCompleteValue}>{bookingInfo.checkIn || '-'}</span>
             </div>
 
             <div className={styles.bookingCompleteRow}>
               <span className={styles.bookingCompleteLabel}>체크아웃</span>
-              <span className={styles.bookingCompleteValue}>{bookingInfo.params.checkOut}</span>
+              <span className={styles.bookingCompleteValue}>{bookingInfo.checkOut || '-'}</span>
             </div>
 
             <div className={styles.bookingCompleteRow}>
               <span className={styles.bookingCompleteLabel}>인원</span>
               <span className={styles.bookingCompleteValue}>
-                성인 {bookingInfo.params.adults}명
-                {Number.parseInt(bookingInfo.params.children) > 0 ? `, 어린이 ${bookingInfo.params.children}명` : ""}
+                성인 {bookingInfo.adultCount || '-'}명
+                {Number.parseInt(bookingInfo.childCount || '0') > 0 ? `, 어린이 ${bookingInfo.childCount}명` : ""}
               </span>
             </div>
 
             <div className={styles.bookingCompleteRow}>
               <span className={styles.bookingCompleteLabel}>결제 금액</span>
               <span className={styles.bookingCompleteValue}>
-                ₩{typeof bookingInfo.pricing?.total === "number" ? bookingInfo.pricing.total.toLocaleString() : "-"}
+                ₩{typeof bookingInfo.pricing?.total === "number"
+                  ? bookingInfo.pricing.total.toLocaleString()
+                  : (typeof bookingInfo.total === "number" ? bookingInfo.total.toLocaleString() : "-")}
               </span>
             </div>
 

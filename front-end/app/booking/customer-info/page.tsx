@@ -8,6 +8,8 @@ import { Check, X } from "lucide-react"
 import styles from "../../rooms/rooms.module.css"
 
 export default function CustomerInfo() {
+  // 디버깅용: user 데이터 상태
+  const [debugUser, setDebugUser] = useState<any>(null);
   type RoomType = {
     roomTypesIdx: number;
     roomName: string;
@@ -36,6 +38,43 @@ export default function CustomerInfo() {
   const [termsModalOpen, setTermsModalOpen] = useState(false)
   const [bookingInfo, setBookingInfo] = useState<any>(null)
   const [mounted, setMounted] = useState(false) // SSR 오류 방지용
+
+  // 회원 등급 할인율 계산 함수
+  function getMemberDiscountPercent(idx: number|null|undefined) {
+    switch(idx) {
+      case 1: return 3;
+      case 2: return 5;
+      case 3: return 7;
+      case 4: return 10;
+      default: return 0;
+    }
+  }
+
+  // 예약 요약에 쓸 할인/총액 계산
+  let memberDiscountPercent = 0;
+  let memberLabel = "회원 등급 할인";
+  let priceInfo = bookingInfo?.pricing;
+  if (bookingInfo && typeof bookingInfo.membership_idx === 'number') {
+    memberDiscountPercent = getMemberDiscountPercent(bookingInfo.membership_idx);
+    memberLabel = `회원 등급 할인 (${memberDiscountPercent}%)`;
+    if (priceInfo) {
+      // 할인 계산(백엔드/프론트 중복 방지, 프론트에서 재계산)
+      const discount = Math.round(priceInfo.subtotal * (memberDiscountPercent/100));
+      priceInfo = {
+        ...priceInfo,
+        discount,
+        total: priceInfo.subtotal - discount
+      }
+    }
+  } else if (bookingInfo && priceInfo) {
+    // 비회원: 할인 0원
+    priceInfo = {
+      ...priceInfo,
+      discount: 0,
+      total: priceInfo.subtotal
+    }
+  }
+
   const [selectedRoomIdx, setSelectedRoomIdx] = useState<number | null>(null);
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [selectedRoomType, setSelectedRoomType] = useState<RoomType | null>(null);
@@ -63,17 +102,65 @@ export default function CustomerInfo() {
 
     setIsLoggedIn(loggedIn)
     setUserEmail(email)
-
-    if (loggedIn && email) {
-      // 로그인한 사용자의 정보를 불러오는 로직 (실제로는 API 호출 등이 필요)
-      setFormData((prev) => ({
-        ...prev,
-        lastName: "김",
-        firstName: "철수",
-        emailId: email.split("@")[0],
-        emailDomain: email.split("@")[1],
-        phone: "010-1234-5678",
-      }))
+    if (loggedIn) {
+      const accessToken = localStorage.getItem('accessToken');
+      let userName = null;
+      if (accessToken) {
+        try {
+          // jwt.ts에서 userName 추출 함수 import 필요
+          // import { extractUserNameFromToken } from "../info/jwt";
+          // 동적 import (최상단 import로 이동 권장)
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const { extractSubFromToken } = require("../info/jwt");
+          const payload = JSON.parse(atob(accessToken.split('.')[1]));
+          userName = extractSubFromToken(accessToken);
+        } catch {}
+      }
+      if (accessToken && userName) {
+        fetch(`/api/user/find_user?userId=${encodeURIComponent(userName)}`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        })
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(user => {
+          setDebugUser(user);
+          setFormData((prev) => ({
+            ...prev,
+            lastName: user.lastName ?? "",
+            firstName: user.firstName ?? "",
+            emailId: user.email ? user.email.split("@")[0] : user.id ?? "",
+            emailDomain: user.email ? user.email.split("@")[1] : "",
+            phone: user.phone ?? "",
+            cardNumber: "",
+            cardExpiry: ""
+          }))
+          setUserEmail(userName);
+        })
+        .catch(() => {
+          setFormData((prev) => ({
+            ...prev,
+            lastName: "",
+            firstName: "",
+            emailId: userName || "",
+            emailDomain: "",
+            phone: "",
+            cardNumber: "",
+            cardExpiry: ""
+          }))
+          setUserEmail(userName || "");
+        });
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          lastName: "",
+          firstName: "",
+          emailId: email.split("@")[0],
+          emailDomain: email.split("@")[1],
+          phone: "",
+          cardNumber: "",
+          cardExpiry: ""
+        }))
+        setUserEmail(email);
+      }
     }
     if (booking) {
       setBookingInfo(JSON.parse(booking))
@@ -135,27 +222,28 @@ export default function CustomerInfo() {
       userIdx: isLoggedIn ? 1 : null, // 실제 로그인 사용자 idx로 교체 필요
       roomIdx: baseBooking.roomIdx,
       roomTypesIdx: baseBooking.roomTypesIdx,
-      checkIn: baseBooking?.params?.checkIn, // ✅ 무조건 ISO 형식 문자열
+      checkIn: baseBooking?.params?.checkIn, // 
       checkOut: baseBooking?.params?.checkOut,
       roomCount: parseInt(baseBooking.params.rooms),
       adultCount: parseInt(baseBooking.params.adults),
       childCount: parseInt(baseBooking.params.children),
       bedType: baseBooking.options.bedType,
       specialRequests: baseBooking.options.specialRequests || "",
-    
+
       roomPrice: baseBooking.pricing.roomPrice,
       adultBreakfastPrice: baseBooking.pricing.adultBreakfastPrice,
       childBreakfastPrice: baseBooking.pricing.childBreakfastPrice,
       subtotal: baseBooking.pricing.subtotal,
       discount: baseBooking.pricing.discount,
       total: baseBooking.pricing.total,
-    
+
       firstName: formData.firstName,
       lastName: formData.lastName,
       email: `${formData.emailId}@${formData.emailDomain}`,
       phone: formData.phone,
       cardNumber: formData.cardNumber,
       cardExpiry: formData.cardExpiry,
+      room: baseBooking.room // room 객체 전체 추가!
     }
     try {
       console.log("예약 정보:", bookingInfo);
@@ -170,7 +258,12 @@ export default function CustomerInfo() {
       if (!res.ok) throw new Error("예약 실패")
   
       const result = await res.json()
-      console.log("✅ 예약 완료:", result)
+      console.log("예약 완료:", result)
+      // 예약번호를 bookingInfo에 저장 (reservationNum이 응답에 포함된다는 전제)
+      localStorage.setItem("bookingInfo", JSON.stringify({
+        ...bookingInfo,
+        reservationNum: result.reservationNum
+      }))
       router.push("/booking/complete")
     } catch (err) {
       console.error("예약 중 오류:", err)
@@ -181,6 +274,7 @@ export default function CustomerInfo() {
 
   return (
     <>
+      
       <div className={styles.header}>
         <div className="container">
           <h1>고객 정보 입력</h1>
@@ -220,7 +314,7 @@ export default function CustomerInfo() {
               {isLoggedIn && (
                 <div className="bg-gray-50 p-4 rounded mb-6">
                   <p className="text-sm">
-                    <strong>{userEmail}</strong> 계정으로 로그인되었습니다.
+                    <strong>{userEmail}</strong>님(회원)으로 로그인되었습니다.
                   </p>
                 </div>
               )}
@@ -280,7 +374,7 @@ export default function CustomerInfo() {
                       id="emailDomain"
                       name="emailDomain"
                       className={styles.formInput}
-                      value={formData.emailDomain}
+                      value={formData.emailDomain ?? ""}
                       onChange={handleInputChange}
                       disabled={formData.emailDomainSelect !== "direct"}
                       required
@@ -440,12 +534,12 @@ export default function CustomerInfo() {
                     <span>₩{safe(bookingInfo.pricing?.subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">회원 등급 할인</span>
-                    <span className="text-red-500">-₩{safe(bookingInfo.pricing?.discount)}</span>
+                    <span className="text-gray-600">{memberLabel}</span>
+                    <span className="text-red-500">-₩{safe(priceInfo?.discount)}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-base border-t pt-2">
                     <span>총 결제 금액</span>
-                    <span>₩{safe(bookingInfo.pricing?.total)}</span>
+                    <span>₩{safe(priceInfo?.total)}</span>
                   </div>
                 </div>
 
