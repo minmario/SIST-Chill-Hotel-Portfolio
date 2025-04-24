@@ -16,6 +16,8 @@ import sist.backend.domain.auth.dto.request.UserRegisterRequest;
 import sist.backend.domain.auth.dto.response.UserLoginResponse;
 import sist.backend.domain.auth.dto.response.UserRegisterResponse;
 import sist.backend.domain.auth.service.service.UserAuthService;
+import sist.backend.domain.membership.entity.Membership;
+import sist.backend.domain.membership.repository.MembershipRepository;
 import sist.backend.domain.payment.entity.PaymentMethod;
 import sist.backend.domain.payment.repository.PaymentMethodRepository;
 import sist.backend.domain.user.entity.User;
@@ -34,6 +36,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final JwtProvider jwtProvider;
     private final UserActivityLogService userActivityLogService;
     private final PaymentMethodRepository paymentMethodRepository;
+    private final MembershipRepository membershipRepository;
 
     @Override
     public UserLoginResponse login(UserLoginRequest request) {
@@ -77,6 +80,8 @@ public class UserAuthServiceImpl implements UserAuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("이미 사용 중인 이메일입니다.");
         }
+        Membership defaultMembership = membershipRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("기본 멤버십을 찾을 수 없습니다."));
 
         // 사용자 엔티티 생성
         User user = User.builder()
@@ -89,6 +94,9 @@ public class UserAuthServiceImpl implements UserAuthService {
                 .lastName(request.getLastName())
                 .status(UserStatus.ACTIVE)
                 .role(UserRole.USER)
+                .totalPoints(0)
+                .totalStays(0)
+                .membership(defaultMembership)
                 .build();
 
         // 사용자 저장

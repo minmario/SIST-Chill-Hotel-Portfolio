@@ -17,4 +17,5 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
     Integer findTotalPointByUserIdx(@Param("userIdx") Long userIdx);
 
     List<PointTransaction> findByUser_UserIdxAndExpirationDateBefore(Long userIdx, LocalDateTime now);
+
 }

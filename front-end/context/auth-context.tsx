@@ -70,9 +70,15 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
           console.log('[Auth] 저장된 토큰 없음');
         }
         
-        setIsLoggedIn(!!token);
-        setUserId(storedUserId);
-        setUserRole(storedUserRole);
+        if (token && storedUserId && storedUserRole) {
+          setIsLoggedIn(true);
+          setUserId(storedUserId);
+          setUserRole(storedUserRole);
+        } else {
+          setIsLoggedIn(false);
+          setUserId(null);
+          setUserRole(null);
+        }
       } finally {
         // 초기화 완료 표시
         setInitialized(true);
@@ -142,6 +148,11 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     logout
   }), [isLoggedIn, userRole, userId, login, logout]);
 
+  // 컴포넌트 마운트 시 sessionStorage에서 appStarted 제거
+  useEffect(() => {
+    sessionStorage.removeItem("appStarted");
+  }, []);
+
   // 초기화가 완료되기 전에는 로딩 상태를 반환
   if (!initialized) {
     return (
@@ -157,6 +168,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     </AuthContext.Provider>
   );
 };
+
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

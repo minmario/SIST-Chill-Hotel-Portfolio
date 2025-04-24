@@ -17,10 +17,24 @@ public class UserStayController {
 
     private final ReservationService reservationService;
 
+    /************* ✨ Windsurf Command ⭐ *************/
+    /**
+     * 마이페이지 진입 시 호출되는 사용자 숙박 정보(숙박 수, 다음 등급까지의 숙박 수) API
+     * 
+     * @param userDetails CustomUserDetails
+     * @return ResponseEntity<StaySummaryResponse>
+     */
+    /******* c1892f0d-403f-4e1c-88a6-324b1850a593 *******/
     @GetMapping("/summary")
     public ResponseEntity<StaySummaryResponse> getStaySummary(
-            @AuthenticationPrincipal(expression = "user") CustomUserDetails userDetails) {
-        StaySummaryResponse summary = reservationService.getUserStaySummary(userDetails.getUser().getUserIdx());
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        if (userDetails == null || userDetails.getUser() == null) {
+            return ResponseEntity.status(401).build(); // 인증 실패 처리
+        }
+
+        Long userIdx = userDetails.getUser().getUserIdx();
+        StaySummaryResponse summary = reservationService.getUserStaySummary(userIdx);
         return ResponseEntity.ok(summary);
     }
 }

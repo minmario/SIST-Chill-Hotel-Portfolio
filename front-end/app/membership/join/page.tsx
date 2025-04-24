@@ -32,7 +32,7 @@ export default function MembershipJoin() {
     id: formData.userId,
     pwd: formData.password,
     email: formData.email,
-    name: formData.lastName + " " + formData.firstName,
+    name: formData.firstName + " " + formData.lastName,
     phone: formData.phone,
     firstName: formData.firstName,
     lastName: formData.lastName,
@@ -183,35 +183,35 @@ export default function MembershipJoin() {
                 </div>
 
                 <div>
-                  <label htmlFor="lastName" className="block mb-2 font-medium">
-                    성 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    name="lastName"
-                    className="w-full p-3 border border-gray-300 rounded"
-                    placeholder="성을 입력하세요"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    required
-                  />
+                <label htmlFor="firstName" className="block mb-2 font-medium">
+                성 <span className="text-red-500">*</span>
+                </label>
+                <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                className="w-full p-3 border border-gray-300 rounded"
+                placeholder="성을 입력하세요"
+                value={formData.firstName} // ✅ 이게 성!
+                onChange={handleInputChange}
+                required
+                />
                 </div>
 
                 <div>
-                  <label htmlFor="firstName" className="block mb-2 font-medium">
-                    이름 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    name="firstName"
-                    className="w-full p-3 border border-gray-300 rounded"
-                    placeholder="이름을 입력하세요"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    required
-                  />
+                <label htmlFor="lastName" className="block mb-2 font-medium">
+                이름 <span className="text-red-500">*</span>
+                </label>
+                <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                className="w-full p-3 border border-gray-300 rounded"
+                placeholder="이름을 입력하세요"
+                value={formData.lastName} // ✅ 이게 이름!
+                onChange={handleInputChange}
+                required
+                />
                 </div>
 
                 <div className="md:col-span-2">
@@ -367,4 +367,3 @@ export default function MembershipJoin() {
     </>
   )
 }
-

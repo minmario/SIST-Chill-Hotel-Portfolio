@@ -10,6 +10,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import sist.backend.domain.membership.entity.Membership;
+import sist.backend.domain.membership.repository.MembershipRepository;
 import sist.backend.domain.reservation.dto.request.ReservationRequest;
 import sist.backend.domain.reservation.dto.response.ReservationLookupResponse;
 import sist.backend.domain.reservation.dto.response.ReservationResponse;
@@ -32,6 +34,7 @@ public class ReservationService {
         private final RoomRepository roomRepository;
         private final UserRepository userRepository;
         private final RoomTypeRepository roomTypeRepository;
+        private final MembershipRepository membershipRepository;
 
         public ReservationResponse getReservation(Long userIdx, String reservationNum) {
                 Reservation entity = reservationRepository.findByUser_UserIdxAndReservationNum(userIdx, reservationNum)
@@ -133,38 +136,83 @@ public class ReservationService {
 
         @Transactional(readOnly = true)
         public StaySummaryResponse getUserStaySummary(Long userIdx) {
-                LocalDate oneYearAgo = LocalDate.now().minusYears(1);
+                User user = userRepository.findByUserIdx(userIdx)
+                                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-                List<Reservation> reservations = reservationRepository.findValidReservationsWithinOneYear(userIdx,
-                                oneYearAgo);
+                int totalStays = user.getTotalStays();
+                Membership current = user.getMembership();
 
-                double totalStay = reservations.stream()
-                                .mapToDouble(Reservation::getDurationDays)
-                                .sum();
+                // 현재 등급보다 높은 등급 중 조건을 만족하지 못한 첫 등급을 찾음
+                List<Membership> levels = membershipRepository.findAllByOrderByRequiredStaysAsc();
 
-                List<Level> levels = List.of(
-                                new Level("VIP", 50),
-                                new Level("GOLD", 20),
-                                new Level("SILVER", 5),
-                                new Level("BRONZE", 0));
-
-                for (int i = 0; i < levels.size(); i++) {
-                        Level current = levels.get(i);
-                        Level next = (i > 0) ? levels.get(i - 1) : null;
-
-                        if (totalStay >= current.required) {
-                                return new StaySummaryResponse(
-                                                totalStay,
-                                                next != null ? Math.max(0, next.required - totalStay) : 0,
-                                                current.tier,
-                                                next != null ? next.tier : null);
+                Membership nextTier = null;
+                for (Membership level : levels) {
+                        if (level.getRequiredStays() > totalStays) {
+                                nextTier = level;
+                                break;
                         }
                 }
 
-                return new StaySummaryResponse(totalStay, 5 - totalStay, "BRONZE", "SILVER");
+                int stayForNext = nextTier != null ? nextTier.getRequiredStays() - totalStays : 0;
+
+                return new StaySummaryResponse(
+                                (double) totalStays,
+                                (double) Math.max(stayForNext, 0),
+                                current != null ? current.getTier().name() : "BRONZE", // ← 여기 수정
+                                nextTier != null ? nextTier.getTier().name() : null // ← 여기도 수정
+                );
         }
 
         // 내부 등급 클래스
         private record Level(String tier, double required) {
         }
+
+        private void updateMembership(User user) {
+                List<Membership> levels = membershipRepository.findAllByOrderByRequiredStaysAsc();
+
+                for (int i = levels.size() - 1; i >= 0; i--) {
+                        Membership m = levels.get(i);
+                        if (user.getTotalStays() >= m.getRequiredStays()
+                                        && user.getTotalPoints() >= m.getRequiredPoint()) {
+                                user.setMembership(m); // membership_idx 자동 반영
+                                break;
+                        }
+                }
+        }
+
+        /**
+         * 예약 체크아웃이 완료된 경우, 사용자의 누적 숙박일수를 갱신하고 등급도 갱신합니다.
+         * 이 메서드는 프론트 또는 예약 배치 처리에서 호출되어야 합니다.
+         *
+         * @param reservationNum 체크아웃 완료 처리할 예약번호
+         */
+        @Transactional
+        public void completeReservation(String reservationNum) {
+                // ✅ 1. 예약 조회
+                Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
+                                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
+
+                // ✅ 2. 이미 완료된 예약은 중복 처리 방지
+                if (reservation.getStatus() == ReservationStatus.COMPLETED) {
+                        return; // 이미 완료 상태면 무시
+                }
+
+                // ✅ 3. 예약 상태 변경
+                reservation.setStatus(ReservationStatus.COMPLETED);
+                reservationRepository.save(reservation);
+
+                // ✅ 4. 숙박일 계산
+                long stayDays = ChronoUnit.DAYS.between(reservation.getCheckIn(), reservation.getCheckOut());
+                if (stayDays <= 0)
+                        stayDays = 1; // 최소 1박 보정
+
+                // ✅ 5. 유저 누적 숙박일수 증가
+                User user = reservation.getUser();
+                user.setTotalStays(user.getTotalStays() + (int) stayDays);
+                userRepository.save(user);
+
+                // ✅ 6. 등급 갱신 트리거 (포인트와 숙박 모두 반영)
+                updateMembership(user); // or membershipUpdaterService.updateUserMembershipIfNeeded(user);
+        }
+
 }

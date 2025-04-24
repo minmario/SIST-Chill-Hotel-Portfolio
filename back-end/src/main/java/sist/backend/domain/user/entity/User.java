@@ -136,4 +136,9 @@ public class User extends BaseTimeEntity implements UserDetails {
     @JoinColumn(name = "membership_idx") // FK 컬럼 명시
     private Membership membership;
 
+    @Column(name = "total_stays")
+    private Integer totalStays;
+    @Column(name = "total_points")
+    private Integer totalPoints;
+
 }
