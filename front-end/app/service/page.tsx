@@ -138,22 +138,34 @@ export default function Service() {
   const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
   
+    const {
+      category, lastName, firstName, email,
+      phone, title, content, agreePrivacy,
+    } = inquiryForm
+  
+    if (
+      !category || !lastName || !firstName || !email ||
+      !phone || !title || !content || !agreePrivacy
+    ) {
+      alert("모든 항목을 입력해 주세요.")
+      return
+    }
+  
     try {
       const response = await fetch("/api/qna", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: inquiryForm.category,
-          title: inquiryForm.title,
-          content: inquiryForm.content,
-          email: inquiryForm.email,
+          type: category,
+          title,
+          content,
+          email,
         }),
       })
   
       if (!response.ok) throw new Error("서버 오류")
   
       alert("문의가 성공적으로 접수되었습니다.")
-      // 폼 초기화
       setInquiryForm({
         category: "",
         lastName: "",
@@ -169,6 +181,7 @@ export default function Service() {
       alert("문의 접수에 실패했습니다.")
     }
   }
+  
   
 
   const renderTabContent = () => {
@@ -260,141 +273,124 @@ export default function Service() {
           </div>
         )
 
-      case "inquiry":
-        return (
-          <form className={styles.inquiryForm} onSubmit={handleInquirySubmit}>
-            <div className={styles.formGroup}>
-              <label htmlFor="category" className={styles.formLabel}>
-                문의 유형
-              </label>
-              <select
-                id="category"
-                name="category"
-                className={styles.formSelect}
-                value={inquiryForm.category}
-                onChange={handleInquiryChange}
-                required
-              >
-                <option value="">선택해주세요</option>
-                <option value="reservation">예약 문의</option>
-                <option value="facility">시설 문의</option>
-                <option value="dining">다이닝 문의</option>
-                <option value="event">이벤트/프로모션 문의</option>
-                <option value="others">기타 문의</option>
-              </select>
-            </div>
-
-            <div className={styles.nameGroup}>
+        case "inquiry":
+          return (
+            <form className={styles.inquiryForm} onSubmit={handleInquirySubmit}>
+              {/* 상단 경고 문구 */}
+              <div className="text-red-600 font-semibold text-sm mb-4">
+                ※ 모든 항목은 필수 입력입니다.
+              </div>
+        
               <div className={styles.formGroup}>
-                <label htmlFor="lastName" className={styles.formLabel}>
-                  성
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  className={styles.formInput}
-                  value={inquiryForm.lastName}
+                <label htmlFor="category" className={styles.formLabel}>문의 유형</label>
+                <select
+                  id="category"
+                  name="category"
+                  className={styles.formSelect}
+                  value={inquiryForm.category}
                   onChange={handleInquiryChange}
-                  required
+                >
+                  <option value="">선택해주세요</option>
+                  <option value="reservation">예약 문의</option>
+                  <option value="facility">시설 문의</option>
+                  <option value="dining">다이닝 문의</option>
+                  <option value="event">이벤트/프로모션 문의</option>
+                  <option value="others">기타 문의</option>
+                </select>
+              </div>
+        
+              <div className={styles.nameGroup}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="lastName" className={styles.formLabel}>성</label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    className={styles.formInput}
+                    value={inquiryForm.lastName}
+                    onChange={handleInquiryChange}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="firstName" className={styles.formLabel}>이름</label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    className={styles.formInput}
+                    value={inquiryForm.firstName}
+                    onChange={handleInquiryChange}
+                  />
+                </div>
+              </div>
+        
+              <div className={styles.formGroup}>
+                <label htmlFor="email" className={styles.formLabel}>이메일</label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  className={styles.formInput}
+                  value={inquiryForm.email}
+                  onChange={handleInquiryChange}
                 />
               </div>
-
+        
               <div className={styles.formGroup}>
-                <label htmlFor="firstName" className={styles.formLabel}>
-                  이름
-                </label>
+                <label htmlFor="phone" className={styles.formLabel}>연락처</label>
                 <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
+                  type="tel"
+                  id="phone"
+                  name="phone"
                   className={styles.formInput}
-                  value={inquiryForm.firstName}
+                  value={inquiryForm.phone}
                   onChange={handleInquiryChange}
-                  required
                 />
               </div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="email" className={styles.formLabel}>
-                이메일
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className={styles.formInput}
-                value={inquiryForm.email}
-                onChange={handleInquiryChange}
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="phone" className={styles.formLabel}>
-                연락처
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                className={styles.formInput}
-                value={inquiryForm.phone}
-                onChange={handleInquiryChange}
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="title" className={styles.formLabel}>
-                제목
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                className={styles.formInput}
-                value={inquiryForm.title}
-                onChange={handleInquiryChange}
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="content" className={styles.formLabel}>
-                내용
-              </label>
-              <textarea
-                id="content"
-                name="content"
-                className={styles.formTextarea}
-                value={inquiryForm.content}
-                onChange={handleInquiryChange}
-                required
-              ></textarea>
-            </div>
-
-            <div className={styles.formCheckboxContainer}>
-              <input
-                type="checkbox"
-                id="agreePrivacy"
-                name="agreePrivacy"
-                className={styles.formCheckbox}
-                checked={inquiryForm.agreePrivacy}
-                onChange={handleInquiryChange}
-                required
-              />
-              <label htmlFor="agreePrivacy">개인정보 수집 및 이용에 동의합니다. (필수)</label>
-            </div>
-
-            <div className="text-center mt-6">
-              <button type="submit" className="button button-primary">
-                문의하기
-              </button>
-            </div>
-          </form>
-        )
+        
+              <div className={styles.formGroup}>
+                <label htmlFor="title" className={styles.formLabel}>제목</label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  className={styles.formInput}
+                  value={inquiryForm.title}
+                  onChange={handleInquiryChange}
+                />
+              </div>
+        
+              <div className={styles.formGroup}>
+                <label htmlFor="content" className={styles.formLabel}>내용</label>
+                <textarea
+                  id="content"
+                  name="content"
+                  className={styles.formTextarea}
+                  value={inquiryForm.content}
+                  onChange={handleInquiryChange}
+                ></textarea>
+              </div>
+        
+              <div className={styles.formCheckboxContainer}>
+                <input
+                  type="checkbox"
+                  id="agreePrivacy"
+                  name="agreePrivacy"
+                  className={styles.formCheckbox}
+                  checked={inquiryForm.agreePrivacy}
+                  onChange={handleInquiryChange}
+                />
+                <label htmlFor="agreePrivacy">개인정보 수집 및 이용에 동의합니다. (필수)</label>
+              </div>
+        
+              <div className="text-center mt-6">
+                <button type="submit" className="button button-primary">
+                  문의하기
+                </button>
+              </div>
+            </form>
+          )
+        
 
       case "contact":
         return (

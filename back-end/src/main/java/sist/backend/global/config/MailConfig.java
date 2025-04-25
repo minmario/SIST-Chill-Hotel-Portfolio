@@ -1,4 +1,4 @@
-package sist.backend.domain.qna_mail.config;
+package sist.backend.global.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -25,11 +25,15 @@ public class MailConfig {
         mailSender.setUsername(gmailUsername);
         mailSender.setPassword(gmailPassword);
 
+        // 👇 인코딩 설정 추가
+        mailSender.setDefaultEncoding("UTF-8");
+
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.smtp.auth", true);
         props.put("mail.smtp.starttls.enable", true);
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.debug", "true"); // 개발 중이면 true 유지
 
         return mailSender;
     }
 }
-

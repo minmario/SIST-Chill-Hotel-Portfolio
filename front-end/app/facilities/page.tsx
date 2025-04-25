@@ -10,7 +10,7 @@ const facilities = [
     id: 1,
     name: "스파 & 웰니스 센터",
     description: "다양한 트리트먼트와 마사지를 통해 몸과 마음의 휴식을 경험하세요.",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "https://images.unsplash.com/photo-1488345979593-09db0f85545f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHNwYXxlbnwwfHwwfHx8MA%3D%3D",
     location: "호텔 3층",
     hours: "10:00 - 22:00 (매일)",
     details:
@@ -20,7 +20,7 @@ const facilities = [
     id: 2,
     name: "피트니스 센터",
     description: "최신 운동 장비를 갖춘 피트니스 센터에서 건강한 라이프스타일을 유지하세요.",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "https://images.unsplash.com/photo-1542766788-a2f588f447ee?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8Zml0bmVzcyUyMGNlbnRlcnxlbnwwfHwwfHx8MA%3D%3D",
     location: "호텔 2층",
     hours: "24시간 운영",
     details:
@@ -30,7 +30,7 @@ const facilities = [
     id: 3,
     name: "수영장",
     description: "자연 광이 들어오는 실내 수영장에서 여유로운 시간을 보내세요.",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "https://images.unsplash.com/photo-1661098716612-eb2e12fbf601?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8aG90ZWwlMjBzd2ltbWluZyUyMHBvb2x8ZW58MHx8MHx8fDA%3D",
     location: "호텔 4층",
     hours: "06:00 - 22:00 (매일)",
     details:
