@@ -1,0 +1,16 @@
+.bookingInfoGrid {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.bookingInfoLeft {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.bookingSummary {
+  min-width: 340px;
+  max-width: 400px;
+  margin-left: 32px;
+}

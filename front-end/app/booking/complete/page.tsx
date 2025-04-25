@@ -55,6 +55,12 @@ export default function BookingComplete() {
           </div>
 
           <div className={styles.bookingCompleteInfo}>
+            {bookingInfo.specialOffer && bookingInfo.specialOffer.title && (
+              <div className={styles.bookingCompleteRow}>
+                <span className={styles.bookingCompleteLabel}>스페셜 오퍼</span>
+                <span className={styles.bookingCompleteValue}>{bookingInfo.specialOffer.title}</span>
+              </div>
+            )}
             <div className={styles.bookingCompleteRow}>
               <span className={styles.bookingCompleteLabel}>예약 번호</span>
               <span className={styles.bookingCompleteValue}>

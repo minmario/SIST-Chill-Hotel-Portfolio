@@ -21,6 +21,7 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import sist.backend.domain.room.entity.Room;
 import sist.backend.domain.room.entity.RoomType;
+import sist.backend.domain.specialoffer.entity.SpecialOffer;
 import sist.backend.domain.user.entity.User;
 
 @Entity
@@ -111,6 +112,11 @@ public class Reservation {
 
     @Column(name = "card_expiry", nullable = false)
     private String cardExpiry;
+
+    // special_offer 연관관계 (단방향)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "offer_id")
+    private SpecialOffer specialOffer;
 
     // 비즈니스 메서드
     public void updateStatus(ReservationStatus status) {
