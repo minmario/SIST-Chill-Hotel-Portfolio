@@ -296,7 +296,8 @@ export default function CustomerInfo() {
       // 예약번호를 bookingInfo에 저장 (reservationNum이 응답에 포함된다는 전제)
       localStorage.setItem("bookingInfo", JSON.stringify({
         ...bookingInfo,
-        reservationNum: result.reservationNum
+        reservationNum: result.reservationNum,
+        specialOffer: baseBooking.specialOffer // specialOffer 정보도 함께 저장
       }))
       router.push("/booking/complete")
     } catch (err) {
