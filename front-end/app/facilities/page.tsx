@@ -40,7 +40,7 @@ const facilities = [
     id: 4,
     name: "비즈니스 센터",
     description: "최신 기술을 갖춘 비즈니스 센터에서 효율적인 업무 환경을 경험하세요.",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "https://images.unsplash.com/photo-1631247022917-53f9af27d719?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8JUVCJUI5JTg0JUVDJUE2JTg4JUVCJThCJTg4JUVDJThBJUE0JTIwJUVDJTg0JUJDJUVEJTg0JUIwfGVufDB8fDB8fHww",
     location: "호텔 로비 층",
     hours: "07:00 - 23:00 (매일)",
     details:
@@ -50,7 +50,7 @@ const facilities = [
     id: 5,
     name: "키즈 클럽",
     description: "다양한 놀이와 교육 프로그램으로 아이들에게 즐거운 경험을 제공합니다.",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "https://images.unsplash.com/photo-1720729706252-40be12690f12?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fCVFQyU4QiVBNCVFQiU4MiVCNCUyMCVFQiU4NiU4MCVFQyU5RCVCNCVFRCU4NCVCMHxlbnwwfHwwfHx8MA%3D%3D",
     location: "호텔 1층",
     hours: "09:00 - 18:00 (매일)",
     details:
@@ -60,7 +60,7 @@ const facilities = [
     id: 6,
     name: "루프탑 라운지",
     description: "도시의 환상적인 전망을 감상하며 음료와 간단한 식사를 즐기세요.",
-    image: "/placeholder.svg?height=400&width=600",
+    image: "https://images.unsplash.com/photo-1621293954908-907159247fc8?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8JUVEJTk4JUI4JUVEJTg1JTk0JTIwJUVCJTlEJUJDJUVDJTlBJUI0JUVDJUE3JTgwfGVufDB8fDB8fHww",
     location: "호텔 최상층",
     hours: "16:00 - 24:00 (일-목), 16:00 - 02:00 (금-토)",
     details:
