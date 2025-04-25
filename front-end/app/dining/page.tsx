@@ -110,7 +110,7 @@ export default function DiningPage() {
             e.preventDefault();
             handleSearch();
           }}
-          className="flex items-center"
+          className="flex items-center mb-8"
         >
           <input
             type="text"

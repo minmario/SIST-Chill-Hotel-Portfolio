@@ -17,7 +17,7 @@ public class Qna {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "qna_idx") // ✅ 실제 DB 컬럼명과 일치시킴
-    private Long qna_idx;
+    private Long qnaIdx;
 
     private String type;
 
@@ -42,4 +42,8 @@ public class Qna {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(length = 20)
+    private String status;
+
 }

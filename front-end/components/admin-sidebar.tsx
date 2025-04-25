@@ -4,7 +4,7 @@ import type React from "react"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Users, UserCog, LayoutDashboard, Calendar, CreditCard, FileText, Utensils, AlertCircle, Package } from "lucide-react"
+import { Users, UserCog, LayoutDashboard, Calendar, CreditCard, FileText, Utensils, AlertCircle, Package, Mail } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth"
 
@@ -77,6 +77,12 @@ export default function AdminSidebar() {
       href: "/admin/reports",
       icon: FileText,
       section: "매출 관리",
+    },
+    {
+      title: "문의 관리",
+      href: "/admin/qna",
+      icon: Mail,
+      section: "고객 문의",
     },
     {
       title: "시스템 로그",
