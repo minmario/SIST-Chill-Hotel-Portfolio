@@ -54,11 +54,39 @@ export default function CustomerInfo() {
   let memberDiscountPercent = 0;
   let memberLabel = "회원 등급 할인";
   let priceInfo = bookingInfo?.pricing;
-  if (bookingInfo && typeof bookingInfo.membership_idx === 'number') {
+  if (bookingInfo && bookingInfo.specialOffer && bookingInfo.specialOffer.price) {
+    // 오퍼가 + 조식 가격을 합산
+    const offerPrice = Number(bookingInfo.specialOffer.price);
+    const adultBreakfastPrice = bookingInfo.pricing?.adultBreakfastPrice || 0;
+    const childBreakfastPrice = bookingInfo.pricing?.childBreakfastPrice || 0;
+    const totalBreakfast = adultBreakfastPrice + childBreakfastPrice;
+    const subtotal = offerPrice + totalBreakfast;
+    if (typeof bookingInfo.membership_idx === 'number') {
+      memberDiscountPercent = getMemberDiscountPercent(bookingInfo.membership_idx);
+      memberLabel = `회원 등급 할인 (${memberDiscountPercent}%)`;
+      const discount = Math.round(subtotal * (memberDiscountPercent/100));
+      priceInfo = {
+        ...priceInfo,
+        roomPrice: offerPrice,
+        subtotal,
+        discount,
+        total: subtotal - discount
+      }
+    } else {
+      // 비회원: 할인 없음
+      priceInfo = {
+        ...priceInfo,
+        roomPrice: offerPrice,
+        subtotal,
+        discount: 0,
+        total: subtotal
+      }
+    }
+  } else if (bookingInfo && typeof bookingInfo.membership_idx === 'number') {
     memberDiscountPercent = getMemberDiscountPercent(bookingInfo.membership_idx);
     memberLabel = `회원 등급 할인 (${memberDiscountPercent}%)`;
     if (priceInfo) {
-      // 할인 계산(백엔드/프론트 중복 방지, 프론트에서 재계산)
+      // 일반 객실 예약 할인 계산
       const discount = Math.round(priceInfo.subtotal * (memberDiscountPercent/100));
       priceInfo = {
         ...priceInfo,
@@ -218,6 +246,11 @@ export default function CustomerInfo() {
     }
   
     const baseBooking = JSON.parse(raw)
+    // specialOffer가 있으면 offer_id 추가
+    let offer_id = undefined;
+    if (baseBooking.specialOffer && typeof baseBooking.specialOffer.id !== 'undefined') {
+      offer_id = baseBooking.specialOffer.id;
+    }
     const bookingInfo = {
       userIdx: isLoggedIn ? 1 : null, // 실제 로그인 사용자 idx로 교체 필요
       roomIdx: baseBooking.roomIdx,
@@ -243,7 +276,8 @@ export default function CustomerInfo() {
       phone: formData.phone,
       cardNumber: formData.cardNumber,
       cardExpiry: formData.cardExpiry,
-      room: baseBooking.room // room 객체 전체 추가!
+      room: baseBooking.room ,// room 객체 전체 추가!
+      ...(offer_id !== undefined ? { offer_id } : {})
     }
     try {
       console.log("예약 정보:", bookingInfo);
@@ -262,7 +296,8 @@ export default function CustomerInfo() {
       // 예약번호를 bookingInfo에 저장 (reservationNum이 응답에 포함된다는 전제)
       localStorage.setItem("bookingInfo", JSON.stringify({
         ...bookingInfo,
-        reservationNum: result.reservationNum
+        reservationNum: result.reservationNum,
+        specialOffer: baseBooking.specialOffer // specialOffer 정보도 함께 저장
       }))
       router.push("/booking/complete")
     } catch (err) {
@@ -502,13 +537,23 @@ export default function CustomerInfo() {
               <aside className="border rounded p-5 bg-white shadow-sm"  style={{ flex: 1, height: "50%"}}>
                 <h2 className="text-lg font-bold mb-4">예약 요약</h2>
                 <ul className="space-y-4">
-                  <li className="flex justify-between">
-                    <div>
-                      <div className="font-medium">{bookingInfo.room?.roomName}</div>
-                      <div className="text-sm text-gray-500">{bookingInfo.options?.bedType} 베드, {bookingInfo.room?.viewType}</div>
-                    </div>
-                    <div className="font-medium">₩{safe(bookingInfo.room?.weekPrice)}</div>
-                  </li>
+                  {bookingInfo.specialOffer && bookingInfo.specialOffer.price ? (
+                    <li className="flex justify-between">
+                      <div>
+                        <div className="font-medium">{bookingInfo.specialOffer.title}</div>
+                        <div className="text-sm text-gray-500">{bookingInfo.specialOffer.subtitle}</div>
+                      </div>
+                      <div className="font-medium">₩{safe(Number(bookingInfo.specialOffer.price))}</div>
+                    </li>
+                  ) : (
+                    <li className="flex justify-between">
+                      <div>
+                        <div className="font-medium">{bookingInfo.room?.roomName}</div>
+                        <div className="text-sm text-gray-500">{bookingInfo.options?.bedType} 베드, {bookingInfo.room?.viewType}</div>
+                      </div>
+                      <div className="font-medium">₩{safe(priceInfo?.subtotal)}</div>
+                    </li>
+                  )}
                   {bookingInfo.options?.adultBreakfast > 0 && (
                     <li className="flex justify-between">
                       <div>
@@ -531,7 +576,7 @@ export default function CustomerInfo() {
                 <div className="border-t mt-6 pt-4 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">소계</span>
-                    <span>₩{safe(bookingInfo.pricing?.subtotal)}</span>
+                    <span>₩{safe(priceInfo?.subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">{memberLabel}</span>

@@ -8,57 +8,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Users, Calendar, Home, ChevronDown, X } from "lucide-react"
 import styles from "../rooms/rooms.module.css"
-import { useSearchParams } from 'next/navigation'
 
-// 패키지 데이터
-/*const packages = [
-  {
-    id: "romantic-escape",
-    name: "로맨틱 이스케이프",
-    description: "소중한 사람과 특별한 시간을 보내세요. 스파클링 와인, 초콜릿, 장미 꽃잎 데코레이션이 포함됩니다.",
-    price: 350000,
-    image: "/placeholder.svg?height=400&width=600",
-    roomType: "Chill Harmony",
-    details: {
-      size: "42㎡",
-      bedType: "킹",
-      view: "시티 뷰",
-      maxOccupancy: 2,
-      includes: ["웰컴 스파클링 와인", "초콜릿 플레이트", "장미 꽃잎 데코레이션", "2인 조식"],
-    },
-  },
-  {
-    id: "family-fun",
-    name: "패밀리 펀",
-    description: "가족과 함께하는 즐거운 시간. 키즈 어메니티, 영화 관람권, 패밀리 게임 세트가 제공됩니다.",
-    price: 450000,
-    image: "/placeholder.svg?height=400&width=600",
-    roomType: "Chill Lake",
-    details: {
-      size: "52㎡",
-      bedType: "킹 + 소파베드",
-      view: "레이크 뷰",
-      maxOccupancy: 4,
-      includes: ["키즈 어메니티", "영화 관람권", "패밀리 게임 세트", "4인 조식"],
-    },
-  },
-  {
-    id: "wellness-retreat",
-    name: "웰니스 리트릿",
-    description: "몸과 마음의 휴식을 위한 패키지. 스파 트리트먼트, 요가 클래스, 웰니스 음료가 포함됩니다.",
-    price: 500000,
-    image: "/placeholder.svg?height=400&width=600",
-    roomType: "Chill Serenity",
-    details: {
-      size: "48㎡",
-      bedType: "킹",
-      view: "리버 뷰",
-      maxOccupancy: 2,
-      includes: ["60분 스파 트리트먼트", "요가 클래스", "웰니스 음료", "2인 조식"],
-    },
-  },
-]
-  */
 
 export default function Booking() {
   const router = useRouter()
@@ -67,7 +17,10 @@ export default function Booking() {
   const [sortOption, setSortOption] = useState("price-asc")
   const [selectedRoom, setSelectedRoom] = useState<any>(null)
   const [modalOpen, setModalOpen] = useState(false)
-  
+
+  // 스페셜 오퍼 상태 추가
+  const [specialOffers, setSpecialOffers] = useState<any[]>([]);
+
 
   const [searchParams, setSearchParams] = useState({
     checkIn: "",
@@ -86,13 +39,13 @@ export default function Booking() {
       children: params.get("children") || "0",
 
     })
-    
+
   }, [])
 
   useEffect(() => {
     const fetchAvailableRooms = async () => {
       if (!searchParams.checkIn || !searchParams.checkOut || !searchParams.adults) return
-      
+
       try {
         const guestCount = parseInt(searchParams.adults.replace(/[^0-9]/g, ""), 10);
         const res = await fetch(
@@ -111,7 +64,7 @@ export default function Booking() {
         console.error("객실 조회 실패:", err)
       }
     }
-  
+
     fetchAvailableRooms()
   }, [searchParams.checkIn, searchParams.checkOut, searchParams.adults])
   const handleSearch = (e: React.FormEvent) => {
@@ -141,6 +94,26 @@ export default function Booking() {
     return 0
   })
 
+  // 패키지 탭 활성화 시 스페셜 오퍼 데이터 패칭
+  useEffect(() => {
+    if (activeTab === "packages") {
+      const fetchSpecialOffers = async () => {
+        try {
+          // JWT 토큰을 Authorization 헤더에 추가
+          const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+          const res = await fetch('/api/special-offers', {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+          });
+          const data = await res.json();
+          setSpecialOffers(Array.isArray(data) ? data : []);
+        } catch (err) {
+          setSpecialOffers([]);
+        }
+      };
+      fetchSpecialOffers();
+    }
+  }, [activeTab]);
+
   const openModal = (item: any) => {
     setSelectedRoom(item)
     setModalOpen(true)
@@ -152,40 +125,41 @@ export default function Booking() {
 
   const handleBookNow = (roomType: any) => {
     const roomIdx = roomType.availableRoomIdxList?.[0];
-  
+
     if (!roomIdx) {
       alert("해당 객실 타입에는 예약 가능한 방이 없습니다.");
       return;
     }
-  
+
     const selected = {
       ...roomType,
       roomIdx, // 자동으로 예약 가능한 첫 번째 방 할당
     };
-  
+
     localStorage.setItem("selectedRoom", JSON.stringify(selected));
     localStorage.setItem("bookingParams", JSON.stringify(searchParams));
+    localStorage.removeItem("selectedSpecialOffer"); // 객실 예약 시 오퍼 정보 제거
     router.push("/booking/info");
   };
 
   return (
     <>
-      <div className={styles.header} style={{position:'relative',width:'100%',height:'320px',marginBottom:'2rem',overflow:'hidden'}}>
-  <Image
-    src="/images/rooms/reservation.png"
-    alt="예약 상단 대표 이미지"
-    fill
-    style={{objectFit:'cover'}}
-    priority
-  />
-  <div className={styles.roomsHeaderOverlay} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',background:'rgba(0,0,0,0.45)'}} />
-  <div className={styles.roomsHeaderText} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',zIndex:2}}>
-    <div className="container">
-      <h1 style={{color:'#fff',fontSize:'2.7rem',fontWeight:700,marginBottom:'1rem',textShadow:'0 2px 16px rgba(0,0,0,0.5)'}}>객실 예약</h1>
-      <p style={{color:'#fff',fontSize:'1.15rem',fontWeight:400,textAlign:'center',textShadow:'0 2px 12px rgba(0,0,0,0.5)'}}>럭스 호텔에서 특별한 경험을 예약하세요.</p>
-    </div>
-  </div>
-</div>
+      <div className={styles.header} style={{ position: 'relative', width: '100%', height: '320px', marginBottom: '2rem', overflow: 'hidden' }}>
+        <Image
+          src="/images/rooms/reservation.png"
+          alt="예약 상단 대표 이미지"
+          fill
+          style={{ objectFit: 'cover' }}
+          priority
+        />
+        <div className={styles.roomsHeaderOverlay} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.45)' }} />
+        <div className={styles.roomsHeaderText} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 2 }}>
+          <div className="container">
+            <h1 style={{ color: '#fff', fontSize: '2.7rem', fontWeight: 700, marginBottom: '1rem', textShadow: '0 2px 16px rgba(0,0,0,0.5)' }}>객실 예약</h1>
+            <p style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 400, textAlign: 'center', textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>럭스 호텔에서 특별한 경험을 예약하세요.</p>
+          </div>
+        </div>
+      </div>
 
       <section className={styles.bookingSection}>
         <div className="container">
@@ -240,10 +214,10 @@ export default function Booking() {
                   required
                   min={searchParams.checkIn
                     ? (() => {
-                        const nextDay = new Date(searchParams.checkIn);
-                        nextDay.setDate(nextDay.getDate() + 1);
-                        return nextDay.toISOString().split('T')[0];
-                      })()
+                      const nextDay = new Date(searchParams.checkIn);
+                      nextDay.setDate(nextDay.getDate() + 1);
+                      return nextDay.toISOString().split('T')[0];
+                    })()
                     : new Date().toISOString().split('T')[0]
                   }
                 />
@@ -319,7 +293,7 @@ export default function Booking() {
                 className={`${styles.roomListTab} ${activeTab === "packages" ? styles.roomListTabActive : ""}`}
                 onClick={() => setActiveTab("packages")}
               >
-                패키지
+                스페셜 오퍼
               </button>
             </div>
 
@@ -330,60 +304,91 @@ export default function Booking() {
           </div>
 
           <div className="container py-10">
-      <h1 className="text-2xl font-bold mb-6">예약 가능한 객실</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {sortedRooms.map((room) => (
-          <div key={room.roomTypesIdx} className="border rounded-lg overflow-hidden shadow-md">
-            <div className="relative w-full h-60">
-              <Link href={`/rooms/${room.roomTypesIdx}`} className="relative w-full h-60 block">
-                <Image
-                  src={room.roomImage || "/placeholder.svg"}
-                  alt={room.roomName}
-                  fill
-                  className="object-cover"
-                />
-              </Link>
-            </div>
-
-            <div className="p-4 space-y-2">
-              <h2 className="text-lg font-semibold">{room.roomName}</h2>
-              <p className="text-sm text-gray-600">{room.description}</p>
-
-              <div className="flex items-center gap-4 text-sm text-gray-700">
-                <div className="flex items-center gap-1">
-                  <Home size={16} /> {room.size}㎡
+            {/* 객실 탭 - 객실 리스트만 렌더링 */}
+            {activeTab === "rooms" && (
+              <>
+                <h1 className="text-2xl font-bold mb-6">예약 가능한 객실</h1>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {sortedRooms.map((room) => (
+                    <div key={room.roomTypesIdx} className="border rounded-lg overflow-hidden shadow-md">
+                      <div className="relative w-full h-60">
+                        <Link href={`/rooms/${room.roomTypesIdx}`} className="relative w-full h-60 block">
+                          <Image
+                            src={room.roomImage || "/placeholder.svg"}
+                            alt={room.roomName}
+                            fill
+                            className="object-cover"
+                          />
+                        </Link>
+                      </div>
+                      <div className="p-4 space-y-2">
+                        <h2 className="text-lg font-semibold">{room.roomName}</h2>
+                        <p className="text-sm text-gray-600">{room.description}</p>
+                        <div className="flex items-center gap-4 text-sm text-gray-700">
+                          <div className="flex items-center gap-1">
+                            <Home size={16} /> {room.size}㎡
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Users size={16} /> 최대 {room.maxPeople}명
+                          </div>
+                        </div>
+                        <div className="mt-4 flex justify-between items-center">
+                          <div>
+                            <div className="text-sm text-gray-500">평일가 기준</div>
+                            <div className={styles.roomListPrice} style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary-color)' }}>₩{room.weekPrice.toLocaleString()}</div>
+                          </div>
+                          <button
+                            onClick={() => handleBookNow(room)}
+                            className={styles.roomListBookButton}
+                            style={{ background: 'var(--primary-color)', color: '#fff', padding: '0.5rem 1.1rem', fontWeight: 600, borderRadius: '8px', fontSize: '1rem' }}
+                          >
+                            예약하기
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-center gap-1">
-                  <Users size={16} /> 최대 {room.maxPeople}명
-                </div>
+              </>
+            )}
+            {/* 스페셜 오퍼 탭 - 오퍼 리스트만 렌더링 */}
+            {activeTab === "packages" && (
+              <div>
+                <h2 className="text-2xl font-bold mb-6">스페셜 오퍼 상품</h2>
+                {specialOffers.length === 0 ? (
+                  <div className="text-gray-500 text-sm">해당 객실에 적용 가능한 스페셜 오퍼가 없습니다.</div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {specialOffers.map((offer) => (
+                      <div key={offer.id} className="border rounded-lg overflow-hidden shadow-md">
+                        <div className="relative w-full h-60">
+                          <Image
+                            src={offer.image || "/main_room.png"}
+                            alt={offer.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="p-4 space-y-2">
+                          <h3 className="text-lg font-semibold">{offer.title}</h3>
+                          <p className="text-sm text-gray-600">{offer.subtitle}</p>
+                          <button
+                            onClick={() => {
+                              localStorage.setItem("selectedSpecialOffer", JSON.stringify(offer));
+                              router.push(`/booking/info?offer_id=${offer.id}`);
+                            }}
+                            className="button button-primary mt-2"
+                          >
+                            예약하기
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-
-              <div className="mt-4 flex justify-between items-center">
-                <div>
-                  <div className="text-sm text-gray-500">평일가 기준</div>
-                  <div className={styles.roomListPrice} style={{fontSize:'1.1rem',fontWeight:700,color:'var(--primary-color)'}}>₩{room.weekPrice.toLocaleString()}</div>
-                </div>
-
-                <button
-  onClick={() => handleBookNow(room)}
-  className={styles.roomListBookButton}
-  style={{background:'var(--primary-color)',color:'#fff',padding:'0.5rem 1.1rem',fontWeight:600,borderRadius:'8px',fontSize:'1rem'}}
->
-  예약하기
-</button>
-              </div>
-            </div>
+            )}
           </div>
-        ))}
-      </div>
-
-      {/* 패키지 영역 */}
-      <div className="mt-20">
-        <h2 className="text-2xl font-bold mb-6">패키지 상품 (준비 중)</h2>
-        <div className="text-gray-500 text-sm">곧 다양한 혜택의 패키지 상품이 추가될 예정입니다. 기대해주세요!</div>
-      </div>
-    </div>
         </div>
       </section>
 
@@ -443,7 +448,7 @@ export default function Booking() {
 
               {selectedRoom.details.includes && (
                 <div className="mt-4">
-                  <h4 className="font-semibold mb-2">패키지 포함 사항</h4>
+                  <h4 className="font-semibold mb-2">스페셜 오퍼 포함 사항</h4>
                   <ul className="list-disc pl-5">
                     {selectedRoom.details.includes.map((item: string, index: number) => (
                       <li key={index}>{item}</li>
