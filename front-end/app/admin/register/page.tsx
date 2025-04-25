@@ -30,24 +30,46 @@ export default function RegisterPage() {
     e.preventDefault()
     setError("")
   
-    if (formData.password !== formData.confirmPassword) {
-      setError("비밀번호가 일치하지 않습니다.")
+    const { userId, email, password, confirmPassword, name, phone } = formData
+  
+    // 필수 필드 확인
+    if (!userId || !email || !password || !confirmPassword || !name || !phone) {
+      alert("모든 필수 입력값을 채워주세요.")
+      return
+    }
+  
+    // 비밀번호 일치 검사
+    if (password !== confirmPassword) {
+      alert("비밀번호가 일치하지 않습니다.")
+      return
+    }
+  
+    // 이메일 형식 검사
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      alert("유효한 이메일 주소를 입력해주세요.")
+      return
+    }
+  
+    // 전화번호 숫자만 허용 (10~11자리)
+    const cleanedPhone = phone.replace(/-/g, "")
+    if (!/^\d{10,11}$/.test(cleanedPhone)) {
+      alert("전화번호는 숫자만 10~11자리여야 합니다.")
       return
     }
   
     try {
-      // API로 백엔드로 직접 보내는 부분
       const response = await fetch("http://localhost:8080/api/admin/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id: formData.userId,          // 백엔드가 요구하는 필드명 기준
-          email: formData.email,
-          pwd: formData.password,
-          name: formData.name,
-          phone: formData.phone,
+          id: userId,
+          email,
+          pwd: password,
+          name,
+          phone: cleanedPhone, // 하이픈 제거된 값 전달
         }),
       })
   
@@ -56,11 +78,10 @@ export default function RegisterPage() {
         throw new Error(errorData.message || "회원가입에 실패했습니다.")
       }
   
-      // 성공하면 완료 페이지로 이동
-      router.push(`/admin/register/complete?userId=${encodeURIComponent(formData.userId)}`)
-  
+      alert("회원가입이 완료되었습니다.")
+      router.push(`/admin/register/complete?userId=${encodeURIComponent(userId)}`)
     } catch (error: any) {
-      setError(error.message || "회원가입 중 오류가 발생했습니다.")
+      alert(error.message || "회원가입 중 오류가 발생했습니다.")
       console.error("Registration error:", error)
     }
   }
@@ -77,7 +98,7 @@ export default function RegisterPage() {
             <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
                 <label htmlFor="userId" className="text-sm font-medium">
-                  아이디 *
+                  아이디 <span className="text-red-500">*</span>
                 </label>
                 <Input
                   id="userId"
@@ -91,7 +112,7 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
-                  이메일 *
+                  이메일 <span className="text-red-500">*</span>
                 </label>
                 <Input
                   id="email"
@@ -106,7 +127,7 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <label htmlFor="password" className="text-sm font-medium">
-                  비밀번호 *
+                  비밀번호 <span className="text-red-500">*</span>
                 </label>
                 <Input
                   id="password"
@@ -121,7 +142,7 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <label htmlFor="confirmPassword" className="text-sm font-medium">
-                  비밀번호 확인 *
+                  비밀번호 확인 <span className="text-red-500">*</span>
                 </label>
                 <Input
                   id="confirmPassword"
@@ -136,7 +157,7 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <label htmlFor="name" className="text-sm font-medium">
-                  이름 *
+                  이름 <span className="text-red-500">*</span>
                 </label>
                 <Input
                   id="name"
@@ -150,7 +171,7 @@ export default function RegisterPage() {
 
               <div className="space-y-2">
                 <label htmlFor="phone" className="text-sm font-medium">
-                  전화번호 *
+                  전화번호 <span className="text-red-500">*</span>
                 </label>
                 <Input
                   id="phone"

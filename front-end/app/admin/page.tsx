@@ -51,13 +51,15 @@ export default function LoginPage() {
       localStorage.setItem("userRole", role)
 
       // ✅ 로그인 상태 전역 업데이트
-      login({
-        userId,
-        name: "관리자",
-        email: "admin@example.com",
-        role, 
-        
-      })
+      login(
+        {
+          userId,
+          name: "관리자",
+          email: "admin@example.com",
+          role,
+        },
+        token
+      )
 
       // ✅ 이동
       router.push("/admin/dashboard")

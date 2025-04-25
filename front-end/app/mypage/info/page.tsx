@@ -17,16 +17,16 @@ export default function UserInfo() {
   const [verificationError, setVerificationError] = useState("")
 
   const [formData, setFormData] = useState({
-    userId: "test",
-    email: "vldhtmxk@naver.com",
+    userId: "",
+    email: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
-    lastName: "이",
+    lastName: "",
     firstName: "",
     englishLastName: "",
-    englishFirstName: "승범",
-    phone: "01023234444",
+    englishFirstName: "",
+    phone: "",
   })
 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
@@ -213,7 +213,7 @@ if (isLoading) return <p>로딩 중...</p>
           phone: formData.phone,
           firstName: formData.firstName,
           lastName: formData.lastName,
-          name: formData.lastName + formData.firstName, // ✅ 핵심 포인트
+          name: formData.firstName + formData.lastName, // ✅ 핵심 포인트
           currentPassword: formData.currentPassword,
           newPassword: formData.newPassword,
         }),
@@ -483,23 +483,8 @@ if (isLoading) return <p>로딩 중...</p>
                     <div className="mb-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label htmlFor="lastName" className="block mb-2 font-medium">
-                            성
-                          </label>
-                          <input
-                            type="text"
-                            id="lastName"
-                            name="lastName"
-                            className="w-full p-3 border border-gray-300 rounded-md"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            required
-                          />
-                        </div>
-
-                        <div>
                           <label htmlFor="firstName" className="block mb-2 font-medium">
-                            이름
+                            성
                           </label>
                           <input
                             type="text"
@@ -507,6 +492,21 @@ if (isLoading) return <p>로딩 중...</p>
                             name="firstName"
                             className="w-full p-3 border border-gray-300 rounded-md"
                             value={formData.firstName}
+                            onChange={handleInputChange}
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="lastName" className="block mb-2 font-medium">
+                            이름
+                          </label>
+                          <input
+                            type="text"
+                            id="lastName"
+                            name="lastName"
+                            className="w-full p-3 border border-gray-300 rounded-md"
+                            value={formData.lastName}
                             onChange={handleInputChange}
                             required
                           />

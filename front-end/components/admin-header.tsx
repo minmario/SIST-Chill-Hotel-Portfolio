@@ -47,7 +47,7 @@ export default function AdminHeader() {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
           <div className="relative h-10 w-10">
-            <Image src="/images/logo.png" alt="Chill Haven Logo" width={40} height={40} className="object-contain" />
+            <Image src="/logo2.PNG" alt="Chill Haven Logo" width={40} height={40} className="object-contain border border-white rounded" />
           </div>
           <div>
             <h1 className="text-xl font-bold">Chill Haven</h1>
