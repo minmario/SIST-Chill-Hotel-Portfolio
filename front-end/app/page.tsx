@@ -6,7 +6,7 @@ import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import styles from "./page.module.css"
 import { useRouter } from "next/navigation"
-
+import { useAuth } from "@/lib/auth" 
 
 
 
@@ -40,6 +40,14 @@ const slides = [
 
 export default function Home() {
   const router = useRouter()
+  const { isLoggedIn, user, logout } = useAuth()
+  // ✅ 여기 useEffect 추가
+  useEffect(() => {
+    if (isLoggedIn && (user?.role === "ADMIN" || user?.role === "STAFF")) {
+      console.log("[Home] 관리자 상태로 메인 진입 -> 로그아웃")
+      logout()
+    }
+  }, [isLoggedIn, user, logout])
   const [currentSlide, setCurrentSlide] = useState(0)
   const [checkInDate, setCheckInDate] = useState("")
   const [checkOutDate, setCheckOutDate] = useState("")

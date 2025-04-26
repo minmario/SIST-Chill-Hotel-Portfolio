@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
+import { useState, useEffect, useRef } from "react"
+import { useRouter, usePathname } from "next/navigation"
 import Image from "next/image"
-import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { User, LogOut } from "lucide-react"
@@ -15,8 +14,10 @@ export default function AdminHeader() {
   const router = useRouter()
   const { user, isLoggedIn, logout } = useAuth()
 
+  const wasInAdmin = useRef(false) // ✅ 이전에 admin 안에 있었는지 기록하는 ref
+
+  // ✅ 스크롤 감시
   useEffect(() => {
-    // 스크롤 상태 처리
     const handleScroll = () => {
       const isScrolled = window.scrollY > 10
       if (isScrolled !== scrolled) {
@@ -24,28 +25,46 @@ export default function AdminHeader() {
       }
     }
     window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [scrolled])
+
+  // ✅ admin -> 다른 곳으로 나갈 때만 로그아웃
+  useEffect(() => {
+    const handleLogoutIfNeeded = async () => {
+      const isNowAdminPath = pathname.startsWith("/admin")
   
-    // ✅ admin 영역 벗어날 경우 토큰 제거 및 로그아웃
-    if (!pathname.startsWith("/admin")) {
-      console.log("[AdminHeader] admin 영역 벗어남. 로그아웃 실행")
-      logout()
+      if (wasInAdmin.current && !isNowAdminPath && isLoggedIn) {
+        console.log("[AdminHeader] admin 영역을 벗어남 → 로그아웃 실행")
+        await logout()         // ✅ logout 완료까지 기다리고
+        router.push("/")       // ✅ 그 다음에 이동
+      }
+  
+      wasInAdmin.current = isNowAdminPath // 현재 상태 기록
     }
   
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [scrolled, pathname])
-  const handleLogout = () => {
-    logout()
+    handleLogoutIfNeeded()
+  }, [pathname, isLoggedIn])
+
+  const handleLogoClick = async () => {
+    if (isLoggedIn) {
+      console.log("[AdminHeader] 로고 클릭 → 로그아웃 후 메인 이동")
+      await logout()
+    }
+    router.push("/")
+  }
+
+  const handleLogout = async () => {
+    console.log("[AdminHeader] 로그아웃 버튼 클릭")
+    await logout()
     router.push("/")
   }
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-white text-black shadow-md" : "bg-black text-white"
-      }`}
-    >
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white text-black shadow-md" : "bg-black text-white"}`}>
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center space-x-2">
+
+        {/* 로고 클릭 */}
+        <button onClick={handleLogoClick} className="flex items-center space-x-2 focus:outline-none">
           <div className="relative h-10 w-10">
             <Image src="/logo2.PNG" alt="Chill Haven Logo" width={40} height={40} className="object-contain border border-white rounded" />
           </div>
@@ -53,7 +72,7 @@ export default function AdminHeader() {
             <h1 className="text-xl font-bold">Chill Haven</h1>
             <p className="text-xs">Administration System</p>
           </div>
-        </Link>
+        </button>
 
         <div className="flex items-center">
           {isLoggedIn ? (
@@ -64,12 +83,9 @@ export default function AdminHeader() {
                   <span className="hidden sm:inline">{user?.name || user?.userId}</span>
                 </Button>
               </DropdownMenuTrigger>
-              
+
               <DropdownMenuContent align="end" className="bg-white text-black">
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="hover:bg-gray-100"
-                >
+                <DropdownMenuItem onClick={handleLogout} className="hover:bg-gray-100">
                   <LogOut size={16} className="mr-2" />
                   로그아웃
                 </DropdownMenuItem>
@@ -77,10 +93,11 @@ export default function AdminHeader() {
             </DropdownMenu>
           ) : (
             <Button variant={scrolled ? "default" : "secondary"} size="sm" asChild>
-              <Link href="/">로그인</Link>
+              <button onClick={handleLogoClick}>로그인</button>
             </Button>
           )}
         </div>
+
       </div>
     </header>
   )
