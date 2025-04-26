@@ -56,6 +56,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         }
 
         // 로그인 활동 로그 기록
+        ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
         String ipAddress = getClientIp();
         userActivityLogService.logLogin(user, ipAddress);
 

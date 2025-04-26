@@ -45,26 +45,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF")
                         .requestMatchers("/dining/**").permitAll()
-                        .requestMatchers("/api/mypage/**").authenticated()
                         .requestMatchers(
+                                "/api/user/auth/login",
+                                "/api/user/auth/register")
+                        .permitAll()
+                        .requestMatchers(
+                                "/api/user/auth/logout",
+                                "/api/mypage/**",
                                 "/api/user/stays/summary",
                                 "/api/user/summary/update",
                                 "/api/user/points/summary",
                                 "/api/user/points",
                                 "/api/user/me")
                         .authenticated()
-                        .requestMatchers("/api/user/**").permitAll() // ✅ 여기가 너무 위면 안 됨
-                        .anyRequest().permitAll() // ✅ 항상 마지막!
-                )
-                .formLogin(Customizer.withDefaults()) // 기본 로그인 폼 사용
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/"))
+                        .anyRequest().permitAll())
+                // 🔥 여기!! formLogin(), logout() **완전히 삭제**
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -75,7 +75,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
+        configuration.setAllowedHeaders(
+                Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"));
         configuration
                 .setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition", "Content-Type", "Set-Cookie"));
         configuration.setAllowCredentials(true);

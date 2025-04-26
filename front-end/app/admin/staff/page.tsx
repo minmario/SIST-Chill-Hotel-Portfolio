@@ -161,42 +161,94 @@ export default function StaffPage() {
 
   // 스태프 추가 처리
   const handleAddStaff = async () => {
+    const { id, password, name, email, phone } = staffForm;
+  
+    // 1. 필수 입력값 확인
+    if (!id || !password || !name || !email || !phone) {
+      alert("모든 필수 입력값을 채워주세요.");
+      return;
+    }
+  
+    // 2. 이메일 형식 확인
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert("유효한 이메일 주소를 입력해주세요.");
+      return;
+    }
+  
+    // 3. 비밀번호 길이 검사
+    if (password.length < 8) {
+      alert("비밀번호는 최소 8자 이상이어야 합니다.");
+      return;
+    }
+  
+    // 4. 전화번호 숫자만 허용 (10~11자리)
+    const cleanedPhone = phone.replace(/\D/g, "");
+    if (!/^\d{10,11}$/.test(cleanedPhone)) {
+      alert("전화번호는 숫자만 10~11자리여야 합니다.");
+      return;
+    }
+  
     try {
-      const token = localStorage.getItem("accessToken")
-      await fetch("http://localhost:8080/api/admin/staff", {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch("http://localhost:8080/api/admin/staff", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          id: staffForm.email.split("@")[0],
-          pwd: staffForm.password,
-          name: staffForm.name,
-          email: staffForm.email,
-          phone: staffForm.phone,
+          id,
+          pwd: password,
+          name,
+          email,
+          phone: cleanedPhone, // 하이픈 제거
           role: staffForm.role,
           status: staffForm.status,
         }),
       });
   
+      if (!res.ok) {
+        const errorText = await res.text();
+        
+        // 서버에서 "중복" 같은 에러 텍스트가 오면 따로 처리
+        if (errorText.includes("이미 존재")) {
+          alert("이미 사용 중인 ID 또는 이메일입니다.");
+        } else {
+          alert("스태프 추가 실패: " + errorText);
+        }
+        return;
+      }
+  
       // 추가 성공 후 목록 다시 불러오기
-      const res = await fetch("http://localhost:8080/api/admin/staff", {
+      const refreshed = await fetch("http://localhost:8080/api/admin/staff", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await res.json();
+      const data = await refreshed.json();
       setStaffList(data);
       setIsAddDialogOpen(false);
+  
     } catch (err) {
       console.error("스태프 추가 실패", err);
-      alert("스태프 추가 중 오류가 발생했습니다.");
+      alert("스태프 추가 중 네트워크 오류가 발생했습니다.");
     }
   };
   // 스태프 정보 수정 처리
   const handleUpdateStaff = async () => {
     if (!selectedStaff) return;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(staffForm.email)) {
+    alert("유효한 이메일 주소를 입력해주세요.");
+    return;
+  }
+
+  const cleanedPhone = staffForm.phone.replace(/\D/g, "");
+  if (!/^\d{10,11}$/.test(cleanedPhone)) {
+    alert("전화번호는 숫자만 10~11자리여야 합니다.");
+    return;
+  }
   
     if (!staffForm.email || staffForm.email.trim() === "") {
       alert("이메일은 필수 입력 항목입니다.");
@@ -293,16 +345,9 @@ export default function StaffPage() {
       });
   
       if (!res.ok) {
-        const errorText = await res.text();
-  
-        // 에러 메시지 분기 처리
-        if (errorText.includes("STAFF만 삭제")) {
-          alert("⚠️ 관리자 계정은 삭제할 수 없습니다.");
-        } else {
-          alert("❌ 삭제 중 오류가 발생했습니다: " + errorText);
-        }
-  
-        return; // ❗ throw 하지 말고 여기서 종료
+        const errorJson = await res.json();
+        alert(errorJson.message || "오류가 발생했습니다.");
+        return;
       }
   
       const updatedList = staffList.filter((staff) => staff.userIdx !== selectedStaff.userIdx);
@@ -398,6 +443,7 @@ export default function StaffPage() {
                     <TableCell>{getRoleBadge(staff.role) ?? "없음"}</TableCell>
                    
                     <TableCell>
+                    {staff.role !== "ADMIN" ? (
                       <Button
                         variant="outline"
                         size="sm"
@@ -410,31 +456,55 @@ export default function StaffPage() {
                       >
                         {staff.status === "ACTIVE" ? "활성" : "비활성"}
                       </Button>
-                    </TableCell>
+                    ) : (
+                      <Button size ="sm"className="bg-gray-300 text-gray-700 hover:bg-gray-200 border-gray-200">고정</Button> // 버튼 대신 '고정' 뱃지 보여줄 수도 있음
+                    )}
+                  </TableCell>
                     <TableCell>{formatDate(staff.createdAt )?? "없음"}</TableCell>
                     <TableCell>{formatDate(staff.updatedAt )?? "없음"}</TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => openEditDialog(staff)}
-                        >
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">수정</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
-                          onClick={() => openDeleteDialog(staff)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">삭제</span>
-                        </Button>
-                      </div>
-                    </TableCell>
+  {staff.role !== "ADMIN" ? (
+    <div className="flex space-x-2">
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8 w-8 p-0"
+        onClick={() => openEditDialog(staff)}
+      >
+        <Edit className="h-4 w-4" />
+        <span className="sr-only">수정</span>
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+        onClick={() => openDeleteDialog(staff)}
+      >
+        <Trash2 className="h-4 w-4" />
+        <span className="sr-only">삭제</span>
+      </Button>
+    </div>
+        ) : (
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0 bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
+              disabled
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0 bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed"
+              disabled
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -483,8 +553,8 @@ export default function StaffPage() {
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="	bg-white/90 backdrop-blur-md shadow-2xl rounded-xl p-6 border border-gray-200">
           <DialogHeader>
-            <DialogTitle>스태프 추가</DialogTitle>
-            <DialogDescription>새 스태프 정보를 입력하세요. 모든 필드를 올바르게 입력해주세요.</DialogDescription>
+            <DialogTitle>관리자 추가</DialogTitle>
+            <DialogDescription>새 관리자 정보를 입력하세요. 모든 필드를 올바르게 입력해주세요.</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="add-id" className="text-right">ID</Label>
@@ -556,34 +626,37 @@ export default function StaffPage() {
         <DialogHeader>
           <DialogTitle>스태프 정보 수정</DialogTitle>
           <div className="text-sm text-gray-500 mt-1 space-y-1">
-            <p>이름, 이메일, 전화번호와 비밀번호를 수정할 수 있습니다.</p>
+            <p>전화번호와 비밀번호를 수정할 수 있습니다.</p>
             <p className="text-gray-400">비밀번호를 변경하려면 기존 비밀번호와 새 비밀번호를 입력해주세요.</p>
           </div>
         </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-name" className="text-right">
-                이름
-              </Label>
-              <Input
-                id="edit-name"
-                value={staffForm.name}
-                onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-email" className="text-right">
-                이메일
-              </Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={staffForm.email}
-                onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
-                className="col-span-3"
-              />
-            </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+  <Label htmlFor="edit-name" className="text-right">
+    이름
+  </Label>
+  <Input
+    id="edit-name"
+    value={staffForm.name}
+    onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })}
+    className="col-span-3"
+    disabled={selectedStaff?.role === "STAFF"} // ✅ 관리자면 비활성화
+  />
+</div>
+
+<div className="grid grid-cols-4 items-center gap-4">
+  <Label htmlFor="edit-email" className="text-right">
+    이메일
+  </Label>
+  <Input
+    id="edit-email"
+    type="email"
+    value={staffForm.email}
+    onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
+    className="col-span-3"
+    disabled={selectedStaff?.role === "STAFF"} // ✅ 관리자면 비활성화
+  />
+</div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="edit-phone" className="text-right">
                 전화번호

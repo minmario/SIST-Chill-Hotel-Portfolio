@@ -37,6 +37,13 @@ export default function RegisterPage() {
       alert("모든 필수 입력값을 채워주세요.")
       return
     }
+    
+  
+    // 🔒 비밀번호 유효성 검사
+    if (formData.password.length < 8) {
+      alert("비밀번호는 8자 이상이어야 합니다.")
+      return
+    }
   
     // 비밀번호 일치 검사
     if (password !== confirmPassword) {
@@ -74,8 +81,8 @@ export default function RegisterPage() {
       })
   
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "회원가입에 실패했습니다.")
+        const text = await response.text();  // 여기만 수정
+        throw new Error(text || "회원가입에 실패했습니다.");
       }
   
       alert("회원가입이 완료되었습니다.")

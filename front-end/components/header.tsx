@@ -30,10 +30,10 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [pathname])
 
-  const handleLogout = () => {
-    logout()
-    router.push('/')
-  }
+  const handleLogout = async () => {
+    await logout();  // logout() 안에 이미 fetch 요청 들어있음
+    router.push('/');
+  };
 
   return (
     <header

@@ -369,7 +369,7 @@ if (isLoading) return <p>로딩 중...</p>
                             value={formData.userId}
                             disabled
                           />
-                          <p className="text-xs text-gray-500 mt-1">아이디는 변경할 수 없습니다.</p>
+                          <p className="text-xs text-gray-500 mt-1">아이디, 이메일은 변경할 수 없습니다.</p>
                         </div>
 
                         <div>
@@ -380,10 +380,9 @@ if (isLoading) return <p>로딩 중...</p>
                             type="email"
                             id="email"
                             name="email"
-                            className={`w-full p-3 border ${formErrors.email ? "border-red-500" : "border-gray-300"} rounded-md`}
+                            className={`w-full p-3 border border-gray-300 bg-gray-100 rounded-md`}
                             value={formData.email}
-                            onChange={handleInputChange}
-                            required
+                            disabled  // ✅ 여기 추가!
                           />
                           {formErrors.email && <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>}
                         </div>
