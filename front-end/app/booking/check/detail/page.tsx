@@ -20,13 +20,16 @@ export default function BookingCheckDetailPage() {
     } catch (e) {
       parsed = null
     }
-    // 배열이 아니면 배열로 변환
+    // 배열이 아니면 배열로 변환 및 최신순 정렬
     if (parsed) {
-      if (Array.isArray(parsed)) {
-        setBookings(parsed)
-      } else {
-        setBookings([parsed])
-      }
+      let arr = Array.isArray(parsed) ? parsed : [parsed];
+      arr = arr.sort((a, b) => {
+        // checkInDate 또는 checkIn 필드 기준 내림차순(최신순)
+        const dateA = new Date(a.checkInDate || a.checkIn);
+        const dateB = new Date(b.checkInDate || b.checkIn);
+        return dateB.getTime() - dateA.getTime();
+      });
+      setBookings(arr);
     }
   }, [router])
 
@@ -44,6 +47,9 @@ export default function BookingCheckDetailPage() {
             <div><strong>이메일:</strong> {booking.email}</div>
             <hr />
             <div><strong>객실명:</strong> {booking.roomName}</div>
+            {booking.offerName && (
+              <div><strong>스페셜 오퍼:</strong> {booking.offerName}</div>
+            )}
             <div><strong>객실 등급:</strong> {booking.roomGrade}</div>
             <div><strong>체크인:</strong> {booking.checkInDate}</div>
             <div><strong>체크아웃:</strong> {booking.checkOutDate}</div>

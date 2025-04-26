@@ -15,33 +15,29 @@ import java.time.LocalDate;
 @Builder
 public class ReservationResponse {
 
-    private Long reservationIdx;
-    private User user;
-    private Room room;
+    private String reservationNum;
+    private String guestName;
+    private String roomName;
     private LocalDate checkIn;
     private LocalDate checkOut;
-    private int adults;
-    private int children;
-    private ReservationStatus status;
     private int totalAmount;
     private String paymentMethod;
-    private String reservationNum;
     private String specialRequest;
+    private Long offerId;
+    private String offerName;
 
     public static ReservationResponse fromEntity(Reservation entity) {
         return ReservationResponse.builder()
-                .reservationIdx(entity.getReservationIdx())
-                .user(entity.getUser())
-                .room(entity.getRoom())
+                .reservationNum(entity.getReservationNum())
+                .guestName(entity.getUser().getLastName() + entity.getUser().getFirstName())
+                .roomName(entity.getRoom() != null ? entity.getRoomType().getRoomName() : null)
                 .checkIn(entity.getCheckIn())
                 .checkOut(entity.getCheckOut())
-                .adults(entity.getAdultCount())
-                .children(entity.getChildCount())
-                .status(entity.getStatus())
                 .totalAmount(entity.getTotal())
-                .reservationNum(entity.getReservationNum())
-                .specialRequest(entity.getSpecialRequests())
                 .paymentMethod(entity.getCardNumber())
+                .specialRequest(entity.getSpecialRequests())
+                .offerId(entity.getSpecialOffer() != null ? entity.getSpecialOffer().getId() : null)
+                .offerName(entity.getSpecialOffer() != null ? entity.getSpecialOffer().getTitle() : null)
                 .build();
     }
 }

@@ -36,13 +36,15 @@ public class ReservationService {
         private final RoomTypeRepository roomTypeRepository;
         private final MembershipRepository membershipRepository;
 
-        public ReservationResponse getReservation(Long userIdx, String reservationNum) {
-                Reservation entity = reservationRepository.findByUser_UserIdxAndReservationNum(userIdx, reservationNum)
-                                .orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다."));
-                return ReservationResponse.fromEntity(entity);
+        public List<ReservationResponse> getReservation(Long userIdx, String reservationNum) {
+                List<Reservation> entities = reservationRepository.findByUser_UserIdxAndReservationNum(userIdx, reservationNum);
+                if (entities == null || entities.isEmpty()) {
+                        throw new IllegalArgumentException("예약 정보를 찾을 수 없습니다.");
+                }
+                return entities.stream().map(ReservationResponse::fromEntity).toList();
         }
 
-        public Long saveReservation(ReservationRequest request) {
+        public ReservationResponse saveReservation(ReservationRequest request) {
                 User user = null;
 
                 if (request.getUserIdx() != null && request.getUserIdx() != 0) {
@@ -83,8 +85,8 @@ public class ReservationService {
                                 .cardExpiry(request.getCardExpiry())
                                 .build();
 
-                reservationRepository.save(reservation);
-                return reservation.getReservationIdx();
+                Reservation saved = reservationRepository.save(reservation);
+                return ReservationResponse.fromEntity(saved);
         }
 
         private String generateReservationCode() {
@@ -92,10 +94,28 @@ public class ReservationService {
         }
 
         @Transactional(readOnly = true)
+        public List<ReservationResponse> getReservationsByNumber(String reservationNum) {
+                List<Reservation> reservations = reservationRepository.findAllByReservationNum(reservationNum);
+                if (reservations == null || reservations.isEmpty()) {
+                        throw new IllegalArgumentException("예약 정보를 찾을 수 없습니다.");
+                }
+                return reservations.stream().map(ReservationResponse::fromEntity).toList();
+        }
+
+        @Transactional(readOnly = true)
         public ReservationLookupResponse getReservationByNumber(String reservationNum) {
                 Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
                                 .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
-                return toLookupDto(reservation); // ✅ 이걸 내부 메서드로 처리
+                return toLookupDto(reservation); // 이걸 내부 메서드로 처리
+        }
+
+        @Transactional(readOnly = true)
+        public List<ReservationResponse> getReservationsByGuest(String lastName, String firstName, String phone) {
+                List<Reservation> reservations = reservationRepository.findAllByLastNameAndFirstNameAndPhone(lastName, firstName, phone);
+                if (reservations == null || reservations.isEmpty()) {
+                        throw new IllegalArgumentException("예약 정보를 찾을 수 없습니다.");
+                }
+                return reservations.stream().map(ReservationResponse::fromEntity).toList();
         }
 
         @Transactional(readOnly = true)

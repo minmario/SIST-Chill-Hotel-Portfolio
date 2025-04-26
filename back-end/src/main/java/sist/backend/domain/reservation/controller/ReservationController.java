@@ -2,10 +2,14 @@ package sist.backend.domain.reservation.controller;
 
 import sist.backend.domain.reservation.dto.request.ReservationRequest;
 import sist.backend.domain.reservation.dto.response.ReservationLookupResponse;
+import sist.backend.domain.reservation.dto.response.ReservationResponse;
 import sist.backend.domain.reservation.service.ReservationService;
 
 
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,29 +18,37 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/reservations")
 public class ReservationController {
 
+    @GetMapping("/by-user-and-num")
+    public ResponseEntity<List<ReservationResponse>> getReservationsByUserAndNum(
+            @RequestParam Long userIdx,
+            @RequestParam String reservationNum) {
+        List<ReservationResponse> responses = reservationService.getReservation(userIdx, reservationNum);
+        return ResponseEntity.ok(responses);
+    }
+
     private final ReservationService reservationService;
 
     @PostMapping
-    public ResponseEntity<Long> createReservation(@RequestBody ReservationRequest request) {
-        Long reservationId = reservationService.saveReservation(request);
-        return ResponseEntity.ok(reservationId);
+    public ResponseEntity<ReservationResponse> createReservation(@RequestBody ReservationRequest request) {
+        ReservationResponse response = reservationService.saveReservation(request);
+        return ResponseEntity.ok(response);
     }
    // 1. 예약번호로 조회
     @GetMapping("/check-by-num")
-public ResponseEntity<ReservationLookupResponse> getReservationByNumber(@RequestParam String reservationNum) {
-    return ResponseEntity.ok(reservationService.getReservationByNumber(reservationNum)); // ✅ DTO만 리턴
+public ResponseEntity<List<ReservationResponse>> getReservationsByNumber(@RequestParam String reservationNum) {
+    List<ReservationResponse> responses = reservationService.getReservationsByNumber(reservationNum);
+    return ResponseEntity.ok(responses);
 }
 
     // 2. 예약자 정보(성+이름+번호)로 조회
     @GetMapping("/check/guest")
-    public ResponseEntity<ReservationLookupResponse> getReservationByGuest(
+    public ResponseEntity<List<ReservationResponse>> getReservationsByGuest(
             @RequestParam String lastName,
             @RequestParam String firstName,
             @RequestParam String phone
     ) {
-        return ResponseEntity.ok(
-            reservationService.getReservationByGuest(lastName, firstName, phone)
-        );
+        List<ReservationResponse> responses = reservationService.getReservationsByGuest(lastName, firstName, phone);
+        return ResponseEntity.ok(responses);
     }
 
     @PostMapping("/cancel/{reservationNum}")
