@@ -224,8 +224,8 @@ export default function DiningReservePage() {
           {/* STEP 2 */}
           {step === 2 && (
             <div className="space-y-4 max-w-xl">
-              <div><label className="block font-medium mb-1">성</label><input type="text" className="w-full border p-2 rounded" value={lastName} onChange={(e) => setLastName(e.target.value)} /></div>
-              <div><label className="block font-medium mb-1">이름</label><input type="text" className="w-full border p-2 rounded" value={firstName} onChange={(e) => setFirstName(e.target.value)} /></div>
+              <div><label className="block font-medium mb-1">성</label><input type="text" className="w-full border p-2 rounded" value={firstName} onChange={(e) => setFirstName(e.target.value)} /></div>
+              <div><label className="block font-medium mb-1">이름</label><input type="text" className="w-full border p-2 rounded" value={lastName} onChange={(e) => setLastName(e.target.value)} /></div>
               <div><label className="block font-medium mb-1">연락처</label><input type="tel" className="w-full border p-2 rounded" value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
               <div>
                 <label className="block font-medium mb-1">이메일</label>

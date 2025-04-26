@@ -48,7 +48,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF")
+                        // .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF")
+                        .requestMatchers("/admin/**").permitAll()
                         .requestMatchers("/dining/**").permitAll()
                         .requestMatchers("/api/mypage/**").authenticated()
                         .requestMatchers(
@@ -62,6 +63,7 @@ public class SecurityConfig {
                         .anyRequest().permitAll() // ✅ 항상 마지막!
                 )
                 .formLogin(Customizer.withDefaults()) // 기본 로그인 폼 사용
+                .formLogin(form -> form.disable())
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/"))

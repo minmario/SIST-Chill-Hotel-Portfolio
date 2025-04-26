@@ -1,57 +1,18 @@
 package sist.backend.domain.dining_reservation.service.interfaces;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import sist.backend.domain.dining_reservation.dto.request.DiningReservationRequest;
-import sist.backend.domain.dining_reservation.entity.DiningReservation;
-import sist.backend.domain.dining_reservation.repository.jpa.DiningReservationRepository;
+import sist.backend.domain.dining_reservation.dto.response.DiningReservationResponse;
 
-import java.util.UUID;
+public interface DiningReservationService {
 
-@Service
-@RequiredArgsConstructor
-public class DiningReservationService {
+    // 다이닝 예약 생성
+    String reserve(DiningReservationRequest request);
 
-    private final DiningReservationRepository reservationRepository;
+    // 예약 번호로 다이닝 예약 조회
+    DiningReservationResponse findByReservationNumber(String reservationNum);
 
-    @Transactional
-    public String reserve(DiningReservationRequest request) {
-        int totalPeople = request.getAdults() + request.getChildren();
-        if (totalPeople > 5) {
-            throw new IllegalArgumentException("한 예약당 최대 5명까지 예약 가능합니다.");
-        }
+    // 예약자 정보로 다이닝 예약 조회
+    DiningReservationResponse findByGuestInfo(String lastName, String firstName, String phone);
 
-        int reservedCount = reservationRepository.countReservedPeople(
-                request.getRestaurantId(),
-                request.getReservationDate(),
-                request.getMealTime(),
-                request.getReservationTime()
-        );
-
-        if (reservedCount + totalPeople > 20) {
-            throw new IllegalArgumentException("해당 시간대는 예약 가능 인원을 초과했습니다.");
-        }
-
-        String reservationNum = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 8).toUpperCase();
-
-        DiningReservation reservation = DiningReservation.builder()
-                .reservationNum(reservationNum)
-                .restaurantId(request.getRestaurantId())
-                .reservationDate(request.getReservationDate())
-                .mealTime(request.getMealTime())
-                .reservationTime(request.getReservationTime())
-                .adults(request.getAdults())
-                .children(request.getChildren())
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .phone(request.getPhone())
-                .email(request.getEmail())
-                .request(request.getRequest())
-                .status("PENDING")
-                .build();
-
-        reservationRepository.save(reservation);
-        return reservationNum;
-    }
+    void cancelReservation(String reservationNum); // 예약 취소 메서드 추가
 }

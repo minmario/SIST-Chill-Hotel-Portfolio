@@ -10,6 +10,7 @@ public class DiningReservationResponse {
 
     private String reservationNum;
     private Long restaurantId;
+    private String restaurantName;
     private String reservationDate;
     private String mealTime;
     private String reservationTime;
@@ -26,6 +27,7 @@ public class DiningReservationResponse {
     return DiningReservationResponse.builder()
         .reservationNum(r.getReservationNum())
         .restaurantId(r.getRestaurantId())
+        .restaurantName(r.getRestaurantName())
         .reservationDate(r.getReservationDate() != null ? r.getReservationDate().toString() : null)
         .reservationTime(r.getReservationTime() != null ? r.getReservationTime().toString() : null)
         .mealTime(r.getMealTime())
