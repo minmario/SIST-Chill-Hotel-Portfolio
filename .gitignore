@@ -1,5 +1,7 @@
 # Global
 ./docs
+.idea
+.vscode
 
 
 #frontend
