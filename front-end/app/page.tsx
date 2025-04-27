@@ -28,8 +28,8 @@ const slides = [
     id: 1,
     image: "/main_room.png?height=1080&width=1920",
     title: "Your Ultimate Healing Retreat",
-    description: "Experience tranquility and rejuvenation at Chill Haven Resort & Spa",
-    buttonText: "Begin Your Journey",
+    description: "Chill Haven 호텔에서 평온과 재충전의 순간을 만나보세요",
+    buttonText: "객실 탐험하기",
     buttonLink: "/rooms",
   },
   {
@@ -44,8 +44,8 @@ const slides = [
     id: 3,
     image: "/main_dining.png?height=1080&width=1920",
     title: "Culinary Excellence",
-    description: "Indulge in exceptional dining experiences with breathtaking views",
-    buttonText: "Discover Dining",
+    description: "탁 트인 풍경 속에서 즐기는 잊지 못할 미식의 여정",
+    buttonText: "미식여행 탐방하기",
     buttonLink: "/dining",
   },
 ]
