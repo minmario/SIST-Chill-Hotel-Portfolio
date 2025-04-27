@@ -372,15 +372,23 @@ export default function Booking() {
                         <div className="p-4 space-y-2">
                           <h3 className="text-lg font-semibold">{offer.title}</h3>
                           <p className="text-sm text-gray-600">{offer.subtitle}</p>
-                          <button
-                            onClick={() => {
-                              localStorage.setItem("selectedSpecialOffer", JSON.stringify(offer));
-                              router.push(`/booking/info?offer_id=${offer.id}`);
-                            }}
-                            className="button button-primary mt-2"
-                          >
-                            예약하기
-                          </button>
+                          {offer.price && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '8px 0' }}>
+                              <div className={styles.roomListPrice} style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary-color)' }}>
+                                ₩{Number(offer.price).toLocaleString()}
+                              </div>
+                              <button
+                                onClick={() => {
+                                  localStorage.setItem("selectedSpecialOffer", JSON.stringify(offer));
+                                  router.push(`/booking/info?offer_id=${offer.id}`);
+                                }}
+                                className={styles.roomListBookButton}
+                                style={{ background: 'var(--primary-color)', color: '#fff', padding: '0.5rem 1.1rem', fontWeight: 600, borderRadius: '8px', fontSize: '1rem' }}
+                              >
+                                예약하기
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
