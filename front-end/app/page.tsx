@@ -227,7 +227,7 @@ export default function Home() {
                         <p className="text-gray-600 mb-4">{option.description}</p>
                         <p className="text-sm font-medium mb-6">{option.hours}</p>
                         <Link
-                          href={option.link}
+                          href="/dining"
                           className="inline-flex items-center justify-center py-3 px-6 rounded-md font-medium text-white transition-colors self-start"
                           style={{ backgroundColor: "#2dd4bf" }}
                         >
