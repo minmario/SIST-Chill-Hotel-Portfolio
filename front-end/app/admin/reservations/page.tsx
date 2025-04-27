@@ -49,7 +49,7 @@ interface Reservation {
   adultCount: number;
   childCount: number;
   roomNumber: string;
-  roomTypeIdx: string;
+  roomTypeIdx: number; // number로 변경
   roomGrade: string;
   total: number;
   specialRequests: string;

@@ -23,18 +23,23 @@ import sist.backend.domain.room.entity.Room;
 import sist.backend.domain.room.entity.RoomType;
 import sist.backend.domain.room.repository.RoomRepository;
 import sist.backend.domain.room.repository.RoomTypeRepository;
+import sist.backend.domain.specialoffer.entity.SpecialOffer;
 import sist.backend.domain.user.entity.User;
+import sist.backend.domain.user.repository.UserActivityLogRepository;
 import sist.backend.domain.user.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
 public class ReservationService {
 
+    private final UserActivityLogRepository userActivityLogRepository;
+
         private final ReservationRepository reservationRepository;
         private final RoomRepository roomRepository;
         private final UserRepository userRepository;
         private final RoomTypeRepository roomTypeRepository;
         private final MembershipRepository membershipRepository;
+        private final sist.backend.domain.specialoffer.SpecialOfferService specialOfferService;
 
         public List<ReservationResponse> getReservation(Long userIdx, String reservationNum) {
                 List<Reservation> entities = reservationRepository.findByUser_UserIdxAndReservationNum(userIdx, reservationNum);
@@ -57,6 +62,15 @@ public class ReservationService {
 
                 RoomType roomType = roomTypeRepository.findById(request.getRoomTypesIdx())
                                 .orElseThrow(() -> new IllegalArgumentException("객실 타입을 찾을 수 없습니다."));
+
+                // SpecialOffer 연관관계 처리
+                SpecialOffer specialOffer = null;
+                if (request.getOfferId() != null) {
+                    specialOffer = specialOfferService.getAllSpecialOffers().stream()
+                        .filter(so -> so.getId().equals(request.getOfferId()))
+                        .findFirst()
+                        .orElse(null);
+                }
 
                 Reservation reservation = Reservation.builder()
                                 .status(ReservationStatus.CONFIRMED)
@@ -83,9 +97,21 @@ public class ReservationService {
                                 .phone(request.getPhone())
                                 .cardNumber(request.getCardNumber())
                                 .cardExpiry(request.getCardExpiry())
+                                .specialOffer(specialOffer)
                                 .build();
 
                 Reservation saved = reservationRepository.save(reservation);
+
+                // 예약 활동 로그 기록 (IP 제외)
+                String activityDetails = (saved.getRoom() != null && saved.getRoom().getRoomNum() != null)
+                        ? saved.getRoom().getRoomNum() + "호 예약 신청"
+                        : "예약 신청";
+                sist.backend.domain.user.entity.UserActivityLog log = sist.backend.domain.user.entity.UserActivityLog.builder()
+                        .user(saved.getUser())
+                        .activityType(sist.backend.domain.user.entity.ActivityType.HOTEL_RESERVATION)
+                        .activityDetails(activityDetails)
+                        .build();
+                userActivityLogRepository.save(log);
                 return ReservationResponse.fromEntity(saved);
         }
 
@@ -152,6 +178,17 @@ public class ReservationService {
                                 .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
 
                 reservation.setStatus(ReservationStatus.CANCELLED); // ENUM 업데이트
+
+                // 예약 취소 활동 로그 기록 (IP 제외)
+                String activityDetails = (reservation.getRoom() != null && reservation.getRoom().getRoomNum() != null)
+                        ? reservation.getRoom().getRoomNum() + "호 예약 취소"
+                        : "예약 취소";
+                sist.backend.domain.user.entity.UserActivityLog log = sist.backend.domain.user.entity.UserActivityLog.builder()
+                        .user(reservation.getUser())
+                        .activityType(sist.backend.domain.user.entity.ActivityType.HOTEL_RESERVATION_CANCEL)
+                        .activityDetails(activityDetails)
+                        .build();
+                userActivityLogRepository.save(log);
         }
 
         @Transactional(readOnly = true)
