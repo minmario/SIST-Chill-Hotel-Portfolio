@@ -43,6 +43,8 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
           console.log('[Auth] 앱 첫 시작 감지: 토큰과 장바구니 초기화');
           
           // 로컬 스토리지 정보 제거
+          localStorage.removeItem('userName');
+          localStorage.removeItem('userToken');
           localStorage.removeItem('accessToken');
           localStorage.removeItem('userId');
           localStorage.removeItem('userRole');
@@ -104,9 +106,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
   const logout = async () => {
     console.log('[Auth] 로그아웃 시도');
-    console.log('[Auth] 제거 전 토큰: ', localStorage.getItem('accessToken'));
-
-    // 서버에 로그아웃 요청 전송
+  
     try {
       const token = localStorage.getItem('accessToken');
       if (token) {
@@ -117,35 +117,21 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
             'Content-Type': 'application/json'
           }
         });
-        console.log('[Auth] 서버 로그아웃 요청 성공');
       }
     } catch (error) {
       console.error('[Auth] 서버 로그아웃 요청 실패:', error);
-      // 실패하더라도 클라이언트에서는 로그아웃 처리 진행
     }
-    
-    // 로컬 스토리지 정보 제거
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('email');
-    
-    // 장바구니 데이터 제거
-    localStorage.removeItem('guestCart');
-    console.log('[Auth] 장바구니 데이터 제거');
-    
-    // 장바구니 상태 초기화 (등록된 함수가 있으면 호출)
-    if (cartClearFunction) {
-      cartClearFunction();
-    }
-    
-    console.log('[Auth] 제거 후 토큰: ', localStorage.getItem('accessToken') || '없음');
-    console.log('[Auth] 로그인 상태 변경: false');
-    
+  
+    // ✅ 상태 확실히 초기화
+    localStorage.clear();
+    sessionStorage.clear();
+  
     setIsLoggedIn(false);
     setUserId(null);
     setUserRole(null);
-    sessionStorage.removeItem("appStarted");
+  
+    // ✅ 강제로 "/"로 이동 (새로고침 말고 router로)
+    window.location.href = "/";
   };
 
   // 초기화가 완료되기 전에는 로딩 상태를 반환
