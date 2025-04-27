@@ -75,8 +75,8 @@ export default function Login() {
 
       login({
         userId: loginData.userId,
-        name: "테스트유저",
-        email: "test@example.com",
+        name: data.name,
+        email: data.email,
         role: data.role,
       }, data.token);
 

@@ -32,7 +32,17 @@ public class StaffAdminServiceImpl implements StaffAdminService {
 
     @Override
     public void addStaff(StaffAdminRequest request) {
-        // ✅ null일 경우 STAFF로 기본값 지정
+        // ✅ 1. 아이디 중복 체크
+        if (adminUserRepository.existsById(request.getId())) {
+            throw new RuntimeException("이미 사용 중인 아이디입니다.");
+        }
+
+        // ✅ 2. 이메일 중복 체크
+        if (adminUserRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("이미 사용 중인 이메일입니다.");
+        }
+
+        // ✅ 3. 기본 역할 설정
         UserRole role = request.getRole() != null ? request.getRole() : UserRole.STAFF;
 
         User staff = User.builder()
@@ -42,7 +52,7 @@ public class StaffAdminServiceImpl implements StaffAdminService {
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .status(UserStatus.ACTIVE)
-                .role(role) // ✅ 동적 적용
+                .role(role)
                 .build();
 
         adminUserRepository.save(staff);

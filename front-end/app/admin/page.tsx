@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -17,12 +17,23 @@ import {
 import { useAuth } from "@/lib/auth"
 
 export default function LoginPage() {
-  const router = useRouter()
+  const router = useRouter() 
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken")
+    const role = localStorage.getItem("userRole")
+  
+    if (token && role !== "ADMIN") {
+      console.log("[LoginPage] 일반 사용자 접근 차단 → 메인페이지로 리다이렉트")
+      router.replace("/") // 또는 "/login" 등
+    }
+  }, [])
   const { login } = useAuth()
+ 
+  
   const [userId, setUserId] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-
+  
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -51,13 +62,15 @@ export default function LoginPage() {
       localStorage.setItem("userRole", role)
 
       // ✅ 로그인 상태 전역 업데이트
-      login({
-        userId,
-        name: "관리자",
-        email: "admin@example.com",
-        role, 
-        
-      })
+      login(
+        {
+          userId,
+          name: "관리자",
+          email: "admin@example.com",
+          role,
+        },
+        token
+      )
 
       // ✅ 이동
       router.push("/admin/dashboard")
@@ -68,6 +81,7 @@ export default function LoginPage() {
   }
 
   return (
+    
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">

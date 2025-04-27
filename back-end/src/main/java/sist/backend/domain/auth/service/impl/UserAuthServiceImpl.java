@@ -10,6 +10,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
+import sist.backend.domain.admin.dto.response.LoginResponse;
 import sist.backend.domain.auth.dto.request.PaymentMethodRequest;
 import sist.backend.domain.auth.dto.request.UserLoginRequest;
 import sist.backend.domain.auth.dto.request.UserRegisterRequest;
@@ -56,6 +57,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         }
 
         // 로그인 활동 로그 기록
+        ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
         String ipAddress = getClientIp();
         userActivityLogService.logLogin(user, ipAddress);
 
@@ -66,7 +68,12 @@ public class UserAuthServiceImpl implements UserAuthService {
                 user.getRole().name(),
                 membershipIdx);
 
-        return new UserLoginResponse(token, user.getRole().name());
+        return new UserLoginResponse(
+                token,
+                user.getRole().name(),
+                user.getName(), // ✅ 유저 이름
+                user.getEmail() // ✅ 유저 이메일
+        );
     }
 
     @Override

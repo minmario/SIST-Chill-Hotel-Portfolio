@@ -213,7 +213,7 @@ if (isLoading) return <p>로딩 중...</p>
           phone: formData.phone,
           firstName: formData.firstName,
           lastName: formData.lastName,
-          name: formData.lastName + formData.firstName, // ✅ 핵심 포인트
+          name: formData.firstName + formData.lastName, // ✅ 핵심 포인트
           currentPassword: formData.currentPassword,
           newPassword: formData.newPassword,
         }),
@@ -369,7 +369,7 @@ if (isLoading) return <p>로딩 중...</p>
                             value={formData.userId}
                             disabled
                           />
-                          <p className="text-xs text-gray-500 mt-1">아이디는 변경할 수 없습니다.</p>
+                          <p className="text-xs text-gray-500 mt-1">아이디, 이메일은 변경할 수 없습니다.</p>
                         </div>
 
                         <div>
@@ -380,10 +380,9 @@ if (isLoading) return <p>로딩 중...</p>
                             type="email"
                             id="email"
                             name="email"
-                            className={`w-full p-3 border ${formErrors.email ? "border-red-500" : "border-gray-300"} rounded-md`}
+                            className={`w-full p-3 border border-gray-300 bg-gray-100 rounded-md`}
                             value={formData.email}
-                            onChange={handleInputChange}
-                            required
+                            disabled  // ✅ 여기 추가!
                           />
                           {formErrors.email && <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>}
                         </div>
@@ -483,23 +482,8 @@ if (isLoading) return <p>로딩 중...</p>
                     <div className="mb-8">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label htmlFor="lastName" className="block mb-2 font-medium">
-                            성
-                          </label>
-                          <input
-                            type="text"
-                            id="lastName"
-                            name="lastName"
-                            className="w-full p-3 border border-gray-300 rounded-md"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            required
-                          />
-                        </div>
-
-                        <div>
                           <label htmlFor="firstName" className="block mb-2 font-medium">
-                            이름
+                            성
                           </label>
                           <input
                             type="text"
@@ -507,6 +491,21 @@ if (isLoading) return <p>로딩 중...</p>
                             name="firstName"
                             className="w-full p-3 border border-gray-300 rounded-md"
                             value={formData.firstName}
+                            onChange={handleInputChange}
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="lastName" className="block mb-2 font-medium">
+                            이름
+                          </label>
+                          <input
+                            type="text"
+                            id="lastName"
+                            name="lastName"
+                            className="w-full p-3 border border-gray-300 rounded-md"
+                            value={formData.lastName}
                             onChange={handleInputChange}
                             required
                           />

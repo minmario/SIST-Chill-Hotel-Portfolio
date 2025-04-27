@@ -8,9 +8,11 @@ import org.springframework.web.bind.annotation.*;
 
 import sist.backend.domain.user.dto.request.UserUpdateRequest;
 import sist.backend.domain.user.dto.response.UserResponse;
+import sist.backend.domain.user.entity.ActivityType;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.entity.UserStatus;
 import sist.backend.domain.user.repository.UserRepository;
+import sist.backend.domain.user.service.interfaces.UserActivityLogService;
 import sist.backend.global.jwt.JwtProvider;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +25,7 @@ public class UserInfoController {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
+    private final UserActivityLogService userActivityLogService;
 
     @GetMapping("/me")
     public ResponseEntity<?> getUserInfo(HttpServletRequest request) {
@@ -105,8 +108,11 @@ public class UserInfoController {
         }
 
         userRepository.save(user);
+        String ipAddress = httpRequest.getRemoteAddr();
+        userActivityLogService.logActivity(user, ActivityType.PASSWORD_CHANGE, "사용자 정보 수정 완료", ipAddress);
 
         return ResponseEntity.ok(UserResponse.from(user));
+
     }
 
     @DeleteMapping("/withdraw")
@@ -120,11 +126,14 @@ public class UserInfoController {
         if (user == null) {
             return ResponseEntity.status(404).body("사용자 없음");
         }
+        String ipAddress = request.getRemoteAddr();
+        userActivityLogService.logActivity(user, ActivityType.ACCOUNT_DELETE, "회원 탈퇴 완료", ipAddress);
 
-        // 실제 삭제 또는 비활성화 방식 중 택1
-        // userRepository.delete(user); // 진짜 삭제
-        user.setStatus(UserStatus.INACTIVE); // soft delete
+        // 상태를 INACTIVE로 바꿈 (soft delete)
+        user.setStatus(UserStatus.INACTIVE);
         userRepository.save(user);
+
+        // ✅ 저장 후 로그 남기기
 
         return ResponseEntity.ok("회원 탈퇴 완료");
     }

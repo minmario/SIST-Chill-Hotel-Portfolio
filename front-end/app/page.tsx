@@ -1,11 +1,13 @@
 "use client"
 
-import React, { useState, Suspense } from "react"
+import React, { useState, Suspense,useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import styles from "./page.module.css"
 import dynamic from "next/dynamic"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth" 
 
 // 동적 import를 사용하여 컴포넌트 지연 로딩 - Suspense 추가
 const MainSlider = dynamic(() => import("@/components/Home/MainSlider"), {
@@ -136,6 +138,30 @@ const storeItems = [
 ]
 
 export default function Home() {
+  const router = useRouter()
+  const { isLoggedIn, user, logout } = useAuth()
+  // ✅ 여기 useEffect 추가
+  useEffect(() => {
+    if (isLoggedIn && (user?.role === "ADMIN" || user?.role === "STAFF")) {
+      console.log("[Home] 관리자 상태로 메인 진입 -> 로그아웃")
+      logout()
+    }
+  }, [isLoggedIn, user, logout])
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [checkInDate, setCheckInDate] = useState("")
+  const [checkOutDate, setCheckOutDate] = useState("")
+
+  // 컴포넌트 마운트 시 체크인=오늘, 체크아웃=내일로 자동 설정
+  useEffect(() => {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    const todayStr = today.toISOString().split('T')[0];
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    setCheckInDate(todayStr);
+    setCheckOutDate(tomorrowStr);
+  }, []);
+
   const [currentDiningSlide, setCurrentDiningSlide] = useState(0)
   const [currentStoreSlide, setCurrentStoreSlide] = useState(0)
 
