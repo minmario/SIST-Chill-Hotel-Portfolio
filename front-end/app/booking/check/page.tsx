@@ -1,21 +1,21 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
 import styles from "./booking-check.module.css"
 
 export default function BookingCheckPage() {
   const router = useRouter()
-  const [searchType, setSearchType] = useState("bookingNumber") // "bookingNumber" or "guestInfo"
+
+  const [searchCategory, setSearchCategory] = useState<"hotel" | "dining">("hotel") // 호텔 or 다이닝
+  const [searchType, setSearchType] = useState<"bookingNumber" | "guestInfo">("bookingNumber") // 예약번호 or 예약자 정보
+
   const [bookingNumber, setBookingNumber] = useState("")
-  const [lastName, setLastName] = useState("")      // 성
-  const [firstName, setFirstName] = useState("")    // 이름
-  const [phone, setPhone] = useState("")            // 연락처
-  
+  const [lastName, setLastName] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [phone, setPhone] = useState("")
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
@@ -24,9 +24,8 @@ export default function BookingCheckPage() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-  
     if (!isClient) return
-  
+
     try {
       let url = ""
 
@@ -36,27 +35,42 @@ export default function BookingCheckPage() {
           return
         }
 
-        url = `/api/reservations/check-by-num?reservationNum=${bookingNumber}`
+        if (searchCategory === "hotel") {
+          url = `/api/reservations/check-by-num?reservationNum=${bookingNumber}`
+        } else {
+          url = `/api/dining/check-by-num?reservationNum=${bookingNumber}`
+        }
       } else {
         if (!lastName || !firstName || !phone) {
           alert("성, 이름, 연락처를 모두 입력해주세요.")
           return
         }
 
-        url = `/api/reservations/check/guest?lastName=${lastName}&firstName=${firstName}&phone=${phone}`
+        if (searchCategory === "hotel") {
+          url = `/api/reservations/check/guest?lastName=${firstName}&firstName=${lastName}&phone=${phone}`
+        } else {
+          url = `/api/dining/check/guest?lastName=${firstName}&firstName=${lastName}&phone=${phone}`
+        }
       }
-  
+
       const res = await fetch(url)
       if (!res.ok) throw new Error("예약 정보를 찾을 수 없습니다.")
-  
+
       const data = await res.json()
       localStorage.setItem("bookingData", JSON.stringify(data))
-      router.push("/booking/check/detail")
+
+      // ✅ hotel / dining에 따라 이동 경로 정확히 분기
+      if (searchCategory === "hotel") {
+        router.push("/booking/check/detail")
+      } else {
+        router.push("/booking/check/detail/dining")
+      }
     } catch (error) {
       console.error("예약 조회 실패:", error)
       alert("예약 정보를 조회하지 못했습니다.")
     }
   }
+
   return (
     <div className="container mx-auto py-20 px-4">
       <div className={styles.header || "mb-8 text-center"}>
@@ -65,6 +79,31 @@ export default function BookingCheckPage() {
       </div>
 
       <div className="w-full max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+        {/* --- 호텔 / 다이닝 선택 필터 --- */}
+        <div className="flex mb-6">
+          <button
+            className={`flex-1 py-2 text-center font-medium ${
+              searchCategory === "hotel"
+                ? "border-b-2 border-[#2dd4bf] text-[#2dd4bf]"
+                : "border-b border-gray-200 text-gray-500"
+            }`}
+            onClick={() => setSearchCategory("hotel")}
+          >
+            호텔 예약
+          </button>
+          <button
+            className={`flex-1 py-2 text-center font-medium ${
+              searchCategory === "dining"
+                ? "border-b-2 border-[#2dd4bf] text-[#2dd4bf]"
+                : "border-b border-gray-200 text-gray-500"
+            }`}
+            onClick={() => setSearchCategory("dining")}
+          >
+            다이닝 예약
+          </button>
+        </div>
+
+        {/* --- 예약번호 / 예약자 정보 선택 필터 --- */}
         <div className="flex mb-6">
           <button
             className={`flex-1 py-3 text-center font-medium ${
@@ -88,6 +127,7 @@ export default function BookingCheckPage() {
           </button>
         </div>
 
+        {/* --- 검색 입력 폼 --- */}
         <form onSubmit={handleSearch}>
           {searchType === "bookingNumber" ? (
             <div className="mb-6">
@@ -105,49 +145,50 @@ export default function BookingCheckPage() {
             </div>
           ) : (
             <>
-            <div className="mb-4 flex gap-4">
-              <div className="w-1/2">
-                <label htmlFor="lastName" className="block mb-2 font-medium">
-                  성
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  className="w-full p-3 border border-gray-300 rounded"
-                  placeholder="성을 입력하세요"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                />
+              <div className="mb-4 flex gap-4">
+                <div className="w-1/2">
+                  <label htmlFor="lastName" className="block mb-2 font-medium">
+                    성
+                  </label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    className="w-full p-3 border border-gray-300 rounded"
+                    placeholder="성을 입력하세요"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+
+                <div className="w-1/2">
+                  <label htmlFor="firstName" className="block mb-2 font-medium">
+                    이름
+                  </label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    className="w-full p-3 border border-gray-300 rounded"
+                    placeholder="이름을 입력하세요"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
               </div>
 
-              <div className="w-1/2">
-                <label htmlFor="firstName" className="block mb-2 font-medium">
-                  이름
+              <div className="mb-6">
+                <label htmlFor="phone" className="block mb-2 font-medium">
+                  연락처
                 </label>
                 <input
-                  type="text"
-                  id="firstName"
+                  type="tel"
+                  id="phone"
                   className="w-full p-3 border border-gray-300 rounded"
-                  placeholder="이름을 입력하세요"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="예약 시 입력한 연락처를 입력하세요"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
-            </div>
-            <div className="mb-6">
-              <label htmlFor="phone" className="block mb-2 font-medium">
-                연락처
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                className="w-full p-3 border border-gray-300 rounded"
-                placeholder="예약 시 입력한 연락처를 입력하세요"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-          </>
+            </>
           )}
 
           <button
@@ -172,4 +213,3 @@ export default function BookingCheckPage() {
     </div>
   )
 }
-

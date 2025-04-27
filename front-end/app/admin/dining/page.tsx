@@ -74,7 +74,9 @@ export default function AdminDiningSchedulePage() {
 
   useEffect(() => {
     const fetchRestaurants = async () => {
-      const res = await fetch("http://localhost:8080/api/restaurants")
+      const res = await fetch("http://localhost:8080/api/restaurants", {
+        credentials: "include"
+      });
       const data = await res.json()
       console.log("restaurant data:", data.content)
       setRestaurants(data.content)
@@ -83,7 +85,9 @@ export default function AdminDiningSchedulePage() {
   }, [])
 
   const fetchSchedule = async (selectedDate: string, restaurants: Restaurant[], setSchedule: (v: TimeSlot[]) => void) => {
-    const res = await fetch(`http://localhost:8080/admin/dining/schedule?date=${selectedDate}`)
+    const res = await fetch(`http://localhost:8080/admin/dining/schedule?date=${selectedDate}`, {
+      credentials: "include"
+    });
     const data: ApiReservation[] = await res.json()
     console.log('서버에서 받아온 예약 data:', data)
     const start = 7, end = 22, times: TimeSlot[] = []
@@ -134,7 +138,8 @@ export default function AdminDiningSchedulePage() {
         body: JSON.stringify({
           reservationNum: selectedReservation.reservationNum,
           status: newStatus
-        })
+        }),
+        credentials: "include"
       })
       if (res.ok) {
         setSelectedReservation({ ...selectedReservation, status: newStatus })
@@ -156,7 +161,8 @@ export default function AdminDiningSchedulePage() {
 
     try {
       const res = await fetch(`http://localhost:8080/admin/dining/${selectedReservation.reservationNum}`, {
-        method: "DELETE"
+        method: "DELETE",
+        credentials: "include"
       })
       if (res.ok) {
         alert("예약이 삭제되었습니다.")

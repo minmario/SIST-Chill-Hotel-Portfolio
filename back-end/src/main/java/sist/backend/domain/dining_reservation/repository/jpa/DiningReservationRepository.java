@@ -17,16 +17,18 @@ public interface DiningReservationRepository extends CrudRepository<DiningReserv
        "WHERE r.restaurantId = :restaurantId AND r.reservationDate = :reservationDate " +
        "AND r.mealTime = :mealTime AND r.reservationTime = :reservationTime")
         int countReservedPeople(
-        @Param("restaurantId") Long restaurantId,
-        @Param("reservationDate") LocalDate reservationDate,
-        @Param("mealTime") String mealTime,
-        @Param("reservationTime") LocalTime reservationTime
+            @Param("restaurantId") Long restaurantId,
+            @Param("reservationDate") LocalDate reservationDate,
+            @Param("mealTime") String mealTime,
+            @Param("reservationTime") LocalTime reservationTime
         );
 
         // 관리자
         List<DiningReservation> findByReservationDate(LocalDate date);
 
-        // 관리자
+        // 관리자, 사용자 예약 번호로 조회
         Optional<DiningReservation> findByReservationNum(String reservationNum);
 
+        // ✅ 예약자 정보(성, 이름, 전화번호)로 조회
+        Optional<DiningReservation> findByLastNameAndFirstNameAndPhone(String lastName, String firstName, String phone);
 }
