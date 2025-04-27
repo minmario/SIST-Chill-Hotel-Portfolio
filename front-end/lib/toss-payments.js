@@ -55,7 +55,7 @@ export const checkPaymentStatus = async (paymentKey, orderId, amount) => {
       console.warn('토큰이 없습니다. 로그인 상태를 확인하세요.');
     }
     
-    const response = await fetch('http://localhost:8080/api/payments/toss/success', {
+    const response = await fetch('/api/payments/toss/success', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

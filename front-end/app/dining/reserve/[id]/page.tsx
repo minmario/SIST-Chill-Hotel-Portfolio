@@ -62,8 +62,8 @@ export default function DiningReservePage() {
   useEffect(() => {
     const fetchRestaurant = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/restaurants/${restaurantId}`);
-        // console.log("fetching from:", `http://localhost:8080/api/restaurants/${restaurantId}`);
+        const res = await fetch(`/api/restaurants/${restaurantId}`);
+        // console.log("fetching from:", `/api/restaurants/${restaurantId}`);
         const data = await res.json();
         setRestaurant(data);
       } catch (err) {
@@ -125,7 +125,7 @@ export default function DiningReservePage() {
     };
 
     try {
-      const res = await fetch("http://localhost:8080/api/dining/reservations", {
+      const res = await fetch("/api/dining/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(reservationData),

@@ -58,7 +58,7 @@ function PaymentFailContent() {
     const logFailure = async () => {
       try {
         const token = localStorage.getItem('accessToken')
-        await fetch('http://localhost:8080/api/logs', {
+        await fetch('/api/logs', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

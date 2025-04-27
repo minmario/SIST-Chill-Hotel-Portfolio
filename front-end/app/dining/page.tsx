@@ -51,7 +51,7 @@ export default function DiningPage() {
     setMenus([]);
     setMenusLoading(true);
     try {
-      const res = await fetch(`http://localhost:8080/api/restaurants/${restaurant.id}/menus`);
+      const res = await fetch(`/api/restaurants/${restaurant.id}/menus`);
       const data = await res.json();
       setMenus(data);
       setActiveCategory(null);
@@ -66,7 +66,7 @@ export default function DiningPage() {
   const fetchRestaurants = async (page: number, keyword: string) => {
     setLoading(true);
     try {
-      const url = new URL("http://localhost:8080/api/restaurants");
+      const url = new URL("/api/restaurants");
       url.searchParams.append("page", page.toString());
       url.searchParams.append("size", "4");
       if (keyword) url.searchParams.append("keyword", keyword);

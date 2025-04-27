@@ -65,7 +65,7 @@ export default function StaffPage() {
   // 스태프 데이터 로드 (API에서 가져옴)
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    fetch("http://localhost:8080/api/admin/staff", {
+    fetch("/api/admin/staff", {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -90,7 +90,7 @@ export default function StaffPage() {
   const handleStatusToggle = async (staff: Staff, newStatus: string) => {
     const token = localStorage.getItem("accessToken")
     try {
-      const res = await fetch(`http://localhost:8080/api/admin/staff/${staff.userIdx}/status`, {
+      const res = await fetch(`/api/admin/staff/${staff.userIdx}/status`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -163,7 +163,7 @@ export default function StaffPage() {
   const handleAddStaff = async () => {
     try {
       const token = localStorage.getItem("accessToken")
-      await fetch("http://localhost:8080/api/admin/staff", {
+      await fetch("/api/admin/staff", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -181,7 +181,7 @@ export default function StaffPage() {
       });
   
       // 추가 성공 후 목록 다시 불러오기
-      const res = await fetch("http://localhost:8080/api/admin/staff", {
+      const res = await fetch("/api/admin/staff", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -219,7 +219,7 @@ export default function StaffPage() {
     try {
       // ✅ 일반 정보 업데이트
       const token = localStorage.getItem("accessToken");
-      const updateInfoRes = await fetch(`http://localhost:8080/api/admin/staff/${selectedStaff.userIdx}`, {
+      const updateInfoRes = await fetch(`/api/admin/staff/${selectedStaff.userIdx}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -244,7 +244,7 @@ export default function StaffPage() {
   
       // ✅ 비밀번호 변경
       if (staffForm.newPassword) {
-        const passwordChangeRes = await fetch(`http://localhost:8080/api/admin/staff/${selectedStaff.userIdx}/password`, {
+        const passwordChangeRes = await fetch(`/api/admin/staff/${selectedStaff.userIdx}/password`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -265,7 +265,7 @@ export default function StaffPage() {
       }
   
       // ✅ 성공 후 목록 갱신
-      const refreshed = await fetch("http://localhost:8080/api/admin/staff", {
+      const refreshed = await fetch("/api/admin/staff", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -285,7 +285,7 @@ export default function StaffPage() {
   
     try {
       const token = localStorage.getItem("accessToken");
-      const res = await fetch(`http://localhost:8080/api/admin/staff/${selectedStaff.userIdx}`, {
+      const res = await fetch(`/api/admin/staff/${selectedStaff.userIdx}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

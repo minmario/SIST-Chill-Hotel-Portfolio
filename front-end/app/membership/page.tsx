@@ -113,7 +113,7 @@ const tierBenefitsMap: Record<string, string[]> = {
 export default function PointSystem() {
   const [membershipLevels, setMembershipLevels] = useState<MembershipLevel[]>([])
   useEffect(() => {
-    fetch("http://localhost:8080/api/membership") // URL은 실제 백엔드 주소로 교체
+    fetch("/api/membership") // URL은 실제 백엔드 주소로 교체
       .then(res => res.json())
       .then(data => setMembershipLevels(data))
       .catch(err => console.error("멤버십 등급 조회 실패:", err))

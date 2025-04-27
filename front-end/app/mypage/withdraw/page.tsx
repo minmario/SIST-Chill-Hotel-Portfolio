@@ -93,7 +93,7 @@ export default function Withdraw() {
   
     try {
       const token = localStorage.getItem("accessToken")
-      const res = await fetch("http://localhost:8080/api/user/verify-password", {
+      const res = await fetch("/api/user/verify-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -121,7 +121,7 @@ export default function Withdraw() {
     try {
       const token = localStorage.getItem("accessToken")
   
-      const res = await fetch("http://localhost:8080/api/user/withdraw", {
+      const res = await fetch("/api/user/withdraw", {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

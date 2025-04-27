@@ -74,7 +74,7 @@ useEffect(() => {
   // ✅ 이 부분 추가
   const triggerMembershipUpdate = async () => {
     try {
-      await fetch("http://localhost:8080/api/user/summary/update", {
+      await fetch("/api/user/summary/update", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -87,7 +87,7 @@ useEffect(() => {
 
   const fetchSummary = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/user/points/summary", {
+      const res = await fetch("/api/user/points/summary", {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) throw new Error("요약 정보 응답 오류")
@@ -100,7 +100,7 @@ useEffect(() => {
 
   const fetchStaySummary = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/user/stays/summary", {
+      const res = await fetch("/api/user/stays/summary", {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) throw new Error("등급 요약 응답 오류")
@@ -114,7 +114,7 @@ useEffect(() => {
   const fetchPoints = async () => {
     try {
       const res = await fetch(
-        `http://localhost:8080/api/user/points?startDate=${startDateStr}&endDate=${endDateStr}`,
+        `/api/user/points?startDate=${startDateStr}&endDate=${endDateStr}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -130,7 +130,7 @@ useEffect(() => {
 
   const fetchUserInfo = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/user/me", {
+      const res = await fetch("/api/user/me", {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) throw new Error("사용자 정보 응답 오류")

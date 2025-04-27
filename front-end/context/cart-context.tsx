@@ -150,7 +150,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
     if (isLoggedIn) {
       try {
         const token = localStorage.getItem('accessToken');
-        await axios.post('http://localhost:8080/api/v1/cart/items', {
+        await axios.post('/api/v1/cart/items', {
           productIdx: item.productIdx,
           quantity: item.quantity
         }, {
@@ -183,7 +183,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
     if (isLoggedIn) {
       try {
         const token = localStorage.getItem('accessToken');
-        await axios.put(`http://localhost:8080/api/v1/cart/items/${id}`, {
+        await axios.put(`/api/v1/cart/items/${id}`, {
           quantity: quantity
         }, {
           headers: { Authorization: `Bearer ${token}` }
@@ -210,7 +210,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
     if (isLoggedIn) {
       try {
         const token = localStorage.getItem('accessToken');
-        await axios.delete(`http://localhost:8080/api/v1/cart/items/${id}`, {
+        await axios.delete(`/api/v1/cart/items/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -232,7 +232,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({ children }
     if (isLoggedIn) {
       try {
         const token = localStorage.getItem('accessToken');
-        await axios.delete('http://localhost:8080/api/v1/cart', {
+        await axios.delete('/api/v1/cart', {
           headers: { Authorization: `Bearer ${token}` }
         });
       } catch (error) {

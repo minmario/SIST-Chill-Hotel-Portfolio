@@ -162,7 +162,7 @@ function CustomSelectContent({ children, ...props }: React.ComponentPropsWithout
 }
 
 // API URL - 백엔드 컨트롤러의 경로와 일치시킴
-const API_URL = "http://localhost:8080/api/v1/admin/gift-shop"
+const API_URL = "/api/v1/admin/gift-shop"
 
 export default function ItemsPage() {
   const [items, setItems] = useState<Item[]>([])
@@ -762,7 +762,7 @@ export default function ItemsPage() {
       formData.append('file', file)
       
       const token = localStorage.getItem("accessToken");
-      const response = await fetch('http://localhost:8080/api/v1/files/upload', {
+      const response = await fetch('/api/v1/files/upload', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

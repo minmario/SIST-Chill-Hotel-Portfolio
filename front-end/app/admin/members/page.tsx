@@ -49,7 +49,7 @@ export default function MembersPage() {
 
   // 회원 데이터 로드 (실제로는 API에서 가져와야 함)
   useEffect(() => {
-    fetch("http://localhost:8080/api/admin/members")
+    fetch("/api/admin/members")
       .then((res) => res.json())
       .then((data: Member[]) => {
         setMembers(data)
@@ -211,7 +211,7 @@ export default function MembersPage() {
                           className="bg-green-100 text-green-700 hover:bg-green-200 border-green-200"
                           onClick={async () => {
                             try {
-                              const response = await fetch(`http://localhost:8080/api/admin/members/${member.id}`, {
+                              const response = await fetch(`/api/admin/members/${member.id}`, {
                                 method: "PUT",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ status: "inactive" }),
@@ -235,7 +235,7 @@ export default function MembersPage() {
                           className="bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-200"
                           onClick={async () => {
                             try {
-                              const response = await fetch(`http://localhost:8080/api/admin/members/${member.id}`, {
+                              const response = await fetch(`/api/admin/members/${member.id}`, {
                                 method: "PUT",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ status: "active" }),

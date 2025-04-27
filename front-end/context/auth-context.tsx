@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     try {
       const token = localStorage.getItem('accessToken');
       if (token) {
-        await fetch('http://localhost:8080/api/user/auth/logout', {
+        await fetch('/api/user/auth/logout', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

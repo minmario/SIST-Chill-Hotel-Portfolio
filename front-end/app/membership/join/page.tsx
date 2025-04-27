@@ -68,7 +68,7 @@ export default function MembershipJoin() {
 
     try {
       // 회원가입 API 호출
-      const response = await fetch("http://localhost:8080/api/user/auth/register", {
+      const response = await fetch("/api/user/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

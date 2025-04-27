@@ -260,8 +260,8 @@ export default function LogPage() {
         return
       }
       
-      console.log('로그 API 요청 시작: http://localhost:8080/api/user/activity/logs')
-      const response = await axios.get<UserActivityLog[]>('http://localhost:8080/api/user/activity/logs', {
+      console.log('로그 API 요청 시작: /api/user/activity/logs')
+      const response = await axios.get<UserActivityLog[]>('/api/user/activity/logs', {
         headers: {
           Authorization: `Bearer ${token}`
         },

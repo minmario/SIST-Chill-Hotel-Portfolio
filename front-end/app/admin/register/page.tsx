@@ -37,7 +37,7 @@ export default function RegisterPage() {
   
     try {
       // API로 백엔드로 직접 보내는 부분
-      const response = await fetch("http://localhost:8080/api/admin/register", {
+      const response = await fetch("/api/admin/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

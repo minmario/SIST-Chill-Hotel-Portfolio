@@ -40,7 +40,7 @@ export default function Checkout() {
       const fetchUserInfo = async () => {
         try {
           const token = localStorage.getItem('accessToken');
-          const response = await fetch('http://localhost:8080/api/user/checkout-info', {
+          const response = await fetch('/api/user/checkout-info', {
             headers: {
               'Authorization': `Bearer ${token}`
             }
@@ -152,7 +152,7 @@ export default function Checkout() {
       }
       
       // 만료되지 않은 토큰이라면 API 요청 시도
-      const createOrderRes = await fetch('http://localhost:8080/api/payments', {
+      const createOrderRes = await fetch('/api/payments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ export default function Checkout() {
         
         // 결제 실패 로깅
         const token = localStorage.getItem("accessToken")
-        await fetch("http://localhost:8080/api/logs", {
+        await fetch("/api/logs", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

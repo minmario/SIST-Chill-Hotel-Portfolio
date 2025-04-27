@@ -24,7 +24,7 @@ export enum SortDirection {
   DESC = 'desc'
 }
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = '/api/v1';
 
 // API 요청시 인증 헤더 추가 함수
 const getAuthHeaders = () => {
@@ -167,7 +167,7 @@ export async function searchProducts(keyword: string, sortBy?: SortBy, sortDirec
 // 결제 API 호출
 export async function initiatePayment(paymentData: any): Promise<any> {
   try {
-    const response = await fetch(`http://localhost:8080/api/payments`, {
+    const response = await fetch(`/api/payments`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(paymentData),

@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
   
-    fetch('http://localhost:8080/api/user/count', {
+    fetch('/api/user/count', {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ export default function AdminDashboard() {
       return;
     }
   
-    fetch("http://localhost:8080/api/user/staff-count", {
+    fetch("/api/user/staff-count", {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
       return;
     }
   
-    fetch("http://localhost:8080/api/user/recent", {
+    fetch("/api/user/recent", {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -91,7 +91,7 @@ export default function AdminDashboard() {
       return;
     }
   
-    fetch("http://localhost:8080/api/user/daily-change", {
+    fetch("/api/user/daily-change", {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
       return;
     }
   
-    fetch("http://localhost:8080/api/user/daily-total-change", {
+    fetch("/api/user/daily-total-change", {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -151,7 +151,7 @@ export default function AdminDashboard() {
       return;
     }
   
-    fetch("http://localhost:8080/api/user/daily-staff-change", {
+    fetch("/api/user/daily-staff-change", {
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",

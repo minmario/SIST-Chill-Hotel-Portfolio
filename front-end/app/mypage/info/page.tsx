@@ -58,7 +58,7 @@ export default function UserInfo() {
     }
   
     // 사용자 정보 불러오기
-    fetch("http://localhost:8080/api/user/me", {
+    fetch("/api/user/me", {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -101,7 +101,7 @@ if (isLoading) return <p>로딩 중...</p>
         return
       }
       
-      const response = await fetch("http://localhost:8080/api/user/verify-password", {
+      const response = await fetch("/api/user/verify-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -202,7 +202,7 @@ if (isLoading) return <p>로딩 중...</p>
     }
   
     try {
-      const response = await fetch("http://localhost:8080/api/user/update", {
+      const response = await fetch("/api/user/update", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

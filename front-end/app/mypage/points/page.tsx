@@ -64,7 +64,7 @@ export default function PointsHistory() {
     const fetchSummary = async () => {
       try {
         const token = localStorage.getItem("accessToken")
-        const res = await fetch("http://localhost:8080/api/user/points/summary", {
+        const res = await fetch("/api/user/points/summary", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -82,7 +82,7 @@ export default function PointsHistory() {
     const fetchPointHistory = async () => {
       try {
         const token = localStorage.getItem("accessToken")
-        const res = await fetch(`http://localhost:8080/api/user/points?startDate=${startDateStr}&endDate=${endDateStr}`, {
+        const res = await fetch(`/api/user/points?startDate=${startDateStr}&endDate=${endDateStr}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -126,7 +126,7 @@ export default function PointsHistory() {
       const token = localStorage.getItem("accessToken")
       if (!token) throw new Error("토큰 없음")
   
-      const res = await fetch(`http://localhost:8080/api/user/points?startDate=${startDate}&endDate=${endDate}`, {
+      const res = await fetch(`/api/user/points?startDate=${startDate}&endDate=${endDate}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

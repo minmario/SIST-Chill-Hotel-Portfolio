@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 백엔드 서버 URL 설정
 const instance = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: '',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
