@@ -1,7 +1,6 @@
 package sist.backend.domain.reservation.controller;
 
 import sist.backend.domain.reservation.dto.request.ReservationRequest;
-import sist.backend.domain.reservation.dto.response.ReservationLookupResponse;
 import sist.backend.domain.reservation.dto.response.ReservationResponse;
 import sist.backend.domain.reservation.service.ReservationService;
 
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reservations")
-public class ReservationController extends ReservationService {
+public class ReservationController {
 
     @GetMapping("/by-user-and-num")
     public ResponseEntity<List<ReservationResponse>> getReservationsByUserAndNum(
