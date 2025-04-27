@@ -392,56 +392,63 @@ export default function Service() {
           )
         
 
-      case "contact":
-        return (
-          <div className={styles.contactMapContainer}>
-            <div className={styles.contactMap}>
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3165.4515690893822!2d127.0283357!3d37.4979258!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzfCsDI5JzUyLjUiTiAxMjfCsDAxJzQyLjAiRQ!5e0!3m2!1sko!2skr!4v1596524123010!5m2!1sko!2skr"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
-            </div>
-
-            <div className={styles.contactInfo}>
-              <div className={styles.contactMethod}>
-                <div className={styles.contactIcon}>
-                  <MapPin size={20} />
+          case "contact":
+            return (
+              <div className="bg-white rounded-xl shadow-lg p-6 md:p-10">
+          
+                {/* 지도 먼저 */}
+                <div className="w-full h-64 md:h-96 rounded-lg overflow-hidden shadow-sm mb-8">
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3165.3657406402185!2d127.0292885!3d37.4978715!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x357ca158fce15c81%3A0x9a79e65b3e3c3c2d!2z7ISc7Jq47Yq567OE7IucIOyEnOy5tOydtOyLnCDrqqjsoJXrj5kgMTIz!5e0!3m2!1sko!2skr!4v1714262016961!5m2!1sko!2skr"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="호텔 위치 지도"
+                  ></iframe>
                 </div>
-                <div className={styles.contactDetail}>
-                  <h3 className="font-semibold text-lg mb-1">주소</h3>
-                  <p>서울특별시 강남구 테헤란로 123 럭스타워</p>
+          
+                {/* 지도 아래 연락처 정보 */}
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8">
+          
+                  {/* 주소 */}
+                  <div className="flex flex-col items-center text-center flex-1">
+                    <div className="bg-primary-color/10 rounded-full p-3 mb-2 flex items-center justify-center">
+                      <MapPin size={24} className="text-primary-color" />
+                    </div>
+                    <h3 className="font-semibold text-base mb-1">주소</h3>
+                    <p className="text-gray-700 text-sm break-keep">서울특별시 강남구 테헤란로 123<br />럭스타워</p>
+                  </div>
+          
+                  {/* 구분선 */}
+                  <div className="hidden md:block h-16 border-l border-gray-300"></div>
+          
+                  {/* 전화번호 */}
+                  <div className="flex flex-col items-center text-center flex-1">
+                    <div className="bg-primary-color/10 rounded-full p-3 mb-2 flex items-center justify-center">
+                      <Phone size={24} className="text-primary-color" />
+                    </div>
+                    <h3 className="font-semibold text-base mb-1">전화번호</h3>
+                    <p className="text-gray-700 text-sm">02-123-4567</p>
+                    <p className="text-xs text-gray-500 mt-1">(24시간 운영)</p>
+                  </div>
+          
+                  {/* 구분선 */}
+                  <div className="hidden md:block h-16 border-l border-gray-300"></div>
+          
+                  {/* 이메일 */}
+                  <div className="flex flex-col items-center text-center flex-1">
+                    <div className="bg-primary-color/10 rounded-full p-3 mb-2 flex items-center justify-center">
+                      <Mail size={24} className="text-primary-color" />
+                    </div>
+                    <h3 className="font-semibold text-base mb-1">이메일</h3>
+                    <p className="text-gray-700 text-sm break-all">info@luxehotel.com</p>
+                  </div>
                 </div>
               </div>
-
-              <div className={styles.contactMethod}>
-                <div className={styles.contactIcon}>
-                  <Phone size={20} />
-                </div>
-                <div className={styles.contactDetail}>
-                  <h3 className="font-semibold text-lg mb-1">전화번호</h3>
-                  <p>02-123-4567</p>
-                  <p className="text-sm text-gray-500 mt-1">(24시간 운영)</p>
-                </div>
-              </div>
-
-              <div className={styles.contactMethod}>
-                <div className={styles.contactIcon}>
-                  <Mail size={20} />
-                </div>
-                <div className={styles.contactDetail}>
-                  <h3 className="font-semibold text-lg mb-1">이메일</h3>
-                  <p>info@luxehotel.com</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )
-
+            )
       default:
         return null
     }
@@ -509,4 +516,3 @@ export default function Service() {
     </>
   )
 }
-

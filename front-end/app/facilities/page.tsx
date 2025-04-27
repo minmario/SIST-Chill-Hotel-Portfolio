@@ -118,7 +118,7 @@ export default function Facilities() {
                   />
                 </div>
 
-                <div className={styles.facilityThumbnails}>
+                {/* <div className={styles.facilityThumbnails}>
                   {[...Array(4)].map((_, index) => (
                     <div
                       key={index}
@@ -132,7 +132,7 @@ export default function Facilities() {
                       />
                     </div>
                   ))}
-                </div>
+                </div> */}
               </div>
 
               <div className={styles.facilityInfo}>
