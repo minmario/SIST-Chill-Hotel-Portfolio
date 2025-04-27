@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reservations")
-public class ReservationController {
+public class ReservationController extends ReservationService {
 
     @GetMapping("/by-user-and-num")
     public ResponseEntity<List<ReservationResponse>> getReservationsByUserAndNum(

@@ -4,9 +4,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import sist.backend.domain.room.dto.response.RoomMinimalResponse;
-import sist.backend.domain.room.entity.Room;
 import sist.backend.domain.room.service.AdminRoomService;
-import sist.backend.domain.room.service.RoomService;
+
 
 import java.util.HashMap;
 import java.util.List;

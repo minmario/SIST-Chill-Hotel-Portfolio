@@ -295,7 +295,6 @@ function BookingInfoContent() {
           </div>
 
           <div className={styles.bookingInfoGrid}>
-
             <div className={styles.bookingInfoLeft}>
               {specialOffer && (
                 <>
@@ -477,83 +476,82 @@ function BookingInfoContent() {
                   />
                 </div>
               </div>
+            </div>
+            <div className={styles.bookingSummary} style={{ minWidth: '340px', maxWidth: '400px', marginLeft: '32px' }}>
+              <h2 className={styles.bookingSummaryTitle}>예약 내역</h2>
 
-              <div className={styles.bookingSummary} style={{ minWidth: '340px', maxWidth: '400px', marginLeft: '32px' }}>
-                <h2 className={styles.bookingSummaryTitle}>예약 내역</h2>
+              <div className={styles.bookingSummaryRow}>
+                <span className={styles.bookingSummaryLabel}>객실 요금</span>
+                <span className={styles.bookingSummaryValue}>₩{priceInfo.roomPrice.toLocaleString()}</span>
+              </div>
 
+              {adultBreakfast > 0 && (
                 <div className={styles.bookingSummaryRow}>
-                  <span className={styles.bookingSummaryLabel}>객실 요금</span>
-                  <span className={styles.bookingSummaryValue}>₩{priceInfo.roomPrice.toLocaleString()}</span>
+                  <span className={styles.bookingSummaryLabel}>성인 조식 ({adultBreakfast}명)</span>
+                  <span className={styles.bookingSummaryValue}>₩{priceInfo.adultBreakfastPrice.toLocaleString()}</span>
                 </div>
+              )}
 
-                {adultBreakfast > 0 && (
-                  <div className={styles.bookingSummaryRow}>
-                    <span className={styles.bookingSummaryLabel}>성인 조식 ({adultBreakfast}명)</span>
-                    <span className={styles.bookingSummaryValue}>₩{priceInfo.adultBreakfastPrice.toLocaleString()}</span>
-                  </div>
-                )}
-
-                {childBreakfast > 0 && (
-                  <div className={styles.bookingSummaryRow}>
-                    <span className={styles.bookingSummaryLabel}>어린이 조식 ({childBreakfast}명)</span>
-                    <span className={styles.bookingSummaryValue}>₩{priceInfo.childBreakfastPrice.toLocaleString()}</span>
-                  </div>
-                )}
-
+              {childBreakfast > 0 && (
                 <div className={styles.bookingSummaryRow}>
-                  <span className={styles.bookingSummaryLabel}>소계</span>
-                  <span className={styles.bookingSummaryValue}>₩{priceInfo.subtotal.toLocaleString()}</span>
+                  <span className={styles.bookingSummaryLabel}>어린이 조식 ({childBreakfast}명)</span>
+                  <span className={styles.bookingSummaryValue}>₩{priceInfo.childBreakfastPrice.toLocaleString()}</span>
                 </div>
+              )}
 
-                {isMemberLoggedIn && priceInfo.discount > 0 && (
-                  <div className={styles.bookingSummaryRow}>
-                    <span className={styles.bookingSummaryLabel}>{memberLabel}</span>
-                    <span className={styles.membershipDiscount} style={{ color: '#e53935', fontWeight: 600 }}>-₩{priceInfo.discount.toLocaleString()}</span>
-                  </div>
-                )}
+              <div className={styles.bookingSummaryRow}>
+                <span className={styles.bookingSummaryLabel}>소계</span>
+                <span className={styles.bookingSummaryValue}>₩{priceInfo.subtotal.toLocaleString()}</span>
+              </div>
 
-                <div className={styles.bookingSummaryTotal}>
-                  <span className={styles.bookingSummaryTotalLabel}>총 결제 금액</span>
-                  <span className={styles.bookingSummaryTotalValue}>₩{priceInfo.total.toLocaleString()}</span>
+              {isMemberLoggedIn && priceInfo.discount > 0 && (
+                <div className={styles.bookingSummaryRow}>
+                  <span className={styles.bookingSummaryLabel}>{memberLabel}</span>
+                  <span className={styles.membershipDiscount} style={{ color: '#e53935', fontWeight: 600 }}>-₩{priceInfo.discount.toLocaleString()}</span>
                 </div>
+              )}
 
-                <button className={`button button-primary ${styles.bookingButton}`} onClick={handleContinue}>
-                  예약하기
-                </button>
+              <div className={styles.bookingSummaryTotal}>
+                <span className={styles.bookingSummaryTotalLabel}>총 결제 금액</span>
+                <span className={styles.bookingSummaryTotalValue}>₩{priceInfo.total.toLocaleString()}</span>
+              </div>
 
-                <div className={styles.bookingInfoCard} style={{ marginTop: 16 }}>
-                  <h2 className={styles.bookingInfoCardTitle}>로그인 옵션</h2>
-                  <div className={styles.loginOptions}>
-                    <label
-                      className={`${styles.loginOption} ${loginOption === "member" ? styles.loginOptionSelected : ""}`}
-                    >
-                      <input
-                        type="radio"
-                        name="loginOption"
-                        value="member"
-                        className={styles.loginOptionRadio}
-                        checked={loginOption === "member"}
-                        onChange={() => setLoginOption("member")}
-                      />
-                      <span className={styles.loginOptionLabel}>회원 예약</span>
-                    </label>
-                    <label
-                      className={`${styles.loginOption} ${loginOption === "nonMember" ? styles.loginOptionSelected : ""}`}
-                    >
-                      <input
-                        type="radio"
-                        name="loginOption"
-                        value="nonMember"
-                        className={styles.loginOptionRadio}
-                        checked={loginOption === "nonMember"}
-                        onChange={() => setLoginOption("nonMember")}
-                        disabled={membershipIdx !== null} // 로그인 시 비회원 예약 비활성화
-                      />
-                      <span className={styles.loginOptionLabel} style={membershipIdx !== null ? { color: '#aaa', cursor: 'not-allowed' } : {}}>
-                        비회원 예약{membershipIdx !== null ? ' (로그인 시 선택 불가)' : ''}
-                      </span>
-                    </label>
-                  </div>
+              <button className={`button button-primary ${styles.bookingButton}`} onClick={handleContinue}>
+                예약하기
+              </button>
+
+              <div className={styles.bookingInfoCard} style={{ marginTop: 16 }}>
+                <h2 className={styles.bookingInfoCardTitle}>로그인 옵션</h2>
+                <div className={styles.loginOptions}>
+                  <label
+                    className={`${styles.loginOption} ${loginOption === "member" ? styles.loginOptionSelected : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="loginOption"
+                      value="member"
+                      className={styles.loginOptionRadio}
+                      checked={loginOption === "member"}
+                      onChange={() => setLoginOption("member")}
+                    />
+                    <span className={styles.loginOptionLabel}>회원 예약</span>
+                  </label>
+                  <label
+                    className={`${styles.loginOption} ${loginOption === "nonMember" ? styles.loginOptionSelected : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="loginOption"
+                      value="nonMember"
+                      className={styles.loginOptionRadio}
+                      checked={loginOption === "nonMember"}
+                      onChange={() => setLoginOption("nonMember")}
+                      disabled={membershipIdx !== null} // 로그인 시 비회원 예약 비활성화
+                    />
+                    <span className={styles.loginOptionLabel} style={membershipIdx !== null ? { color: '#aaa', cursor: 'not-allowed' } : {}}>
+                      비회원 예약{membershipIdx !== null ? ' (로그인 시 선택 불가)' : ''}
+                    </span>
+                  </label>
                 </div>
               </div>
             </div>
