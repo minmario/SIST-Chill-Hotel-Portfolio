@@ -8,4 +8,6 @@ import lombok.Getter;
 public class UserLoginResponse {
     private String token;
     private String role;
+    private String name; // ✅ 추가
+    private String email;
 }

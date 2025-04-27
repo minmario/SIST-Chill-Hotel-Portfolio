@@ -128,6 +128,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userId');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('email');
     
     // 장바구니 데이터 제거
     localStorage.removeItem('guestCart');
