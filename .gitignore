@@ -85,4 +85,4 @@ out/
 
 ### 보안(AWS S3, EC2, DOCKERFILE및 DockerCompose 최소보안) 관련 ###
 /.env
-back-end/src/main/resources/application-secret.yml
+# back-end/src/main/resources/application-secret.yml
