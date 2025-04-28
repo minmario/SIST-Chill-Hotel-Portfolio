@@ -155,21 +155,21 @@ export default function Rooms() {
   return (
     <>
       <div className={styles.header} style={{position:'relative',width:'100%',height:'320px',marginBottom:'2rem',overflow:'hidden'}}>
-  <Image
-    src="/images/rooms/family/family1.png"
-    alt="객실 및 스위트 대표 이미지"
-    fill
-    style={{objectFit:'cover'}}
-    priority
-  />
-  <div className={styles.roomsHeaderOverlay} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',background:'rgba(0,0,0,0.45)'}} />
-  <div className={styles.roomsHeaderText} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',zIndex:2}}>
-    <div className="container">
-      <h1 style={{color:'#fff',fontSize:'2.7rem',fontWeight:700,marginBottom:'1rem',textShadow:'0 2px 16px rgba(0,0,0,0.5)'}}>객실 및 스위트</h1>
-      <p style={{color:'#fff',fontSize:'1.15rem',fontWeight:400,textAlign:'center',textShadow:'0 2px 12px rgba(0,0,0,0.5)'}}>럭스 호텔의 다양한 객실과 스위트룸에서 편안하고 럭셔리한 휴식을 경험하세요.</p>
-    </div>
-  </div>
-</div>
+        <Image
+          src="/images/rooms/family/family1.png"
+          alt="객실 및 스위트 대표 이미지"
+          fill
+          style={{objectFit:'cover'}}
+          priority
+        />
+        <div className={styles.roomsHeaderOverlay} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',background:'rgba(0,0,0,0.45)'}} />
+        <div className={styles.roomsHeaderText} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',zIndex:2}}>
+          <div className="container">
+            <h1 style={{color:'#fff',fontSize:'2.7rem',fontWeight:700,marginBottom:'1rem',textShadow:'0 2px 16px rgba(0,0,0,0.5)'}}>객실 및 스위트</h1>
+            <p style={{color:'#fff',fontSize:'1.15rem',fontWeight:400,textAlign:'center',textShadow:'0 2px 12px rgba(0,0,0,0.5)'}}>럭스 호텔의 다양한 객실과 스위트룸에서 편안하고 럭셔리한 휴식을 경험하세요.</p>
+          </div>
+        </div>
+      </div>
 
       <section className={styles.roomsSection}>
         <div className="container">

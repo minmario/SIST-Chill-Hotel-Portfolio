@@ -406,7 +406,10 @@ export default function StaffPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button onClick={() => openAddDialog("ADMIN")}>
+          <Button
+            onClick={() => openAddDialog("ADMIN")}
+            className="bg-black text-white rounded-lg hover:bg-gray-800"
+          >
             <UserPlus className="mr-2 h-4 w-4" />
             관리자 추가
           </Button>
@@ -417,7 +420,7 @@ export default function StaffPage() {
         <CardHeader>
           <CardTitle>스태프 목록</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="bg-gray-50 rounded-b-lg">
           <Table>
             <TableHeader>
               <TableRow>

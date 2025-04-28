@@ -174,7 +174,7 @@ export default function MembersPage() {
         <CardHeader>
           <CardTitle>회원 목록</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="bg-gray-50 rounded-b-lg">
           <Table>
             <TableHeader>
               <TableRow>
