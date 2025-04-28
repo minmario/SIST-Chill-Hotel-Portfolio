@@ -20,9 +20,23 @@ jobs:
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ubuntu
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
         run: |
           ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
             cd /home/ubuntu/SIST-Chill-Hotel
+          
+            # 기존 .env 파일 삭제 후 새로 생성
+            rm -f .env
+          
+            # GitHub Secrets 값으로 .env 파일 생성
+            echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" > .env
+            echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> .env
+            echo "AWS_REGION=$AWS_REGION" >> .env
+            echo "S3_BUCKET_NAME=$S3_BUCKET_NAME" >> .env
+          
             git pull origin build_test
             docker-compose down
             docker-compose up -d --build

@@ -2,6 +2,7 @@
 ./docs
 .idea
 .vscode
+.env
 
 
 #frontend
