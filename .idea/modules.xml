@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/SIST-Chill-Hotel.iml" filepath="$PROJECT_DIR$/.idea/SIST-Chill-Hotel.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/back-end.main.iml" filepath="$PROJECT_DIR$/.idea/modules/back-end.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/back-end.test.iml" filepath="$PROJECT_DIR$/.idea/modules/back-end.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/sist.back-end.test.iml" filepath="$PROJECT_DIR$/.idea/modules/sist.back-end.test.iml" />
     </modules>
   </component>
 </project>

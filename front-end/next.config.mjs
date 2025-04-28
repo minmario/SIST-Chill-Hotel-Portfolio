@@ -48,6 +48,7 @@ const nextConfig = {
       {
         source: '/api/:path*',
         // localhost:8080에서 backend:8080으로 변경
+        // destination: 'http://localhost:8080/api/:path*',
         destination: 'http://backend:8080/api/:path*',
       },
     ];
