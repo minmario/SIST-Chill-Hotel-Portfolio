@@ -1,7 +1,5 @@
 # Global
 ./docs
-./.idea
-./.vscode
 .env
 
 
