@@ -69,10 +69,17 @@ export default function ReservationsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [giftShopStatusFilter, setGiftShopStatusFilter] = useState<string>("all")
   const [rooms, setRooms] = useState<Room[]>([])
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
     const fetchReservations = async () => {
-      const res = await fetch("/api/admin/reservations")
+      const res = await fetch("/api/admin/reservations", {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: "include",
+      })
       const data = await res.json()
       if (Array.isArray(data)) {
         setReservations(data)
@@ -86,7 +93,13 @@ export default function ReservationsPage() {
   }, [])
   useEffect(() => {
     const fetchRooms = async () => {
-      const res = await fetch("/api/admin/rooms/minimal") // 백엔드 URL 맞게 수정
+      const res = await fetch("/api/admin/rooms/minimal", {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: "include",
+      }) // 백엔드 URL 맞게 수정
       const data = await res.json()
       setRooms(data)
     }
@@ -94,7 +107,6 @@ export default function ReservationsPage() {
   }, [])
   useEffect(() => {
     const fetchGiftShopOrders = async () => {
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const res = await fetch("/api/admin/gift_shop/orders", {
         headers: {
           "Content-Type": "application/json",
