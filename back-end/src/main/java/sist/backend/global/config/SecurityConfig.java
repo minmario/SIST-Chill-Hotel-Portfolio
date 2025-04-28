@@ -48,8 +48,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "STAFF")
+                        // .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF")
+                        // .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "STAFF")
+                        .requestMatchers("/admin/**").permitAll()
+                        .requestMatchers("/api/admin/**").permitAll()
                         .requestMatchers("/api/dining/**").permitAll()
                         .requestMatchers("/api/retaurants/**").permitAll()
                         .requestMatchers("/api/mypage/**").authenticated()
