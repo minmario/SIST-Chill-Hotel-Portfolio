@@ -1,11 +1,13 @@
 "use client"
 
-import React, { useState, Suspense } from "react"
+import React, { useState, Suspense,useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import styles from "./page.module.css"
 import dynamic from "next/dynamic"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth" 
 
 // 동적 import를 사용하여 컴포넌트 지연 로딩 - Suspense 추가
 const MainSlider = dynamic(() => import("@/components/Home/MainSlider"), {
@@ -26,24 +28,24 @@ const slides = [
     id: 1,
     image: "/main_room.png?height=1080&width=1920",
     title: "Your Ultimate Healing Retreat",
-    description: "Experience tranquility and rejuvenation at Chill Haven Resort & Spa",
-    buttonText: "Begin Your Journey",
+    description: "Chill Haven 호텔에서 평온과 재충전의 순간을 만나보세요",
+    buttonText: "객실 탐험하기",
     buttonLink: "/rooms",
   },
   {
     id: 2,
     image: "/main_pool.png?height=1080&width=1920",
     title: "Luxury Meets Nature",
-    description: "Immerse yourself in the perfect blend of luxury and natural beauty",
-    buttonText: "Explore Our Resort",
+    description: "순수한 자연과 세련된 품격이 조화를 이루는 특별한 순간을 만나보세요",
+    buttonText: "편의시설 탐험하기",
     buttonLink: "/facilities",
   },
   {
     id: 3,
     image: "/main_dining.png?height=1080&width=1920",
     title: "Culinary Excellence",
-    description: "Indulge in exceptional dining experiences with breathtaking views",
-    buttonText: "Discover Dining",
+    description: "탁 트인 풍경 속에서 즐기는 잊지 못할 미식의 여정",
+    buttonText: "미식여행 탐방하기",
     buttonLink: "/dining",
   },
 ]
@@ -54,8 +56,8 @@ const rooms = [
     id: 1,
     name: "Chill Harmony Room",
     image: "/images/rooms/harmony/harmony1.png?height=300&width=400",
-    description: "A peaceful retreat with panoramic mountain views with harmonious design elements.",
-    size: "30m²",
+    description: "조화로운 디자인과 넓은 공간이 특징인 객실로, 도시의 스카이라인을 감상할 수 있습니다. 고급스러운 인테리어와 편안한 침구로 완벽한 휴식을 제공합니다.",
+    size: "42㎡",
     capacity: "성인 2인 기준",
     link: "/rooms/2",
   },
@@ -63,8 +65,8 @@ const rooms = [
     id: 2,
     name: "Chill Serenity Room",
     image: "/images/rooms/serenity/serenity1.png?height=300&width=400",
-    description: "A tranquil space with modern amenities and soothing natural views.",
-    size: "35m²",
+    description: "고요함과 평온함을 느낄 수 있는 객실로, 프리미엄 어메니티와 넓은 공간을 제공합니다. 도시의 번잡함에서 벗어나 진정한 휴식을 경험할 수 있습니다.",
+    size: "48m²",
     capacity: "성인 2인 기준",
     link: "/rooms/3",
   },
@@ -72,8 +74,8 @@ const rooms = [
     id: 3,
     name: "Chill Family Suite",
     image: "/images/rooms/family/family1.png?height=300&width=400",
-    description: "A spacious suite with separate living areas and a luxurious suite designed for family well-being.",
-    size: "50m²",
+    description: "가족이 함께 머물기 좋은 넓은 패밀리룸입니다. 더블+싱글 침대 구성, 키즈 어메니티, 넓은 거실과 다양한 수납공간, 어린이 안전용품까지 모두 준비되어 있어 가족 여행에 최적입니다.",
+    size: "56m²",
     capacity: "성인 2인 기준",
     link: "/rooms/4",
   },
@@ -83,26 +85,26 @@ const rooms = [
 const diningOptions = [
   {
     id: 1,
-    name: "Sunset Lounge",
-    image: "/placeholder.svg?height=400&width=800",
-    description: "석양을 바라보며 즐기는 커피향과 가벼운 식사",
-    hours: "매일 17:00 - 22:00",
+    name: "라 테라스",
+    image: "https://images.unsplash.com/photo-1583338917496-7ea264c374ce?w=700&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8JUVCJUI3JTk0JUVEJThFJTk4fGVufDB8fDB8fHww",
+    description: "신선한 제철 식재료로 준비한 인터내셔널 뷔페 레스토랑. 아침, 점심, 저녁 다양한 요리를 즐기실 수 있습니다.",
+    hours: "매일 06:30 - 22:00",
     link: "/dining/sunset-lounge",
   },
   {
     id: 2,
-    name: "Ocean View Restaurant",
-    image: "/placeholder.svg?height=400&width=800",
-    description: "신선한 해산물과 지역 식재료로 준비한 정통 요리",
-    hours: "매일 07:00 - 22:00",
+    name: "아리아",
+    image: "https://images.unsplash.com/photo-1611765083444-a3ce30f1c885?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fGl0YWxpYW4lMjByZXN0YXVyYW50fGVufDB8fDB8fHww",
+    description: "정통 이탈리안 요리를 현대적으로 재해석한 파인 다이닝 레스토랑. 엄선된 와인 리스트와 함께 특별한 식사를 즐겨보세요.",
+    hours: "매일 12:00 - 22:00",
     link: "/dining/ocean-view",
   },
   {
     id: 3,
-    name: "Harmony Bar",
-    image: "/placeholder.jpg?height=400&width=800",
-    description: "프리미엄 위스키와 칵테일을 즐길 수 있는 분위기 있는 바",
-    hours: "매일 18:00 - 01:00",
+    name: "사쿠라",
+    image: "https://images.unsplash.com/photo-1512132411229-c30391241dd8?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8amFwYW5lc2UlMjByZXN0YXVyYW50fGVufDB8fDB8fHww",
+    description: "최고급 식재료로 준비한 정통 일식 오마카세. 숙련된 일본 요리사가 선보이는 계절 요리를 카운터에서 직접 즐겨보세요.",
+    hours: "매일 12:00 - 22:00",
     link: "/dining/harmony-bar",
   },
 ]
@@ -110,32 +112,56 @@ const diningOptions = [
 // 기프트샵 상품 정보
 const storeItems = [
   {
-    id: 1,
-    name: "Chill Haven 시그니처 배스로브",
-    image: "/placeholder.svg?height=400&width=800",
-    description: "최고급 면소재로 제작된 호텔 시그니처 배스로브",
-    price: "120,000원",
-    link: "/store/1",
+    id: 21,
+    name: "숲의 숨결 공기정화 미니 식물",
+    image: "https://sist-chill-hotel.s3.ap-northeast-2.amazonaws.com/images/products/2025/04/27/ad5398df-96e9-418d-ab0a-41402534cfe7_정화식물.jpg?height=400&width=800",
+    description: "작은 화분에 심어진 공기정화 식물",
+    price: "45,000원",
+    link: "/store/21",
   },
   {
     id: 2,
-    name: "Chill Haven 베개",
-    image: "/placeholder.svg?height=400&width=800",
-    description: "최상의 수면을 위한 프리미엄 구스다운 베개",
-    price: "89,000원",
+    name: "평온한 순간 아로마 디퓨저 세트",
+    image: "https://sist-chill-hotel.s3.ap-northeast-2.amazonaws.com/images/products/2025/04/27/8ae9300c-16dc-4bad-ad7c-db3e56278c41_아로마세트.jpg?height=400&width=800",
+    description: "호텔 로비와 객실에서 사용되는 시그니처 향",
+    price: "85,000원",
     link: "/store/2",
   },
   {
-    id: 3,
-    name: "Chill Haven 씨솔트 바디 스크럽",
-    image: "/placeholder.svg?height=400&width=800",
-    description: "호텔 스파에서 사용하는 동일한 천연 스크럽",
-    price: "45,000원",
-    link: "/store/3",
+    id: 30,
+    name: "평온한 시간 티 세트",
+    image: "https://sist-chill-hotel.s3.ap-northeast-2.amazonaws.com/images/products/2025/04/27/c4528d73-1a04-451e-a1b6-19b921161a05_티백.jpg?height=400&width=800",
+    description: "티팟, 티컵 2인 세트",
+    price: "85,000원",
+    link: "/store/30",
   },
 ]
 
 export default function Home() {
+  const router = useRouter()
+  const { isLoggedIn, user, logout } = useAuth()
+  // ✅ 여기 useEffect 추가
+  useEffect(() => {
+    if (isLoggedIn && (user?.role === "ADMIN" || user?.role === "STAFF")) {
+      console.log("[Home] 관리자 상태로 메인 진입 -> 로그아웃")
+      logout()
+    }
+  }, [isLoggedIn, user, logout])
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [checkInDate, setCheckInDate] = useState("")
+  const [checkOutDate, setCheckOutDate] = useState("")
+
+  // 컴포넌트 마운트 시 체크인=오늘, 체크아웃=내일로 자동 설정
+  useEffect(() => {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    const todayStr = today.toISOString().split('T')[0];
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    setCheckInDate(todayStr);
+    setCheckOutDate(tomorrowStr);
+  }, []);
+
   const [currentDiningSlide, setCurrentDiningSlide] = useState(0)
   const [currentStoreSlide, setCurrentStoreSlide] = useState(0)
 
@@ -201,7 +227,7 @@ export default function Home() {
                         <p className="text-gray-600 mb-4">{option.description}</p>
                         <p className="text-sm font-medium mb-6">{option.hours}</p>
                         <Link
-                          href={option.link}
+                          href="/dining"
                           className="inline-flex items-center justify-center py-3 px-6 rounded-md font-medium text-white transition-colors self-start"
                           style={{ backgroundColor: "#2dd4bf" }}
                         >

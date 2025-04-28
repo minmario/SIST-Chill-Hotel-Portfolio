@@ -20,13 +20,16 @@ export default function BookingCheckDetailPage() {
     } catch (e) {
       parsed = null
     }
-    // 배열이 아니면 배열로 변환
+    // 배열이 아니면 배열로 변환 및 최신순 정렬
     if (parsed) {
-      if (Array.isArray(parsed)) {
-        setBookings(parsed)
-      } else {
-        setBookings([parsed])
-      }
+      let arr = Array.isArray(parsed) ? parsed : [parsed];
+      arr = arr.sort((a, b) => {
+        // checkInDate 또는 checkIn 필드 기준 내림차순(최신순)
+        const dateA = new Date(a.checkInDate || a.checkIn);
+        const dateB = new Date(b.checkInDate || b.checkIn);
+        return dateB.getTime() - dateA.getTime();
+      });
+      setBookings(arr);
     }
   }, [router])
 
@@ -44,6 +47,23 @@ export default function BookingCheckDetailPage() {
             <div><strong>이메일:</strong> {booking.email}</div>
             <hr />
             <div><strong>객실명:</strong> {booking.roomName}</div>
+            {booking.specialOffer && (
+              <div className="border rounded p-4 bg-sky-50">
+                <div className="font-bold mb-2 text-sky-700">스페셜 오퍼</div>
+                <div className="mb-1"><strong>제목:</strong> {booking.specialOffer.title}</div>
+
+                {booking.specialOffer.subtitle && (
+                  <div className="mb-1"><strong>부제목:</strong> {booking.specialOffer.subtitle}</div>
+                )}
+                {booking.specialOffer.intro && (
+                  <div className="mb-1"><strong>설명:</strong> {booking.specialOffer.intro}</div>
+                )}
+                {booking.specialOffer.price && (
+                  <div className="mb-1"><strong>오퍼가:</strong> {booking.specialOffer.price}</div>
+                )}
+                <div className="text-xs text-gray-500 mt-1">오퍼 기간: {booking.specialOffer.startDate} ~ {booking.specialOffer.endDate}</div>
+              </div>
+            )}
             <div><strong>객실 등급:</strong> {booking.roomGrade}</div>
             <div><strong>체크인:</strong> {booking.checkInDate}</div>
             <div><strong>체크아웃:</strong> {booking.checkOutDate}</div>
@@ -61,7 +81,9 @@ export default function BookingCheckDetailPage() {
                 메인으로
               </button>
               <button
+                disabled={booking.status !== 'CONFIRMED'}
                 onClick={async () => {
+                  if (booking.status !== 'CONFIRMED') return;
                   const confirmCancel = confirm("정말 예약을 취소하시겠습니까?")
                   if (!confirmCancel) return
                   try {
@@ -76,7 +98,7 @@ export default function BookingCheckDetailPage() {
                     console.error(err)
                   }
                 }}
-                className="w-1/2 py-3 rounded bg-red-500 hover:bg-red-600 text-white font-semibold"
+                className={`w-1/2 py-3 rounded font-semibold ${booking.status === 'CONFIRMED' ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-gray-300 text-gray-400 cursor-not-allowed'}`}
               >
                 예약 취소
               </button>

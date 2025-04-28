@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Check, Info, Star, Award, Crown, ChevronDown, ChevronUp } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import styles from "./membership.module.css"
 type MembershipLevel = {
   tier: string
@@ -130,12 +131,23 @@ export default function PointSystem() {
 
   return (
     <>
-      <div className={styles.header}>
-      <div className="container">
-          <h1 className="text-4xl font-bold mb-4">포인트 & 등급 시스템</h1>
-          <p className="text-xl">럭스 호텔의 포인트 적립 방법과 회원 등급 혜택을 알아보세요.</p>
-        </div>
-      </div>
+  <div className={styles.header} style={{position:'relative', width:'100%', height:'320px', marginBottom:'2rem', overflow:'hidden'}}>
+  <Image
+    src="/images/membership/membership-banner.png" // ✅ 네가 원하는 이미지 경로
+    alt="포인트 및 등급 시스템"
+    fill
+    style={{objectFit:'cover'}}
+    priority
+  />
+  <div style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',background:'rgba(0,0,0,0.45)'}} />
+  <div style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',zIndex:2}}>
+    <div className="container">
+      <h1 style={{color:'#fff',fontSize:'2.7rem',fontWeight:700,marginBottom:'1rem',textShadow:'0 2px 16px rgba(0,0,0,0.5)'}}>포인트 & 등급 시스템</h1>
+      <p style={{color:'#fff',fontSize:'1.15rem',fontWeight:400,textAlign:'center',textShadow:'0 2px 12px rgba(0,0,0,0.5)'}}>럭스 호텔의 포인트 적립 방법과 회원 등급 혜택을 알아보세요.</p>
+    </div>
+  </div>
+</div>
+
 
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">

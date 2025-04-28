@@ -14,6 +14,9 @@ public class ReservationRequest {
   // 예약 상태 (초기 생성 시에는 생략하거나 기본값 처리 예정)
   private String status;
 
+  // 스페셜오퍼 ID(선택)
+  private Long offerId;
+
   // 사용자 및 객실 정보
   private Long userIdx;
   private Long roomIdx;

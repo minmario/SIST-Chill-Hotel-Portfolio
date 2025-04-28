@@ -15,4 +15,7 @@ public class UserRegisterResponse {
     private String message;
     private String token;
     private String role;
-} 
+    private String userId;
+    private String email;
+    private String name;
+}

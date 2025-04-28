@@ -49,7 +49,7 @@ interface Reservation {
   adultCount: number;
   childCount: number;
   roomNumber: string;
-  roomTypeIdx: string;
+  roomTypeIdx: number; // number로 변경
   roomGrade: string;
   total: number;
   specialRequests: string;
@@ -912,19 +912,23 @@ setSelectedReservation({
                   <div>
                     <p className="text-sm text-gray-500 mb-2">주문 상품</p>
                     <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                      {selectedGiftShopOrder.items.map((item) => (
-                        <div key={item.itemName} className="flex gap-3 bg-gray-50 p-3 rounded-md">
-                          <div className="flex-1">
-                            <p className="font-medium">{item.itemName}</p>
-                            <div className="flex justify-between text-sm text-gray-600 mt-1">
-                              <span>
-                                {item.price.toLocaleString()}원 × {item.quantity}
-                              </span>
-                              <span className="font-medium">{(item.price * item.quantity).toLocaleString()}원</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                      {Array.isArray(selectedGiftShopOrder?.items) && selectedGiftShopOrder.items.length > 0 ? (
+  selectedGiftShopOrder.items.map((item) => (
+    <div key={item.itemName} className="flex gap-3 bg-gray-50 p-3 rounded-md">
+      <div className="flex-1">
+        <p className="font-medium">{item.itemName}</p>
+        <div className="flex justify-between text-sm text-gray-600 mt-1">
+          <span>
+            {item.price.toLocaleString()}원 × {item.quantity}
+          </span>
+          <span className="font-medium">{(item.price * item.quantity).toLocaleString()}원</span>
+        </div>
+      </div>
+    </div>
+  ))
+) : (
+  <div className="text-gray-400 text-center py-4">주문 상품 내역이 없습니다.</div>
+)}
                     </div>
                   </div>
 

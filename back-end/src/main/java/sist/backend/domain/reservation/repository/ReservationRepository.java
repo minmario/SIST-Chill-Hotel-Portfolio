@@ -12,13 +12,12 @@ import org.springframework.data.repository.query.Param;
 import jakarta.transaction.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
-        Optional<Reservation> findByUser_UserIdxAndReservationNum(Long userIdx, String reservationNum);
+        List<Reservation> findByUser_UserIdxAndReservationNum(Long userIdx, String reservationNum);
 
         @Query("""
                         SELECT r.room.roomIdx FROM Reservation r
@@ -41,6 +40,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
                         @Param("checkOutDate") LocalDate checkOutDate);
 
         Optional<Reservation> findByReservationNum(String reservationNum);
+List<Reservation> findAllByReservationNum(String reservationNum);
+List<Reservation> findAllByLastNameAndFirstNameAndPhone(String lastName, String firstName, String phone);
 
         Optional<Reservation> findByLastNameAndFirstNameAndPhone(String lastName, String firstName, String phone);
 
