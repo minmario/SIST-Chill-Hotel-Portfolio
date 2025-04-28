@@ -49,7 +49,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF")
-                        .requestMatchers("/dining/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "STAFF")
+                        .requestMatchers("/api/dining/**").permitAll()
+                        .requestMatchers("/api/retaurants/**").permitAll()
                         .requestMatchers("/api/mypage/**").authenticated()
                         .requestMatchers(
                                 "/api/user/stays/summary",

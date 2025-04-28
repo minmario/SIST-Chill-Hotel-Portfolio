@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: io.awspring.cloud:spring-cloud-aws-starter-s3:3.0.3" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="io.awspring.cloud" artifactId="spring-cloud-aws-starter-s3" version="3.0.3" baseVersion="3.0.3" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.awspring.cloud/spring-cloud-aws-starter-s3/3.0.3/f5d5cbcef9d6923b890adf2bdd00efd47efe7d9/spring-cloud-aws-starter-s3-3.0.3.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.awspring.cloud/spring-cloud-aws-starter-s3/3.0.3/ac1580516cd9be0e0bf0b4c1702aaa4ca6dbd87a/spring-cloud-aws-starter-s3-3.0.3-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES />
+  </library>
+</component>

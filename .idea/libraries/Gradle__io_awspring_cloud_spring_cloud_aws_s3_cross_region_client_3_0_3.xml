@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: io.awspring.cloud:spring-cloud-aws-s3-cross-region-client:3.0.3" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="io.awspring.cloud" artifactId="spring-cloud-aws-s3-cross-region-client" version="3.0.3" baseVersion="3.0.3" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.awspring.cloud/spring-cloud-aws-s3-cross-region-client/3.0.3/ac4b1b6ee6c26421b05392ce1e5a17c5090770b8/spring-cloud-aws-s3-cross-region-client-3.0.3.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.awspring.cloud/spring-cloud-aws-s3-cross-region-client/3.0.3/93f79e3e89ab9d844ba92daa0bb1209c1cacbaba/spring-cloud-aws-s3-cross-region-client-3.0.3-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.awspring.cloud/spring-cloud-aws-s3-cross-region-client/3.0.3/cc041c456ec16abdcc4a1c16c73ed60734622dbb/spring-cloud-aws-s3-cross-region-client-3.0.3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
