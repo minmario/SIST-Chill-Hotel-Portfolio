@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,7 +19,7 @@ import sist.backend.domain.payment.dto.TossPaymentResponse;
 import sist.backend.domain.payment.service.PaymentService;
 import sist.backend.domain.shop.entity.Order;
 import sist.backend.domain.user.entity.User;
-
+import sist.backend.global.security.CustomUserDetails;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,19 +28,29 @@ import sist.backend.domain.user.entity.User;
 public class PaymentController {
     private final PaymentService paymentService;
 
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
+            return null;
+        }
+        return ((CustomUserDetails) authentication.getPrincipal()).getUser();
+    }
+
     @PostMapping
-    public ResponseEntity<?> pay(@RequestBody PaymentRequest request, HttpServletRequest httpRequest, @AuthenticationPrincipal(expression = "user") User user) {
+    public ResponseEntity<?> pay(@RequestBody PaymentRequest request, HttpServletRequest httpRequest) {
         try {
             String ipAddress = httpRequest.getRemoteAddr();
             System.out.println("[pay] called");
             System.out.println("[pay] ipAddress: " + ipAddress);
-            System.out.println("[pay] user: " + (user != null ? user.getId() : "null"));
-            System.out.println("[pay] PaymentRequest: " + request);
+            
+            User user = getCurrentUser();
             if (user == null) {
                 return ResponseEntity.status(401).body(Map.of("message", "로그인 정보가 없습니다. 인증이 필요합니다."));
             }
-            else
-                System.out.println("[pay] user: " + user.getId());
+            
+            System.out.println("[pay] user: " + user.getId());
+            System.out.println("[pay] PaymentRequest: " + request);
+            
             Order order = paymentService.processPayment(request, ipAddress, user);
             Map<String, Object> result = new HashMap<>();
             if (order != null) {
@@ -49,7 +60,7 @@ public class PaymentController {
                 System.out.println("[pay] reservationNum: " + request.getReservationNum());
                 result.put("reservationNum", request.getReservationNum());
             }
-            // 항상 JSON 객체 반환
+            
             System.out.println("[pay] response: " + result);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -59,14 +70,16 @@ public class PaymentController {
     }
     
     @PostMapping("/toss/success")
-    public ResponseEntity<?> tossPaymentSuccess(@RequestBody TossPaymentResponse response, HttpServletRequest httpRequest, @org.springframework.security.core.annotation.AuthenticationPrincipal(expression = "user") sist.backend.domain.user.entity.User user) {
+    public ResponseEntity<?> tossPaymentSuccess(@RequestBody TossPaymentResponse response, HttpServletRequest httpRequest) {
         System.out.println("[toss/success] called");
         System.out.println("[toss/success] paymentKey: " + response.getPaymentKey());
         System.out.println("[toss/success] orderId: " + response.getOrderId());
         System.out.println("[toss/success] amount: " + response.getAmount());
         System.out.println("[toss/success] status: " + response.getStatus());
         System.out.println("[toss/success] message: " + response.getMessage());
+        
         String ipAddress = httpRequest.getRemoteAddr();
+        User user = getCurrentUser();
         paymentService.processTossPayment(response, ipAddress, user);
         return ResponseEntity.ok().body(response);
     }
