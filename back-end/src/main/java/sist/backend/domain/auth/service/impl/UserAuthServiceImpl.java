@@ -10,7 +10,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
-import sist.backend.domain.admin.dto.response.LoginResponse;
 import sist.backend.domain.auth.dto.request.PaymentMethodRequest;
 import sist.backend.domain.auth.dto.request.UserLoginRequest;
 import sist.backend.domain.auth.dto.request.UserRegisterRequest;

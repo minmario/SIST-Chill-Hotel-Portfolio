@@ -1,8 +1,9 @@
-package sist.backend.domain.specialoffer;
+package sist.backend.domain.specialoffer.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import sist.backend.domain.specialoffer.entity.SpecialOffer;
+import sist.backend.domain.specialoffer.repository.SpecialOfferRepository;
 
 import java.util.List;
 

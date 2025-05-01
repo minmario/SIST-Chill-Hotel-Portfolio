@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
+import sist.backend.domain.shop.dto.request.OrderStatusUpdateRequest;
 import sist.backend.domain.shop.dto.response.OrderResponse;
 import sist.backend.domain.shop.service.impl.AdminGiftShopService;
 
@@ -27,7 +28,7 @@ public class AdminOrderController {
     @PostMapping("/{orderIdx}/status")
     public void updateOrderStatus(
             @PathVariable Long orderIdx,
-            @RequestBody sist.backend.domain.shop.dto.request.OrderStatusUpdateRequest request
+            @RequestBody OrderStatusUpdateRequest request
     ) {
         orderService.updateOrderStatus(orderIdx, request.getStatus());
     }

@@ -1,4 +1,4 @@
-package sist.backend.domain.specialoffer;
+package sist.backend.domain.specialoffer.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
 import sist.backend.domain.specialoffer.dto.response.SpecialOfferResponse;
+import sist.backend.domain.specialoffer.service.SpecialOfferService;
+
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor

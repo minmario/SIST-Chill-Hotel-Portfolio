@@ -16,7 +16,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import sist.backend.global.common.BaseTimeEntity;
 
 @Entity
 @Table(name = "rooms")

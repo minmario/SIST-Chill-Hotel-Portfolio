@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,8 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import sist.backend.domain.shop.dto.request.GiftShopRequestDTO;
 import sist.backend.domain.shop.dto.response.GiftShopResponseDTO;
 import sist.backend.domain.shop.service.interfaces.GiftShopService;
-import sist.backend.domain.user.repository.UserRepository;
-import sist.backend.domain.user.service.interfaces.UserActivityLogService;
+import sist.backend.infrastructure.logging.ActivityType;
 import sist.backend.domain.admin.service.AdminActivityLogService;
 
 
@@ -68,7 +69,7 @@ public class AdminGiftShopController {
         GiftShopResponseDTO createdProduct = giftShopService.createItem(requestDto);
         log.info("관리자: 상품 생성 완료 - ID: {}", createdProduct.getItemIdx());
         // 관리자 활동 로그 기록
-        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        org.springframework.security.core.Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String adminId = authentication.getName();
         String ip = extractClientIp(request);
         adminActivityLogService.logActivity(adminId, sist.backend.infrastructure.logging.ActivityType.ADMIN_GIFT_CREATE, "상품 생성: " + createdProduct.getItemName(), ip);
@@ -84,7 +85,7 @@ public class AdminGiftShopController {
         GiftShopResponseDTO updatedProduct = giftShopService.updateItem(itemIdx, requestDto);
         log.info("관리자: 상품 수정 완료 - ID: {}", updatedProduct.getItemIdx());
         // 관리자 활동 로그 기록
-        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        org.springframework.security.core.Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String adminId = authentication.getName();
         String ip = extractClientIp(request);
         adminActivityLogService.logActivity(adminId, sist.backend.infrastructure.logging.ActivityType.ADMIN_GIFT_UPDATE, "상품 수정: " + updatedProduct.getItemName(), ip);
@@ -98,10 +99,10 @@ public class AdminGiftShopController {
             giftShopService.deleteItem(itemIdx);
             log.info("관리자: 상품 삭제 완료 - ID: {}", itemIdx);
             // 관리자 활동 로그 기록
-            org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String adminId = authentication.getName();
             String ip = extractClientIp(request);
-            adminActivityLogService.logActivity(adminId, sist.backend.infrastructure.logging.ActivityType.ADMIN_GIFT_DELETE, "상품 삭제: ID=" + itemIdx, ip);
+            adminActivityLogService.logActivity(adminId, ActivityType.ADMIN_GIFT_DELETE, "상품 삭제: ID=" + itemIdx, ip);
             return ResponseEntity.noContent().build();
         } catch (IllegalStateException e) {
             // 주문에 포함된 상품 삭제 시도 시

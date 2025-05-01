@@ -63,6 +63,7 @@ public class DiningReservation {
     private String status;
 
     @Column(name = "created_at", updatable = false)
+    @Builder.Default // Spring boot Build시 Warning 방지용으로 추가하였음.
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at")

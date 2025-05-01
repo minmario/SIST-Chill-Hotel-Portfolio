@@ -1,5 +1,6 @@
 package sist.backend.domain.restaurant.service;
 
+import java.time.LocalTime;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -49,7 +50,7 @@ public class RestaurantService {
                 .build();
     }
 
-    private static String formatTime(java.time.LocalTime time) {
+    private static String formatTime(LocalTime time) {
         return time != null ? time.toString().substring(0, 5) : null;
     }
 

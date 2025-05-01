@@ -52,7 +52,7 @@ public class UserActivityLog {
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
-            createdAt = java.time.LocalDateTime.now();
+            createdAt = LocalDateTime.now();
         }
     }
 }

@@ -10,8 +10,8 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import sist.backend.domain.payment.dto.PaymentRequest;
-import sist.backend.domain.payment.dto.TossPaymentResponse;
+import sist.backend.domain.payment.dto.request.PaymentRequest;
+import sist.backend.domain.payment.dto.response.TossPaymentResponse;
 import sist.backend.domain.reservation.entity.Reservation;
 import sist.backend.domain.reservation.entity.ReservationStatus;
 import sist.backend.domain.reservation.repository.ReservationRepository;

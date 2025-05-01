@@ -1,4 +1,4 @@
-package sist.backend.domain.specialoffer;
+package sist.backend.domain.specialoffer.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import sist.backend.domain.specialoffer.entity.SpecialOffer;

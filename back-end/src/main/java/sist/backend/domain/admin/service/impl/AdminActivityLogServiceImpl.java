@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import sist.backend.domain.admin.entity.AdminActivityLog;
 import sist.backend.domain.admin.repository.AdminActivityLogRepository;
 import sist.backend.domain.admin.service.AdminActivityLogService;
+import sist.backend.infrastructure.logging.ActivityType;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +18,7 @@ public class AdminActivityLogServiceImpl implements AdminActivityLogService {
 
     @Override
     @Transactional
-    public void logActivity(String adminId, sist.backend.infrastructure.logging.ActivityType activityType,
+    public void logActivity(String adminId, ActivityType activityType,
             String activityDetails, String ipAddress) {
         AdminActivityLog log = AdminActivityLog.builder()
                 .adminId(adminId)

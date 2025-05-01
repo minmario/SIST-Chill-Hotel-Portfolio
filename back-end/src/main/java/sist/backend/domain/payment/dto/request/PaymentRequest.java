@@ -1,4 +1,4 @@
-package sist.backend.domain.payment.dto;
+package sist.backend.domain.payment.dto.request;
 
 import java.util.List;
 

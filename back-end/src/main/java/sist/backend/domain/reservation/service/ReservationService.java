@@ -24,7 +24,9 @@ import sist.backend.domain.room.entity.RoomType;
 import sist.backend.domain.room.repository.RoomRepository;
 import sist.backend.domain.room.repository.RoomTypeRepository;
 import sist.backend.domain.specialoffer.entity.SpecialOffer;
+import sist.backend.domain.user.entity.ActivityType;
 import sist.backend.domain.user.entity.User;
+import sist.backend.domain.user.entity.UserActivityLog;
 import sist.backend.domain.user.repository.UserActivityLogRepository;
 import sist.backend.domain.user.repository.UserRepository;
 
@@ -39,7 +41,7 @@ public class ReservationService {
         private final UserRepository userRepository;
         private final RoomTypeRepository roomTypeRepository;
         private final MembershipRepository membershipRepository;
-        private final sist.backend.domain.specialoffer.SpecialOfferService specialOfferService;
+        private final sist.backend.domain.specialoffer.service.SpecialOfferService specialOfferService;
 
         public List<ReservationResponse> getReservation(Long userIdx, String reservationNum) {
                 List<Reservation> entities = reservationRepository.findByUser_UserIdxAndReservationNum(userIdx, reservationNum);
@@ -183,9 +185,9 @@ public class ReservationService {
                 String activityDetails = (reservation.getRoom() != null && reservation.getRoom().getRoomNum() != null)
                         ? reservation.getRoom().getRoomNum() + "호 예약 취소"
                         : "예약 취소";
-                sist.backend.domain.user.entity.UserActivityLog log = sist.backend.domain.user.entity.UserActivityLog.builder()
+                UserActivityLog log = UserActivityLog.builder()
                         .user(reservation.getUser())
-                        .activityType(sist.backend.domain.user.entity.ActivityType.HOTEL_RESERVATION_CANCEL)
+                        .activityType(ActivityType.HOTEL_RESERVATION_CANCEL)
                         .activityDetails(activityDetails)
                         .build();
                 userActivityLogRepository.save(log);

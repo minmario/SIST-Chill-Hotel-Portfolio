@@ -2,9 +2,6 @@ package sist.backend.domain.reservation.dto.response;
 
 import lombok.*;
 import sist.backend.domain.reservation.entity.Reservation;
-import sist.backend.domain.reservation.entity.ReservationStatus;
-import sist.backend.domain.room.entity.Room;
-import sist.backend.domain.user.entity.User;
 import sist.backend.domain.specialoffer.dto.response.SpecialOfferResponse;
 import java.time.LocalDate;
 

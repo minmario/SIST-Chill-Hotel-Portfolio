@@ -11,8 +11,6 @@ import sist.backend.domain.admin.service.service.StaffAdminService;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.entity.UserRole;
 import sist.backend.domain.user.entity.UserStatus;
-import sist.backend.domain.user.repository.UserRepository;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
