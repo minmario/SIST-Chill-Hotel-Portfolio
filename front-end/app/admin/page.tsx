@@ -127,11 +127,7 @@ export default function LoginPage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <Button variant="outline" className="w-full" asChild>
-            <Link href="/admin/register">회원가입</Link>
-          </Button>
-        </CardFooter>
+        
       </Card>
     </div>
   )
