@@ -1,9 +1,12 @@
 package sist.backend.domain.restaurant.dto.response;
 
+import java.time.LocalTime;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.Builder;
 import lombok.Getter;
+import sist.backend.domain.restaurant.entity.Restaurant;
 
 @Getter
 @Builder
@@ -36,7 +39,7 @@ public class RestaurantResponse {
         private Integer child;
     }
 
-    public static RestaurantResponse fromEntity(sist.backend.domain.restaurant.entity.Restaurant restaurant) {
+    public static RestaurantResponse fromEntity(Restaurant restaurant) {
         return RestaurantResponse.builder()
                 .id(restaurant.getRestaurantsIdx())
                 .name(restaurant.getName())
@@ -62,7 +65,7 @@ public class RestaurantResponse {
                 .build();
     }
 
-    private static String timeToString(java.time.LocalTime time) {
+    private static String timeToString(LocalTime time) {
         return time != null ? time.toString() : null;
     }
 }

@@ -33,4 +33,4 @@ public class AwsS3Config {
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .build();
     }
-} 
+}

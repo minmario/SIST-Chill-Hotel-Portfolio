@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -66,8 +67,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 .get("role", String.class);
 
                         // ✅ 2. ROLE_ 접두어 붙여 권한 생성
-                        List<org.springframework.security.core.authority.SimpleGrantedAuthority> authorities = List.of(
-                                new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role));
+                        List<SimpleGrantedAuthority> authorities = List.of(
+                                new SimpleGrantedAuthority("ROLE_" + role));
 
                         // ✅ 3. 인증 객체 생성
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

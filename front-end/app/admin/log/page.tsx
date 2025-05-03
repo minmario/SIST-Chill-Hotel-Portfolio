@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { Search, Filter, RefreshCw, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
+import PaginationButtons from "./PaginationButtons";
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -128,8 +129,9 @@ export default function LogPage() {
   const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const perPage = 20 // 한 페이지당 표시할 로그 수
+  const perPage = 10 // 한 페이지당 표시할 로그 수
   const [logs, setLogs] = useState<LogEntry[]>([])
+  
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
@@ -197,7 +199,7 @@ export default function LogPage() {
     })
     // 날짜 내림차순 정렬 (최신순)
     .sort((a, b) => b.date.getTime() - a.date.getTime())
-  
+
   // 페이징된 회원 로그 목록
   const paginatedUserLogs = filteredUserLogs.slice((currentPage - 1) * perPage, currentPage * perPage)
   
@@ -246,6 +248,12 @@ export default function LogPage() {
   
   // 페이징된 관리자 로그 목록
   const paginatedAdminLogs = filteredAdminLogs.slice((currentPage - 1) * perPage, currentPage * perPage)
+
+  // 각 탭별 totalPages 계산
+  const totalAllPages = Math.max(1, Math.ceil(filteredAllLogs.length / perPage));
+  const totalUserPages = Math.max(1, Math.ceil(filteredUserLogs.length / perPage));
+  const totalStaffPages = Math.max(1, Math.ceil(filteredStaffLogs.length / perPage));
+  const totalAdminPages = Math.max(1, Math.ceil(filteredAdminLogs.length / perPage));
 
   // 실제 서버에서 로그 데이터를 가져오는 함수
   const fetchLogs = async () => {
@@ -708,7 +716,8 @@ export default function LogPage() {
                   <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={handlePreviousPage}>
                     이전
                   </Button>
-                  <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={handleNextPage}>
+                  <PaginationButtons totalPages={totalAllPages} currentPage={currentPage} setCurrentPage={setCurrentPage} />
+                  <Button variant="outline" size="sm" disabled={currentPage >= totalAllPages} onClick={handleNextPage}>
                     다음
                   </Button>
                 </div>
@@ -765,7 +774,8 @@ export default function LogPage() {
                   <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={handlePreviousPage}>
                     이전
                   </Button>
-                  <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={handleNextPage}>
+                  <PaginationButtons totalPages={totalUserPages} currentPage={currentPage} setCurrentPage={setCurrentPage} />
+                  <Button variant="outline" size="sm" disabled={currentPage >= totalUserPages} onClick={handleNextPage}>
                     다음
                   </Button>
                 </div>
@@ -822,14 +832,14 @@ export default function LogPage() {
                   <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={handlePreviousPage}>
                     이전
                   </Button>
-                  <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={handleNextPage}>
+                  <PaginationButtons totalPages={totalStaffPages} currentPage={currentPage} setCurrentPage={setCurrentPage} />
+                  <Button variant="outline" size="sm" disabled={currentPage >= totalStaffPages} onClick={handleNextPage}>
                     다음
                   </Button>
                 </div>
               </div>
             </TabsContent>
 
-            {/* 관리자 활동 탭 추가 */}
             <TabsContent value="admin" className="mt-0">
               <div className="rounded-md border">
                 <Table>
@@ -880,7 +890,8 @@ export default function LogPage() {
                   <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={handlePreviousPage}>
                     이전
                   </Button>
-                  <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={handleNextPage}>
+                  <PaginationButtons totalPages={totalAdminPages} currentPage={currentPage} setCurrentPage={setCurrentPage} />
+                  <Button variant="outline" size="sm" disabled={currentPage >= totalAdminPages} onClick={handleNextPage}>
                     다음
                   </Button>
                 </div>

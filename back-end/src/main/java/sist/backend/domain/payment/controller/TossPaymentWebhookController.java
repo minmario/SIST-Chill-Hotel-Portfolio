@@ -7,8 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import sist.backend.domain.payment.dto.TossPaymentResponse;
-import sist.backend.domain.payment.service.PaymentService;
+import sist.backend.domain.payment.dto.response.TossPaymentResponse;
 import sist.backend.domain.user.entity.ActivityType;
 import sist.backend.domain.user.service.interfaces.UserActivityLogService;
 
@@ -17,7 +16,6 @@ import sist.backend.domain.user.service.interfaces.UserActivityLogService;
 @RequestMapping("/api/payments/webhook")
 public class TossPaymentWebhookController {
 
-    private final PaymentService paymentService;
     private final UserActivityLogService userActivityLogService;
 
     @PostMapping("/toss")

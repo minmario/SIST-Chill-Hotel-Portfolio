@@ -37,6 +37,12 @@ export default function MembershipJoin() {
     firstName: formData.firstName,
     lastName: formData.lastName,
   }
+  type User = {
+    userId: string;
+    name: string;
+    email: string;
+    role: string;
+  };
   
   if (formData.registerCard) {
     bodyData.paymentMethod = {
@@ -46,6 +52,7 @@ export default function MembershipJoin() {
       cardHolder: formData.cardHolder,
     }
   }
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -59,51 +66,60 @@ export default function MembershipJoin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    // 비밀번호 확인
+  
+    // 🔒 이메일 유효성 검사
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      alert("유효한 이메일 주소를 입력해주세요.")
+      return
+    }
+  
+    // 🔒 비밀번호 유효성 검사
+    if (formData.password.length < 8) {
+      alert("비밀번호는 8자 이상이어야 합니다.")
+      return
+    }
+  
+    // 🔒 비밀번호 일치 확인
     if (formData.password !== formData.passwordConfirm) {
       alert("비밀번호가 일치하지 않습니다.")
       return
     }
-
+  
+    // 🔒 전화번호 검사 (숫자만, 10~11자리)
+    const phoneRegex = /^[0-9]{10,11}$/
+    if (!phoneRegex.test(formData.phone.replace(/-/g, ""))) {
+      alert("유효한 전화번호를 입력해주세요.")
+      return
+    }
+  
     try {
-      // 회원가입 API 호출
-      const response = await fetch("/api/user/auth/register", {
+      const response = await fetch("http://localhost:8080/api/user/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(bodyData),
       })
-
+  
       if (!response.ok) {
-        throw new Error("회원가입에 실패했습니다.")
+        const errorData = await response.json()
+        alert(errorData.message)  // "이미 사용 중인 아이디입니다" or "이메일입니다"
       }
-
+  
       const data = await response.json()
-      console.log('[Register] 서버 응답 데이터:', data)
-      
-      // 필드명 확인
-      const token = data.token || data.message
-      const role = data.role
-      
-      console.log('[Register] 추출한 토큰:', token)
-      console.log('[Register] 추출한 역할:', role)
-      
-      // AuthContext의 login 함수 사용
-      login(token, formData.userId, role)
-
-      // 성공 메시지 표시
+      console.log("[Register] 서버 응답 데이터:", data)
+  
       alert("회원가입이 완료되었습니다.")
-
-      // 로그인 페이지로 이동
-      router.push("/login")
+  
+      // ✅ 완료 페이지로 이동
+      router.push(`/membership/join/complete?userId=${encodeURIComponent(formData.userId)}`)
+  
     } catch (error) {
       console.error("회원가입 중 오류:", error)
       alert("회원가입에 실패했습니다. 다시 시도해주세요.")
     }
   }
-
   return (
     <>
       <div className={styles.header}>
@@ -192,7 +208,7 @@ export default function MembershipJoin() {
                 name="firstName"
                 className="w-full p-3 border border-gray-300 rounded"
                 placeholder="성을 입력하세요"
-                value={formData.firstName} // ✅ 이게 성!
+                value={formData.firstName} 
                 onChange={handleInputChange}
                 required
                 />
@@ -208,7 +224,7 @@ export default function MembershipJoin() {
                 name="lastName"
                 className="w-full p-3 border border-gray-300 rounded"
                 placeholder="이름을 입력하세요"
-                value={formData.lastName} // ✅ 이게 이름!
+                value={formData.lastName} 
                 onChange={handleInputChange}
                 required
                 />
@@ -230,7 +246,7 @@ export default function MembershipJoin() {
                   />
                 </div>
               </div>
-              <div className="mb-4 flex items-center gap-2">
+              {/* <div className="mb-4 flex items-center gap-2">
                 <input
                   type="checkbox"
                   id="registerCard"
@@ -242,10 +258,10 @@ export default function MembershipJoin() {
                 <label htmlFor="registerCard" className="text-sm text-gray-700">
                   결제 수단을 지금 등록하겠습니다
                 </label>
-              </div>
+              </div> */}
               
               
-            {formData.registerCard && (
+            {/* {formData.registerCard && (
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-4">결제수단</h3>
 
@@ -319,7 +335,7 @@ export default function MembershipJoin() {
                   </div>
                 </div>
               </div>
-              )}
+              )} */}
 
               <div className="flex items-center gap-2 mb-8">
                 <input

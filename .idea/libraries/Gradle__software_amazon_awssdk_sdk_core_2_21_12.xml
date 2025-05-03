@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: software.amazon.awssdk:sdk-core:2.21.12" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="software.amazon.awssdk" artifactId="sdk-core" version="2.21.12" baseVersion="2.21.12" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/software.amazon.awssdk/sdk-core/2.21.12/778128b152e48fd17d0d682970c749f9178b2ea/sdk-core-2.21.12.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/software.amazon.awssdk/sdk-core/2.21.12/2d2bb31333bb7ea86f0c77e581186e74aefbbbef/sdk-core-2.21.12-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/software.amazon.awssdk/sdk-core/2.21.12/9282daa1ec2e45d554e4a5a476db79959f44bcc1/sdk-core-2.21.12-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

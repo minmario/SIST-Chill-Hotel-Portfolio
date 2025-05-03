@@ -26,6 +26,9 @@ public class DiningReservation {
     @Column(name = "restaurant_id", nullable = false)
     private Long restaurantId;
 
+    @Column(name = "restaurant_name", length = 100)
+    private String restaurantName;
+
     @Column(name = "reservation_date", nullable = false)
     private LocalDate reservationDate;
 
@@ -60,6 +63,7 @@ public class DiningReservation {
     private String status;
 
     @Column(name = "created_at", updatable = false)
+    @Builder.Default // Spring boot Build시 Warning 방지용으로 추가하였음.
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at")

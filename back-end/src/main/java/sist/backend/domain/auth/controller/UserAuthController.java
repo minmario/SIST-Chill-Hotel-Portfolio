@@ -1,9 +1,10 @@
 package sist.backend.domain.auth.controller;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,9 +21,8 @@ import sist.backend.domain.auth.service.service.UserAuthService;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.repository.UserRepository;
 import sist.backend.domain.user.service.interfaces.UserActivityLogService;
+import sist.backend.global.security.CustomUserDetails;
 
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user/auth")
@@ -42,25 +42,6 @@ public class UserAuthController {
     @PostMapping("/register")
     public ResponseEntity<UserRegisterResponse> register(@RequestBody UserRegisterRequest request) {
         UserRegisterResponse response = userAuthService.register(request);
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logout() {
-        // 현재 로그인한 사용자 정보 가져오기
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getName() != null) {
-            // 사용자 이메일로 사용자 정보 찾기
-            userRepository.findByEmail(auth.getName()).ifPresent(user -> {
-                // 로그아웃 활동 로그 기록
-                String ipAddress = getClientIp();
-                userActivityLogService.logLogout(user, ipAddress);
-            });
-        }
-
-        // 응답 반환
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "로그아웃 되었습니다.");
         return ResponseEntity.ok(response);
     }
 
@@ -106,6 +87,19 @@ public class UserAuthController {
         }
 
         return ip;
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails userDetails) { // <- 수정
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        User user = userDetails.getUser(); // ✅ 여기서 꺼내
+        String ipAddress = getClientIp();
+        userActivityLogService.logLogout(user, ipAddress);
+
+        return ResponseEntity.ok().build();
     }
 
 }

@@ -1,6 +1,5 @@
 package sist.backend.domain.admin.repository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +15,7 @@ public interface AdminUserRepository extends JpaRepository<User, Long> {
     boolean existsById(String id);
 
     boolean existsByEmail(String email);
-    
+
     Optional<User> findById(String id);
 
     /** 최근 7일 이내 가입한 회원 조회 */
@@ -30,5 +29,6 @@ public interface AdminUserRepository extends JpaRepository<User, Long> {
     long countByCreatedAtBefore(LocalDateTime dateTime);
 
     long countByRoleAndCreatedAtBetween(UserRole role, LocalDateTime start, LocalDateTime end);
+
     List<User> findByRoleIn(List<UserRole> roles);
 }

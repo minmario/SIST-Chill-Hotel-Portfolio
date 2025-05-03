@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
   userId: string;
@@ -13,7 +13,7 @@ interface AuthContextType {
   isLoggedIn: boolean;
   userRole: string | null;
   userId: string | null;
-  login: (user: User, token: string) => void;
+  login: (user: User,token: string) => void;  // ✅ 수정
   logout: () => void;
 }
 
@@ -43,6 +43,8 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
           console.log('[Auth] 앱 첫 시작 감지: 토큰과 장바구니 초기화');
           
           // 로컬 스토리지 정보 제거
+          localStorage.removeItem('userName');
+          localStorage.removeItem('userToken');
           localStorage.removeItem('accessToken');
           localStorage.removeItem('userId');
           localStorage.removeItem('userRole');
@@ -65,9 +67,11 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
         const storedUserRole = localStorage.getItem('userRole');
         
         if (token) {
-          console.log('[Auth] 저장된 토큰: ', token.substring(0, 10) + '...');
+          console.log('[Auth] 저장된 토큰: ', token);
+          console.log('[Auth] 로그인 상태: true');
         } else {
           console.log('[Auth] 저장된 토큰 없음');
+          console.log('[Auth] 로그인 상태: false');
         }
         
         if (token && storedUserId && storedUserRole) {
@@ -88,22 +92,21 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     initialize();
   }, []);
 
-  const login = useCallback((user: User, token: string) => {
-    console.log('[Auth] 로그인 시도: ', user.email);
+  const login = (user: User, token: string) => {
+    console.log('[Auth] 로그인 시도: ', user);
   
-    localStorage.setItem('accessToken', token);
+    localStorage.setItem('accessToken', token); // ✅ 실제 토큰 저장
     localStorage.setItem('userId', user.userId);
     localStorage.setItem('userRole', user.role);
   
     setIsLoggedIn(true);
     setUserId(user.userId);
     setUserRole(user.role);
-  }, []);
+  };
 
-  const logout = useCallback(async () => {
+  const logout = async () => {
     console.log('[Auth] 로그아웃 시도');
-
-    // 서버에 로그아웃 요청 전송
+  
     try {
       const token = localStorage.getItem('accessToken');
       if (token) {
@@ -114,61 +117,46 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
             'Content-Type': 'application/json'
           }
         });
-        console.log('[Auth] 서버 로그아웃 요청 성공');
       }
     } catch (error) {
       console.error('[Auth] 서버 로그아웃 요청 실패:', error);
-      // 실패하더라도 클라이언트에서는 로그아웃 처리 진행
     }
-    
-    // 로컬 스토리지 정보 제거
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userRole');
-    
-    // 장바구니 데이터 제거
-    localStorage.removeItem('guestCart');
-    
-    // 장바구니 상태 초기화 (등록된 함수가 있으면 호출)
-    if (cartClearFunction) {
-      cartClearFunction();
-    }
-    
+  
+    // ✅ 상태 확실히 초기화
+    localStorage.clear();
+    sessionStorage.clear();
+  
     setIsLoggedIn(false);
     setUserId(null);
     setUserRole(null);
-  }, []);
-
-  // useMemo를 사용하여 context 값 최적화
-  const contextValue = useMemo(() => ({
-    isLoggedIn,
-    userRole,
-    userId,
-    login,
-    logout
-  }), [isLoggedIn, userRole, userId, login, logout]);
-
-  // 컴포넌트 마운트 시 sessionStorage에서 appStarted 제거
-  useEffect(() => {
-    sessionStorage.removeItem("appStarted");
-  }, []);
+  
+    // ✅ 강제로 "/"로 이동 (새로고침 말고 router로)
+    window.location.href = "/";
+  };
 
   // 초기화가 완료되기 전에는 로딩 상태를 반환
   if (!initialized) {
     return (
-      <AuthContext.Provider value={contextValue}>
+      <AuthContext.Provider 
+        value={{ 
+          isLoggedIn: false, 
+          userRole: null, 
+          userId: null, 
+          login,
+          logout 
+        }}
+      >
         {children}
       </AuthContext.Provider>
     );
   }
 
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={{ isLoggedIn, userRole, userId, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

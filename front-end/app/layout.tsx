@@ -6,6 +6,7 @@ import Footer from "@/components/footer"
 import { CartProvider } from "@/context/cart-context"
 import { AuthProvider } from "@/context/auth-context"
 import { Inter } from "next/font/google"
+import LayoutWatcher from "@/components/layout-watcher" // ✅ 추가
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <CartProvider>
+            <LayoutWatcher /> {/* ✅ 감시용 컴포넌트 배치 */}
             <Header />
             <main style={{ paddingTop: "80px" }}>{children}</main>
             <Footer />

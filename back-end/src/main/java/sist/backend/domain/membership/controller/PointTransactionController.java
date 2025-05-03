@@ -6,7 +6,6 @@ import sist.backend.domain.membership.dto.response.PointSummaryResponse;
 import sist.backend.domain.membership.dto.response.PointTierSummaryResponse;
 import sist.backend.domain.membership.dto.response.PointTransactionResponse;
 import sist.backend.domain.membership.service.interfaces.PointTransactionService;
-import sist.backend.global.security.CustomUserDetailsService;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

@@ -263,12 +263,12 @@ export default function CustomerInfo() {
       bedType: baseBooking.options.bedType,
       specialRequests: baseBooking.options.specialRequests || "",
 
-      roomPrice: baseBooking.pricing.roomPrice,
-      adultBreakfastPrice: baseBooking.pricing.adultBreakfastPrice,
-      childBreakfastPrice: baseBooking.pricing.childBreakfastPrice,
-      subtotal: baseBooking.pricing.subtotal,
-      discount: baseBooking.pricing.discount,
-      total: baseBooking.pricing.total,
+      roomPrice: priceInfo.roomPrice,
+      adultBreakfastPrice: priceInfo.adultBreakfastPrice,
+      childBreakfastPrice: priceInfo.childBreakfastPrice,
+      subtotal: priceInfo.subtotal,
+      discount: priceInfo.discount,
+      total: priceInfo.total,
 
       firstName: formData.firstName,
       lastName: formData.lastName,
@@ -277,7 +277,7 @@ export default function CustomerInfo() {
       cardNumber: formData.cardNumber,
       cardExpiry: formData.cardExpiry,
       room: baseBooking.room ,// room 객체 전체 추가!
-      ...(offer_id !== undefined ? { offer_id } : {})
+      ...(offer_id !== undefined ? { offerId: offer_id } : {})
     }
     try {
       console.log("예약 정보:", bookingInfo);

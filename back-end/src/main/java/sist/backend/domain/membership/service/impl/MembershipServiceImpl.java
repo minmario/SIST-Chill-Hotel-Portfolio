@@ -14,10 +14,6 @@ import sist.backend.domain.membership.service.interfaces.MembershipService;
 @Service
 @RequiredArgsConstructor
 public class MembershipServiceImpl implements MembershipService {
-    // Implement the methods defined in the MembershipService interface here.
-    // This class will handle the business logic related to memberships.
-    // For example, you might have methods to retrieve membership details, calculate
-    // points, etc.
 
     private final MembershipRepository membershipRepository;
 

@@ -50,7 +50,7 @@ export default function MainSlider({ slides }: MainSliderProps) {
   }
 
   return (
-    <section className={styles.carouselContainer}>
+    <section className={styles.carouselContainer + ' ' + styles.mainSliderArita}>
       {/* 슬라이더 */}
       <div className="relative h-full w-full" ref={sliderRef}>
         {slides.map((slide, index) => (

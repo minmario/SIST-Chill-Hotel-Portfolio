@@ -49,7 +49,7 @@ interface Reservation {
   adultCount: number;
   childCount: number;
   roomNumber: string;
-  roomTypeIdx: string;
+  roomTypeIdx: number; // number로 변경
   roomGrade: string;
   total: number;
   specialRequests: string;
@@ -69,10 +69,17 @@ export default function ReservationsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [giftShopStatusFilter, setGiftShopStatusFilter] = useState<string>("all")
   const [rooms, setRooms] = useState<Room[]>([])
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
     const fetchReservations = async () => {
-      const res = await fetch("/api/admin/reservations")
+      const res = await fetch("/api/admin/reservations", {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: "include",
+      })
       const data = await res.json()
       if (Array.isArray(data)) {
         setReservations(data)
@@ -86,7 +93,13 @@ export default function ReservationsPage() {
   }, [])
   useEffect(() => {
     const fetchRooms = async () => {
-      const res = await fetch("/api/admin/rooms/minimal") // 백엔드 URL 맞게 수정
+      const res = await fetch("/api/admin/rooms/minimal", {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: "include",
+      }) // 백엔드 URL 맞게 수정
       const data = await res.json()
       setRooms(data)
     }
@@ -94,7 +107,6 @@ export default function ReservationsPage() {
   }, [])
   useEffect(() => {
     const fetchGiftShopOrders = async () => {
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const res = await fetch("/api/admin/gift_shop/orders", {
         headers: {
           "Content-Type": "application/json",
@@ -900,19 +912,23 @@ setSelectedReservation({
                   <div>
                     <p className="text-sm text-gray-500 mb-2">주문 상품</p>
                     <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                      {selectedGiftShopOrder.items.map((item) => (
-                        <div key={item.itemName} className="flex gap-3 bg-gray-50 p-3 rounded-md">
-                          <div className="flex-1">
-                            <p className="font-medium">{item.itemName}</p>
-                            <div className="flex justify-between text-sm text-gray-600 mt-1">
-                              <span>
-                                {item.price.toLocaleString()}원 × {item.quantity}
-                              </span>
-                              <span className="font-medium">{(item.price * item.quantity).toLocaleString()}원</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                      {Array.isArray(selectedGiftShopOrder?.items) && selectedGiftShopOrder.items.length > 0 ? (
+  selectedGiftShopOrder.items.map((item) => (
+    <div key={item.itemName} className="flex gap-3 bg-gray-50 p-3 rounded-md">
+      <div className="flex-1">
+        <p className="font-medium">{item.itemName}</p>
+        <div className="flex justify-between text-sm text-gray-600 mt-1">
+          <span>
+            {item.price.toLocaleString()}원 × {item.quantity}
+          </span>
+          <span className="font-medium">{(item.price * item.quantity).toLocaleString()}원</span>
+        </div>
+      </div>
+    </div>
+  ))
+) : (
+  <div className="text-gray-400 text-center py-4">주문 상품 내역이 없습니다.</div>
+)}
                     </div>
                   </div>
 

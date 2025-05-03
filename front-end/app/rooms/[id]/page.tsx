@@ -119,6 +119,54 @@ const rooms = [
   },
   {
     id: "4",
+    name: "Chill Family",
+    description:
+      "가족이 함께 머물기 좋은 넓은 패밀리룸입니다. 더블+싱글 침대 구성, 키즈 어메니티, 넓은 거실과 다양한 수납공간, 어린이 안전용품까지 모두 준비되어 있어 가족 여행에 최적입니다.",
+    price: 420000,
+    images: [
+      "/images/rooms/family/family1.png?height=600&width=800",
+      "/images/rooms/family/family2.png?height=600&width=800",
+      "/images/rooms/family/family3.png?height=600&width=800",
+    ],
+    details: {
+      composition: "침실 2, 욕실 2, 거실 1",
+      location: "10-15층",
+      bedType: "더블 + 싱글 또는 패밀리 침대",
+      size: "56㎡",
+      checkIn: "15:00",
+      checkOut: "12:00",
+      view: "시티 뷰 또는 파크 뷰",
+      floor: "10-15층",
+    },
+    amenities: {
+      room: [
+        "무료 고속 Wi-Fi",
+        "65인치 스마트 TV",
+        "미니바",
+        "네스프레소 커피 머신",
+        "개별 온도 조절",
+        "금고",
+        "책상",
+        "슬리퍼",
+        "블루투스 스피커",
+        "웰컴 과일 바구니",
+        "턴다운 서비스",
+        "라운지 액세스",
+      ],
+      bath: [
+        "레인 샤워",
+        "헤어 드라이어",
+        "목욕 가운",
+        "럭스 프리미엄 어메니티",
+        "메이크업 거울",
+        "대형 욕조",
+        "히팅 플로어",
+        "스팀 샤워",
+      ],
+    },
+  },
+  {
+    id: "5",
     name: "Chill Lake",
     description:
       "아름다운 호수 전망을 자랑하는 객실로, 자연과 도시가 조화를 이루는 특별한 경험을 제공합니다. 넓은 창문을 통해 들어오는 자연광이 객실을 밝게 비춥니다.",
@@ -166,7 +214,7 @@ const rooms = [
     },
   },
   {
-    id: "5",
+    id: "6",
     name: "Ultimate Chill Suite",
     description:
       "럭스 호텔의 최상급 스위트룸으로, 넓은 공간과 최고급 인테리어, 프라이빗 라운지 액세스 등 특별한 서비스를 제공합니다. 도시의 파노라마 전망을 감상할 수 있는 완벽한 공간입니다.",
@@ -226,14 +274,14 @@ const facilities = [
     name: "수영장",
     description:
       "탁 트인 전망을 자랑하는 실내 수영장에서 여유로운 시간을 보내세요. 온도 조절이 가능한 수영장은 계절에 상관없이 편안한 수영을 즐기실 수 있습니다.",
-      image: "/images/facility/swimpool.png?height=400&width=600",
+    image: "/images/facility/swimpool.png?height=400&width=600",
   },
   {
     id: "spa",
     name: "스파",
     description:
       "럭스 스파에서 일상의 스트레스를 잊고 몸과 마음의 균형을 되찾으세요. 다양한 트리트먼트와 마사지 프로그램이 준비되어 있습니다.",
-      image: "/images/facility/sauna.png?height=400&width=600",
+    image: "/images/facility/sauna.png?height=400&width=600",
   },
   {
     id: "fitness",
