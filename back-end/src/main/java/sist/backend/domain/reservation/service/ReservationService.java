@@ -27,7 +27,7 @@ import sist.backend.domain.room.entity.Room;
 import sist.backend.domain.room.entity.RoomType;
 import sist.backend.domain.room.repository.RoomRepository;
 import sist.backend.domain.room.repository.RoomTypeRepository;
-import sist.backend.domain.specialoffer.SpecialOfferService;
+import sist.backend.domain.specialoffer.service.SpecialOfferService;
 import sist.backend.domain.specialoffer.entity.SpecialOffer;
 import sist.backend.domain.user.entity.ActivityType;
 import sist.backend.domain.user.entity.User;
