@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import sist.backend.domain.reservation.entity.ReservationStatus;
 import sist.backend.domain.room.entity.RoomType;
 
 public interface RoomTypeRepository extends JpaRepository<RoomType, Long> {
@@ -24,16 +25,15 @@ public interface RoomTypeRepository extends JpaRepository<RoomType, Long> {
       WHERE r.roomIdx NOT IN (
         SELECT res.room.roomIdx
         FROM Reservation res
-        WHERE NOT (
-          res.checkOut <= :checkInDate
-          OR res.checkIn >= :checkOutDate
-        )
+        WHERE
+          res.checkOut > :checkInDate
+          AND res.checkIn < :checkOutDate
       )
       GROUP BY rt.roomTypesIdx
-      """)
-      List<RoomType> findAvailableRoomTypes(
-              @Param("checkInDate") LocalDate checkInDate,
-              @Param("checkOutDate") LocalDate checkOutDate
-      );
+    """)
+    List<RoomType> findAvailableRoomTypes(
+        @Param("checkInDate") LocalDate checkInDate,
+        @Param("checkOutDate") LocalDate checkOutDate
+    );
 
 }

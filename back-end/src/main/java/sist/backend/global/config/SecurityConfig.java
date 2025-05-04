@@ -51,10 +51,19 @@ public class SecurityConfig {
                         // .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF")
                         // .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "STAFF")
                         .requestMatchers("/admin/**").permitAll()
+<<<<<<< HEAD
                         .requestMatchers("/api/admin/**").permitAll()
                         .requestMatchers("/api/dining/**").permitAll()
                         .requestMatchers("/api/retaurants/**").permitAll()
                         .requestMatchers("/api/mypage/**").authenticated()
+=======
+                        .requestMatchers("/dining/**").permitAll()
+                        .requestMatchers("/api/**").permitAll()
+                        .requestMatchers(
+                                "/api/user/auth/login",
+                                "/api/user/auth/register")
+                        .permitAll()
+>>>>>>> vldhtmxk.dev2
                         .requestMatchers(
                                 "/api/user/auth/logout",
                                 "/api/mypage/**",

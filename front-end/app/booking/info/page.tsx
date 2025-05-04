@@ -121,9 +121,11 @@ function BookingInfoContent() {
 
   const calculateTotal = (savePercent = 0) => {
     const nights = calculateNights(bookingParams.checkIn, bookingParams.checkOut)
-    const basePrice = (selectedRoom?.weekPrice ?? selectedRoom?.price ?? 0) * nights
-    const adultBreakfastPrice = 35000 * adultBreakfast * nights
-    const childBreakfastPrice = 20000 * childBreakfast * nights
+    const roomCount = (selectedRoom?.roomCount ?? 1)
+    const nightAndCount = nights * roomCount 
+    const basePrice = (selectedRoom?.weekPrice ?? selectedRoom?.price ?? 0) * nightAndCount
+    const adultBreakfastPrice = 35000 * adultBreakfast * nightAndCount
+    const childBreakfastPrice = 20000 * childBreakfast * nightAndCount
     const total = basePrice + adultBreakfastPrice + childBreakfastPrice
 
     // savePercent가 0이 아니면 해당 퍼센트로 할인
@@ -157,10 +159,13 @@ function BookingInfoContent() {
     }
     // 예약 정보 저장
     const bookingInfo = {
+      membership_idx: membershipIdx,
+      specialOffer: specialOffer ?? null, // specialOffer 정보도 bookingInfo에 저장
       room: selectedRoom,
       roomIdx: selectedRoom.roomIdx, // ✅ 추가: 백엔드로 보낼 roomIdx
-      roomTypesIdx: selectedRoom.roomTypesIdx, // 백엔드에서 필요하다면 이것도
+      roomTypesIdx: specialOffer?.roomTypesIdx ?? selectedRoom.roomTypesIdx, // 백엔드에서 필요하다면 이것도
       params: bookingParams,
+      roomCount: selectedRoom.roomCount,
       options: {
         bedType,
         adultBreakfast,
@@ -169,8 +174,7 @@ function BookingInfoContent() {
       },
       pricing: calculateTotal(),
       // membership_idx도 예약 정보에 포함
-      membership_idx: membershipIdx,
-      specialOffer: specialOffer ?? null, // specialOffer 정보도 bookingInfo에 저장
+     
     }
     localStorage.setItem("bookingInfo", JSON.stringify(bookingInfo))
 
@@ -359,12 +363,12 @@ function BookingInfoContent() {
                   </div>
 
                   <div className={styles.selectedRoomDetails}>
-                    <h3 className={styles.selectedRoomName}>{selectedRoom.name}</h3>
+                    <h3 className={styles.selectedRoomName}>객실 이름: {selectedRoom.roomName}</h3>
                     <p className={styles.selectedRoomDates}>
                       체크인: {bookingParams.checkIn} / 체크아웃: {bookingParams.checkOut}
                     </p>
                     <p className={styles.selectedRoomGuests}>
-                      객실 {bookingParams.rooms}개 / 성인 {bookingParams.adults}명
+                      객실 {bookingParams.roomCount}개 / 성인 {bookingParams.adults}명
                       {Number.parseInt(bookingParams.children) > 0 ? `, 어린이 ${bookingParams.children}명` : ""}
                     </p>
 

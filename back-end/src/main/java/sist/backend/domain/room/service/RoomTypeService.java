@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
 import sist.backend.domain.reservation.entity.Reservation;
+import sist.backend.domain.reservation.entity.ReservationStatus;
 import sist.backend.domain.reservation.repository.ReservationRepository;
 import sist.backend.domain.room.entity.RoomType;
 import sist.backend.domain.room.dto.response.RoomTypeResponse;

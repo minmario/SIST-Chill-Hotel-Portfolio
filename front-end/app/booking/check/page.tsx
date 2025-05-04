@@ -47,9 +47,9 @@ export default function BookingCheckPage() {
         }
 
         if (searchCategory === "hotel") {
-          url = `/api/reservations/check/guest?lastName=${firstName}&firstName=${lastName}&phone=${phone}`
+          url = `/api/reservations/check/guest?firstName=${firstName}&lastName=${lastName}&phone=${phone}`
         } else {
-          url = `/api/dining/check/guest?lastName=${firstName}&firstName=${lastName}&phone=${phone}`
+          url = `/api/dining/check/guest?firstName=${firstName}&lastName=${lastName}&phone=${phone}`
         }
       }
 
@@ -147,30 +147,30 @@ export default function BookingCheckPage() {
             <>
               <div className="mb-4 flex gap-4">
                 <div className="w-1/2">
-                  <label htmlFor="lastName" className="block mb-2 font-medium">
-                    성
-                  </label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    className="w-full p-3 border border-gray-300 rounded"
-                    placeholder="성을 입력하세요"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                </div>
-
-                <div className="w-1/2">
                   <label htmlFor="firstName" className="block mb-2 font-medium">
-                    이름
+                    성
                   </label>
                   <input
                     type="text"
                     id="firstName"
                     className="w-full p-3 border border-gray-300 rounded"
-                    placeholder="이름을 입력하세요"
+                    placeholder="성을 입력하세요"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+
+                <div className="w-1/2">
+                  <label htmlFor="lastName" className="block mb-2 font-medium">
+                    이름
+                  </label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    className="w-full p-3 border border-gray-300 rounded"
+                    placeholder="이름을 입력하세요"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
                   />
                 </div>
               </div>

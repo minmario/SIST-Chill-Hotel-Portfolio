@@ -17,6 +17,7 @@ export default function Booking() {
   const [sortOption, setSortOption] = useState("price-asc")
   const [selectedRoom, setSelectedRoom] = useState<any>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [roomTypes, setRoomTypes] = useState<any[]>([]);
 
   // 스페셜 오퍼 상태 추가
   const [specialOffers, setSpecialOffers] = useState<any[]>([]);
@@ -25,16 +26,17 @@ export default function Booking() {
   const [searchParams, setSearchParams] = useState({
     checkIn: "",
     checkOut: "",
-    rooms: "1",
+    roomCount: "1",
     adults: "2",
     children: "0",
   })
+  
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     setSearchParams({
       checkIn: params.get("checkInDate") || "",
       checkOut: params.get("checkOutDate") || "",
-      rooms: params.get("roomCount") || "1",
+      roomCount: params.get("roomCount") || "1",
       adults: params.get("adults") || "1",
       children: params.get("children") || "0",
 
@@ -47,9 +49,8 @@ export default function Booking() {
       if (!searchParams.checkIn || !searchParams.checkOut || !searchParams.adults) return
 
       try {
-        const guestCount = parseInt(searchParams.adults.replace(/[^0-9]/g, ""), 10);
         const res = await fetch(
-          `/api/room-types/available?checkInDate=${searchParams.checkIn}&checkOutDate=${searchParams.checkOut}&roomCount=${searchParams.rooms}&adults=${searchParams.adults}&children=${searchParams.children}`
+          `/api/room-types/available?checkInDate=${searchParams.checkIn}&checkOutDate=${searchParams.checkOut}&roomCount=${searchParams.roomCount}&adults=${searchParams.adults}&children=${searchParams.children}`
         )
         const data = await res.json()
         console.log("객실 API 응답:", data);
@@ -66,7 +67,7 @@ export default function Booking() {
     }
 
     fetchAvailableRooms()
-  }, [searchParams.checkIn, searchParams.checkOut, searchParams.adults])
+  }, [searchParams.checkIn, searchParams.checkOut, searchParams.roomCount,searchParams.adults,searchParams.children])
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     // 검색 로직 구현
@@ -88,11 +89,6 @@ export default function Booking() {
     return 0
   })
 
-  const sortedPackages = [...rooms].sort((a, b) => {
-    if (sortOption === "price-asc") return a.price - b.price
-    if (sortOption === "price-desc") return b.price - a.price
-    return 0
-  })
 
   // 패키지 탭 활성화 시 스페셜 오퍼 데이터 패칭
   useEffect(() => {
@@ -114,26 +110,24 @@ export default function Booking() {
     }
   }, [activeTab]);
 
-  const openModal = (item: any) => {
-    setSelectedRoom(item)
-    setModalOpen(true)
-  }
 
   const closeModal = () => {
     setModalOpen(false)
   }
 
   const handleBookNow = (roomType: any) => {
-    const roomIdx = roomType.availableRoomIdxList?.[0];
+    const availableList = roomType.availableRoomIdxList || [];
+    const count = parseInt(searchParams.roomCount || "1", 10);
 
-    if (!roomIdx) {
+    if (availableList.length < count) {
       alert("해당 객실 타입에는 예약 가능한 방이 없습니다.");
       return;
     }
-
+    const selectedRoomIdxList = availableList.slice(0, count);
     const selected = {
       ...roomType,
-      roomIdx, // 자동으로 예약 가능한 첫 번째 방 할당
+      roomIdx: selectedRoomIdxList,
+      roomCount: count,
     };
 
     localStorage.setItem("selectedRoom", JSON.stringify(selected));
@@ -224,14 +218,14 @@ export default function Booking() {
               </div>
 
               <div className={styles.searchGroup}>
-                <label htmlFor="rooms" className={styles.searchLabel}>
+                <label htmlFor="roomCount" className={styles.searchLabel}>
                   객실 수
                 </label>
                 <select
-                  id="rooms"
-                  name="rooms"
+                  id="roomCount"
+                  name="roomCount"
                   className={styles.searchSelect}
-                  value={searchParams.rooms}
+                  value={searchParams.roomCount}
                   onChange={handleInputChange}
                 >
                   {[1, 2, 3, 4, 5].map((num) => (
@@ -355,43 +349,45 @@ export default function Booking() {
             {activeTab === "packages" && (
               <div>
                 <h2 className="text-2xl font-bold mb-6">스페셜 오퍼 상품</h2>
-                {specialOffers.length === 0 ? (
+                {specialOffers.filter((offer) => rooms.some(room => room.roomTypesIdx == offer.roomIdx)).length == 0 ? (
                   <div className="text-gray-500 text-sm">해당 객실에 적용 가능한 스페셜 오퍼가 없습니다.</div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {specialOffers.map((offer) => (
-                      <div key={offer.id} className="border rounded-lg overflow-hidden shadow-md">
-                        <div className="relative w-full h-60">
-                          <Image
-                            src={offer.image || "/main_room.png"}
-                            alt={offer.title}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <div className="p-4 space-y-2">
-                          <h3 className="text-lg font-semibold">{offer.title}</h3>
-                          <p className="text-sm text-gray-600">{offer.subtitle}</p>
-                          {offer.price && (
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '8px 0' }}>
-                              <div className={styles.roomListPrice} style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary-color)' }}>
-                                ₩{Number(offer.price).toLocaleString()}
+                    {specialOffers
+                      .filter((offer) => rooms.some(room => room.roomTypesIdx == offer.roomIdx))
+                      .map((offer) => (
+                        <div key={offer.id} className="border rounded-lg overflow-hidden shadow-md">
+                          <div className="relative w-full h-60">
+                            <Image
+                              src={offer.image || "/main_room.png"}
+                              alt={offer.title}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="p-4 space-y-2">
+                            <h3 className="text-lg font-semibold">{offer.title}</h3>
+                            <p className="text-sm text-gray-600">{offer.subtitle}</p>
+                            {offer.price && (
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '8px 0' }}>
+                                <div className={styles.roomListPrice} style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--primary-color)' }}>
+                                  ₩{Number(offer.price).toLocaleString()}
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    localStorage.setItem("selectedSpecialOffer", JSON.stringify(offer));
+                                    router.push(`/booking/info?offer_id=${offer.id}`);
+                                  }}
+                                  className={styles.roomListBookButton}
+                                  style={{ background: 'var(--primary-color)', color: '#fff', padding: '0.5rem 1.1rem', fontWeight: 600, borderRadius: '8px', fontSize: '1rem' }}
+                                >
+                                  예약하기
+                                </button>
                               </div>
-                              <button
-                                onClick={() => {
-                                  localStorage.setItem("selectedSpecialOffer", JSON.stringify(offer));
-                                  router.push(`/booking/info?offer_id=${offer.id}`);
-                                }}
-                                className={styles.roomListBookButton}
-                                style={{ background: 'var(--primary-color)', color: '#fff', padding: '0.5rem 1.1rem', fontWeight: 600, borderRadius: '8px', fontSize: '1rem' }}
-                              >
-                                예약하기
-                              </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 )}
               </div>

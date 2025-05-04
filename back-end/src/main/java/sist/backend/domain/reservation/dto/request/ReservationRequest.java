@@ -1,5 +1,7 @@
 package sist.backend.domain.reservation.dto.request;
 
+import java.util.List;
+
 import lombok.*;
 
 
@@ -19,7 +21,7 @@ public class ReservationRequest {
 
   // 사용자 및 객실 정보
   private Long userIdx;
-  private Long roomIdx;
+  private List<Long> roomIdxList;
   private Long roomTypesIdx;
 
   // 예약 정보
