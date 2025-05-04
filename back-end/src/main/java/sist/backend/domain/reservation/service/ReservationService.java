@@ -4,8 +4,12 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,96 +27,106 @@ import sist.backend.domain.room.entity.Room;
 import sist.backend.domain.room.entity.RoomType;
 import sist.backend.domain.room.repository.RoomRepository;
 import sist.backend.domain.room.repository.RoomTypeRepository;
+import sist.backend.domain.specialoffer.SpecialOfferService;
 import sist.backend.domain.specialoffer.entity.SpecialOffer;
+import sist.backend.domain.user.entity.ActivityType;
 import sist.backend.domain.user.entity.User;
 import sist.backend.domain.user.repository.UserActivityLogRepository;
 import sist.backend.domain.user.repository.UserRepository;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class ReservationService {
 
-    private final UserActivityLogRepository userActivityLogRepository;
+        private final UserActivityLogRepository userActivityLogRepository;
 
         private final ReservationRepository reservationRepository;
         private final RoomRepository roomRepository;
         private final UserRepository userRepository;
         private final RoomTypeRepository roomTypeRepository;
         private final MembershipRepository membershipRepository;
-        private final sist.backend.domain.specialoffer.SpecialOfferService specialOfferService;
+        private final SpecialOfferService specialOfferService;
 
-        public List<ReservationResponse> getReservation(Long userIdx, String reservationNum) {
-                List<Reservation> entities = reservationRepository.findByUser_UserIdxAndReservationNum(userIdx, reservationNum);
-                if (entities == null || entities.isEmpty()) {
-                        throw new IllegalArgumentException("예약 정보를 찾을 수 없습니다.");
-                }
-                return entities.stream().map(ReservationResponse::fromEntity).toList();
-        }
-
-        public ReservationResponse saveReservation(ReservationRequest request) {
+        public List<ReservationResponse> saveReservation(ReservationRequest request) {
+                System.out.println("[DEBUG] saveReservation() called");
                 User user = null;
-
+                Set<Long> usedRoomIds = new HashSet<>();
                 if (request.getUserIdx() != null && request.getUserIdx() != 0) {
                         user = userRepository.findByUserIdx(request.getUserIdx())
                                         .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
                 }
 
-                Room room = roomRepository.findById(request.getRoomIdx())
-                                .orElseThrow(() -> new IllegalArgumentException("객실을 찾을 수 없습니다."));
+                List<Reservation> reservations = new ArrayList<>();
+                System.out.println("[DEBUG] roomCount: " + request.getRoomCount());
+                for (int i = 0; i < request.getRoomCount(); i++) {
+                        System.out.println("roomIdx: " + request.getRoomIdxList().get(i));
+                        Long roomIdx = request.getRoomIdxList().get(i);
 
-                RoomType roomType = roomTypeRepository.findById(request.getRoomTypesIdx())
-                                .orElseThrow(() -> new IllegalArgumentException("객실 타입을 찾을 수 없습니다."));
+                        if (!usedRoomIds.add(roomIdx)) {
+                                throw new IllegalArgumentException("같은 방이 중복 선택되었습니다: " + roomIdx);
+                        }
+                        Room room = roomRepository.findById(roomIdx)
+                                        .orElseThrow(() -> new IllegalArgumentException("객실을 찾을 수 없습니다."));
+                        RoomType roomType = roomTypeRepository.findById(request.getRoomTypesIdx())
+                                        .orElseThrow(() -> new IllegalArgumentException("객실 타입을 찾을 수 없습니다."));
 
-                // SpecialOffer 연관관계 처리
-                SpecialOffer specialOffer = null;
-                if (request.getOfferId() != null) {
-                    specialOffer = specialOfferService.getAllSpecialOffers().stream()
-                        .filter(so -> so.getId().equals(request.getOfferId()))
-                        .findFirst()
-                        .orElse(null);
+                        // SpecialOffer 연관관계 처리
+                        SpecialOffer specialOffer = null;
+                        if (request.getOfferId() != null) {
+                                specialOffer = specialOfferService.getAllSpecialOffers().stream()
+                                                .filter(so -> so.getId().equals(request.getOfferId()))
+                                                .findFirst()
+                                                .orElse(null);
+                        }
+
+                        Reservation reservation = Reservation.builder()
+                                        .status(ReservationStatus.CONFIRMED)
+                                        .user(user)
+                                        .room(room)
+                                        .roomType(roomType)
+                                        .reservationNum(generateReservationCode())
+                                        .checkIn(LocalDate.parse(request.getCheckIn()))
+                                        .checkOut(LocalDate.parse(request.getCheckOut()))
+                                        .roomCount(request.getRoomCount())
+                                        .adultCount(request.getAdultCount())
+                                        .childCount(request.getChildCount())
+                                        .bedType(request.getBedType())
+                                        .specialRequests(request.getSpecialRequests())
+                                        .roomPrice(request.getRoomPrice())
+                                        .adultBreakfastPrice(request.getAdultBreakfastPrice())
+                                        .childBreakfastPrice(request.getChildBreakfastPrice())
+                                        .subtotal(request.getSubtotal())
+                                        .discount(request.getDiscount())
+                                        .total(request.getTotal())
+                                        .firstName(request.getFirstName())
+                                        .lastName(request.getLastName())
+                                        .email(request.getEmail())
+                                        .phone(request.getPhone())
+                                        .cardNumber(request.getCardNumber())
+                                        .cardExpiry(request.getCardExpiry())
+                                        .specialOffer(specialOffer)
+                                        .build();
+                        System.out.println("[DEBUG] reservation: " + reservation);
+                        Reservation saved = reservationRepository.save(reservation);
+                        reservations.add(saved);
+                        // 예약 활동 로그 기록 (IP 제외)
+                        String activityDetails = (saved.getRoom() != null && saved.getRoom().getRoomNum() != null)
+                                        ? saved.getRoom().getRoomNum() + "호 예약 신청"
+                                        : "예약 신청";
+                        sist.backend.domain.user.entity.UserActivityLog log = sist.backend.domain.user.entity.UserActivityLog
+                                        .builder()
+                                        .user(saved.getUser())
+                                        .activityType(ActivityType.HOTEL_RESERVATION)
+                                        .activityDetails(activityDetails)
+                                        .build();
+                        userActivityLogRepository.save(log);
+
                 }
 
-                Reservation reservation = Reservation.builder()
-                                .status(ReservationStatus.CONFIRMED)
-                                .user(user)
-                                .room(room)
-                                .roomType(roomType)
-                                .reservationNum(generateReservationCode())
-                                .checkIn(LocalDate.parse(request.getCheckIn()))
-                                .checkOut(LocalDate.parse(request.getCheckOut()))
-                                .roomCount(request.getRoomCount())
-                                .adultCount(request.getAdultCount())
-                                .childCount(request.getChildCount())
-                                .bedType(request.getBedType())
-                                .specialRequests(request.getSpecialRequests())
-                                .roomPrice(request.getRoomPrice())
-                                .adultBreakfastPrice(request.getAdultBreakfastPrice())
-                                .childBreakfastPrice(request.getChildBreakfastPrice())
-                                .subtotal(request.getSubtotal())
-                                .discount(request.getDiscount())
-                                .total(request.getTotal())
-                                .firstName(request.getFirstName())
-                                .lastName(request.getLastName())
-                                .email(request.getEmail())
-                                .phone(request.getPhone())
-                                .cardNumber(request.getCardNumber())
-                                .cardExpiry(request.getCardExpiry())
-                                .specialOffer(specialOffer)
-                                .build();
-
-                Reservation saved = reservationRepository.save(reservation);
-
-                // 예약 활동 로그 기록 (IP 제외)
-                String activityDetails = (saved.getRoom() != null && saved.getRoom().getRoomNum() != null)
-                        ? saved.getRoom().getRoomNum() + "호 예약 신청"
-                        : "예약 신청";
-                sist.backend.domain.user.entity.UserActivityLog log = sist.backend.domain.user.entity.UserActivityLog.builder()
-                        .user(saved.getUser())
-                        .activityType(sist.backend.domain.user.entity.ActivityType.HOTEL_RESERVATION)
-                        .activityDetails(activityDetails)
-                        .build();
-                userActivityLogRepository.save(log);
-                return ReservationResponse.fromEntity(saved);
+                return reservations.stream()
+                                .map(ReservationResponse::fromEntity)
+                                .collect(Collectors.toList());
         }
 
         private String generateReservationCode() {
@@ -129,47 +143,12 @@ public class ReservationService {
         }
 
         @Transactional(readOnly = true)
-        public ReservationLookupResponse getReservationByNumber(String reservationNum) {
-                Reservation reservation = reservationRepository.findByReservationNum(reservationNum)
-                                .orElseThrow(() -> new IllegalArgumentException("예약을 찾을 수 없습니다."));
-                return toLookupDto(reservation); // 이걸 내부 메서드로 처리
-        }
-
-        @Transactional(readOnly = true)
         public List<ReservationResponse> getReservationsByGuest(String lastName, String firstName, String phone) {
-                List<Reservation> reservations = reservationRepository.findAllByLastNameAndFirstNameAndPhone(lastName, firstName, phone);
+                List<Reservation> reservations = reservationRepository.findByGuestInfo(lastName, firstName, phone);
                 if (reservations == null || reservations.isEmpty()) {
                         throw new IllegalArgumentException("예약 정보를 찾을 수 없습니다.");
                 }
                 return reservations.stream().map(ReservationResponse::fromEntity).toList();
-        }
-
-        @Transactional(readOnly = true)
-        public ReservationLookupResponse getReservationByGuest(String lastName, String firstName, String phone) {
-                Reservation reservation = reservationRepository
-                                .findByLastNameAndFirstNameAndPhone(lastName, firstName, phone)
-                                .orElseThrow(() -> new IllegalArgumentException("예약 정보를 찾을 수 없습니다."));
-                return toLookupDto(reservation);
-        }
-
-        private ReservationLookupResponse toLookupDto(Reservation r) {
-                int nights = (int) ChronoUnit.DAYS.between(r.getCheckIn(), r.getCheckOut());
-
-                return ReservationLookupResponse.builder()
-                                .reservationNum(r.getReservationNum())
-                                .fullName(r.getLastName() + r.getFirstName())
-                                .phone(r.getPhone())
-                                .email(r.getEmail())
-                                .roomName(r.getRoom().getRoomType().getRoomName())
-                                .roomGrade(r.getRoomType().getGrade())
-                                .checkIn(r.getCheckIn())
-                                .checkOut(r.getCheckOut())
-                                .adultCount(r.getAdultCount())
-                                .childCount(r.getChildCount())
-                                .totalNights(nights)
-                                .totalPrice(r.getTotal())
-                                .status(r.getStatus().toString())
-                                .build();
         }
 
         @Transactional
@@ -181,13 +160,14 @@ public class ReservationService {
 
                 // 예약 취소 활동 로그 기록 (IP 제외)
                 String activityDetails = (reservation.getRoom() != null && reservation.getRoom().getRoomNum() != null)
-                        ? reservation.getRoom().getRoomNum() + "호 예약 취소"
-                        : "예약 취소";
-                sist.backend.domain.user.entity.UserActivityLog log = sist.backend.domain.user.entity.UserActivityLog.builder()
-                        .user(reservation.getUser())
-                        .activityType(sist.backend.domain.user.entity.ActivityType.HOTEL_RESERVATION_CANCEL)
-                        .activityDetails(activityDetails)
-                        .build();
+                                ? reservation.getRoom().getRoomNum() + "호 예약 취소"
+                                : "예약 취소";
+                sist.backend.domain.user.entity.UserActivityLog log = sist.backend.domain.user.entity.UserActivityLog
+                                .builder()
+                                .user(reservation.getUser())
+                                .activityType(sist.backend.domain.user.entity.ActivityType.HOTEL_RESERVATION_CANCEL)
+                                .activityDetails(activityDetails)
+                                .build();
                 userActivityLogRepository.save(log);
         }
 

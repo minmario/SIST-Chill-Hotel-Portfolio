@@ -1,6 +1,7 @@
 package sist.backend.domain.reservation.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,6 +13,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -23,6 +26,7 @@ import sist.backend.domain.room.entity.Room;
 import sist.backend.domain.room.entity.RoomType;
 import sist.backend.domain.specialoffer.entity.SpecialOffer;
 import sist.backend.domain.user.entity.User;
+import sist.backend.global.common.BaseTimeEntity;
 
 @Entity
 @Table(name = "reservation")
@@ -31,7 +35,7 @@ import sist.backend.domain.user.entity.User;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Reservation {
+public class Reservation extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -117,6 +121,24 @@ public class Reservation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "offer_id")
     private SpecialOffer specialOffer;
+
+      
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
     // 비즈니스 메서드
     public void updateStatus(ReservationStatus status) {

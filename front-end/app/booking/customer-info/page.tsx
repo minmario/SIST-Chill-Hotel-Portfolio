@@ -38,10 +38,11 @@ export default function CustomerInfo() {
   const [termsModalOpen, setTermsModalOpen] = useState(false)
   const [bookingInfo, setBookingInfo] = useState<any>(null)
   const [mounted, setMounted] = useState(false) // SSR 오류 방지용
+  const accessToken = localStorage.getItem("accessToken");
 
   // 회원 등급 할인율 계산 함수
-  function getMemberDiscountPercent(idx: number|null|undefined) {
-    switch(idx) {
+  function getMemberDiscountPercent(idx: number | null | undefined) {
+    switch (idx) {
       case 1: return 3;
       case 2: return 5;
       case 3: return 7;
@@ -64,7 +65,7 @@ export default function CustomerInfo() {
     if (typeof bookingInfo.membership_idx === 'number') {
       memberDiscountPercent = getMemberDiscountPercent(bookingInfo.membership_idx);
       memberLabel = `회원 등급 할인 (${memberDiscountPercent}%)`;
-      const discount = Math.round(subtotal * (memberDiscountPercent/100));
+      const discount = Math.round(subtotal * (memberDiscountPercent / 100));
       priceInfo = {
         ...priceInfo,
         roomPrice: offerPrice,
@@ -87,7 +88,7 @@ export default function CustomerInfo() {
     memberLabel = `회원 등급 할인 (${memberDiscountPercent}%)`;
     if (priceInfo) {
       // 일반 객실 예약 할인 계산
-      const discount = Math.round(priceInfo.subtotal * (memberDiscountPercent/100));
+      const discount = Math.round(priceInfo.subtotal * (memberDiscountPercent / 100));
       priceInfo = {
         ...priceInfo,
         discount,
@@ -142,40 +143,40 @@ export default function CustomerInfo() {
           const { extractSubFromToken } = require("../info/jwt");
           const payload = JSON.parse(atob(accessToken.split('.')[1]));
           userName = extractSubFromToken(accessToken);
-        } catch {}
+        } catch { }
       }
       if (accessToken && userName) {
         fetch(`/api/user/find_user?userId=${encodeURIComponent(userName)}`, {
           headers: { Authorization: `Bearer ${accessToken}` }
         })
-        .then(res => res.ok ? res.json() : Promise.reject())
-        .then(user => {
-          setDebugUser(user);
-          setFormData((prev) => ({
-            ...prev,
-            lastName: user.lastName ?? "",
-            firstName: user.firstName ?? "",
-            emailId: user.email ? user.email.split("@")[0] : user.id ?? "",
-            emailDomain: user.email ? user.email.split("@")[1] : "",
-            phone: user.phone ?? "",
-            cardNumber: "",
-            cardExpiry: ""
-          }))
-          setUserEmail(userName);
-        })
-        .catch(() => {
-          setFormData((prev) => ({
-            ...prev,
-            lastName: "",
-            firstName: "",
-            emailId: userName || "",
-            emailDomain: "",
-            phone: "",
-            cardNumber: "",
-            cardExpiry: ""
-          }))
-          setUserEmail(userName || "");
-        });
+          .then(res => res.ok ? res.json() : Promise.reject())
+          .then(user => {
+            setDebugUser(user);
+            setFormData((prev) => ({
+              ...prev,
+              lastName: user.lastName ?? "",
+              firstName: user.firstName ?? "",
+              emailId: user.email ? user.email.split("@")[0] : user.id ?? "",
+              emailDomain: user.email ? user.email.split("@")[1] : "",
+              phone: user.phone ?? "",
+              cardNumber: "",
+              cardExpiry: ""
+            }))
+            setUserEmail(userName);
+          })
+          .catch(() => {
+            setFormData((prev) => ({
+              ...prev,
+              lastName: "",
+              firstName: "",
+              emailId: userName || "",
+              emailDomain: "",
+              phone: "",
+              cardNumber: "",
+              cardExpiry: ""
+            }))
+            setUserEmail(userName || "");
+          });
       } else {
         setFormData((prev) => ({
           ...prev,
@@ -197,7 +198,7 @@ export default function CustomerInfo() {
   }, [])
 
 
-  
+
 
   const handleSelectRoomType = (roomType: RoomType) => {
     setSelectedRoomType(roomType);
@@ -228,7 +229,7 @@ export default function CustomerInfo() {
       alert("개인정보 수집 및 이용에 동의해주세요.")
       return
     }
-  
+
     // 예약 정보에 고객 정보 추가
     const customerInfo = {
       lastName: formData.lastName,
@@ -238,13 +239,13 @@ export default function CustomerInfo() {
       cardNumber: formData.cardNumber,
       cardExpiry: formData.cardExpiry,
     }
-  
+
     const raw = localStorage.getItem("bookingInfo")
     if (!raw) {
       alert("예약 정보가 없습니다.")
       return
     }
-  
+
     const baseBooking = JSON.parse(raw)
     // specialOffer가 있으면 offer_id 추가
     let offer_id = undefined;
@@ -253,11 +254,11 @@ export default function CustomerInfo() {
     }
     const bookingInfo = {
       userIdx: isLoggedIn ? 1 : null, // 실제 로그인 사용자 idx로 교체 필요
-      roomIdx: baseBooking.roomIdx,
+      roomIdxList: baseBooking.roomIdx,
       roomTypesIdx: baseBooking.roomTypesIdx,
       checkIn: baseBooking?.params?.checkIn, // 
       checkOut: baseBooking?.params?.checkOut,
-      roomCount: parseInt(baseBooking.params.rooms),
+      roomCount: parseInt(baseBooking.params.roomCount),
       adultCount: parseInt(baseBooking.params.adults),
       childCount: parseInt(baseBooking.params.children),
       bedType: baseBooking.options.bedType,
@@ -276,21 +277,23 @@ export default function CustomerInfo() {
       phone: formData.phone,
       cardNumber: formData.cardNumber,
       cardExpiry: formData.cardExpiry,
-      room: baseBooking.room ,// room 객체 전체 추가!
+      room: baseBooking.room,// room 객체 전체 추가!
       ...(offer_id !== undefined ? { offerId: offer_id } : {})
     }
     try {
       console.log("예약 정보:", bookingInfo);
+      console.log("bookingInfo.roomIdx: ",bookingInfo.roomIdxList)
       const res = await fetch("/api/reservations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: accessToken ? `Bearer ${accessToken}` : ""
         },
         body: JSON.stringify(bookingInfo),
       });
-  
+
       if (!res.ok) throw new Error("예약 실패")
-  
+
       const result = await res.json()
       console.log("예약 완료:", result)
       // 예약번호를 bookingInfo에 저장 (reservationNum이 응답에 포함된다는 전제)
@@ -309,7 +312,7 @@ export default function CustomerInfo() {
 
   return (
     <>
-      
+
       <div className={styles.header}>
         <div className="container">
           <h1>고객 정보 입력</h1>
@@ -532,71 +535,71 @@ export default function CustomerInfo() {
             </form>
 
             <div className={styles.customerInfoGrid}>
-            {/* 예약 요약 */}
-            {bookingInfo && (
-              <aside className="border rounded p-5 bg-white shadow-sm"  style={{ flex: 1, height: "50%"}}>
-                <h2 className="text-lg font-bold mb-4">예약 요약</h2>
-                <ul className="space-y-4">
-                  {bookingInfo.specialOffer && bookingInfo.specialOffer.price ? (
-                    <li className="flex justify-between">
-                      <div>
-                        <div className="font-medium">{bookingInfo.specialOffer.title}</div>
-                        <div className="text-sm text-gray-500">{bookingInfo.specialOffer.subtitle}</div>
-                      </div>
-                      <div className="font-medium">₩{safe(Number(bookingInfo.specialOffer.price))}</div>
-                    </li>
-                  ) : (
-                    <li className="flex justify-between">
-                      <div>
-                        <div className="font-medium">{bookingInfo.room?.roomName}</div>
-                        <div className="text-sm text-gray-500">{bookingInfo.options?.bedType} 베드, {bookingInfo.room?.viewType}</div>
-                      </div>
-                      <div className="font-medium">₩{safe(priceInfo?.subtotal)}</div>
-                    </li>
-                  )}
-                  {bookingInfo.options?.adultBreakfast > 0 && (
-                    <li className="flex justify-between">
-                      <div>
-                        <div className="font-medium">성인 조식</div>
-                        <div className="text-sm text-gray-500">{bookingInfo.options.adultBreakfast}명</div>
-                      </div>
-                      <div className="font-medium">₩{safe(bookingInfo.pricing?.adultBreakfastPrice)}</div>
-                    </li>
-                  )}
-                  {bookingInfo.options?.childBreakfast > 0 && (
-                    <li className="flex justify-between">
-                      <div>
-                        <div className="font-medium">어린이 조식</div>
-                        <div className="text-sm text-gray-500">{bookingInfo.options.childBreakfast}명</div>
-                      </div>
-                      <div className="font-medium">₩{safe(bookingInfo.pricing?.childBreakfastPrice)}</div>
-                    </li>
-                  )}
-                </ul>
-                <div className="border-t mt-6 pt-4 space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">소계</span>
-                    <span>₩{safe(priceInfo?.subtotal)}</span>
+              {/* 예약 요약 */}
+              {bookingInfo && (
+                <aside className="border rounded p-5 bg-white shadow-sm" style={{ flex: 1, height: "50%" }}>
+                  <h2 className="text-lg font-bold mb-4">예약 요약</h2>
+                  <ul className="space-y-4">
+                    {bookingInfo.specialOffer && bookingInfo.specialOffer.price ? (
+                      <li className="flex justify-between">
+                        <div>
+                          <div className="font-medium">{bookingInfo.specialOffer.title}</div>
+                          <div className="text-sm text-gray-500">{bookingInfo.specialOffer.subtitle}</div>
+                        </div>
+                        <div className="font-medium">₩{safe(Number(bookingInfo.specialOffer.price))}</div>
+                      </li>
+                    ) : (
+                      <li className="flex justify-between">
+                        <div>
+                          <div className="font-medium">{bookingInfo.room?.roomName}</div>
+                          <div className="text-sm text-gray-500">{bookingInfo.options?.bedType} 베드, {bookingInfo.room?.viewType}</div>
+                        </div>
+                        <div className="font-medium">₩{safe(priceInfo?.subtotal)}</div>
+                      </li>
+                    )}
+                    {bookingInfo.options?.adultBreakfast > 0 && (
+                      <li className="flex justify-between">
+                        <div>
+                          <div className="font-medium">성인 조식</div>
+                          <div className="text-sm text-gray-500">{bookingInfo.options.adultBreakfast}명</div>
+                        </div>
+                        <div className="font-medium">₩{safe(bookingInfo.pricing?.adultBreakfastPrice)}</div>
+                      </li>
+                    )}
+                    {bookingInfo.options?.childBreakfast > 0 && (
+                      <li className="flex justify-between">
+                        <div>
+                          <div className="font-medium">어린이 조식</div>
+                          <div className="text-sm text-gray-500">{bookingInfo.options.childBreakfast}명</div>
+                        </div>
+                        <div className="font-medium">₩{safe(bookingInfo.pricing?.childBreakfastPrice)}</div>
+                      </li>
+                    )}
+                  </ul>
+                  <div className="border-t mt-6 pt-4 space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">소계</span>
+                      <span>₩{safe(priceInfo?.subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">{memberLabel}</span>
+                      <span className="text-red-500">-₩{safe(priceInfo?.discount)}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold text-base border-t pt-2">
+                      <span>총 결제 금액</span>
+                      <span>₩{safe(priceInfo?.total)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">{memberLabel}</span>
-                    <span className="text-red-500">-₩{safe(priceInfo?.discount)}</span>
-                  </div>
-                  <div className="flex justify-between font-semibold text-base border-t pt-2">
-                    <span>총 결제 금액</span>
-                    <span>₩{safe(priceInfo?.total)}</span>
-                  </div>
-                </div>
 
-              </aside>
-              
-            )}
-            
+                </aside>
+
+              )}
+
+            </div>
           </div>
         </div>
-       </div> 
-        
-    </section>
+
+      </section>
 
       {termsModalOpen && (
         <div className={styles.termsModal} onClick={() => setTermsModalOpen(false)}>

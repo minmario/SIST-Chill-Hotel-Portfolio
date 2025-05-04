@@ -31,19 +31,36 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
                         "GROUP BY r.roomType.roomTypesIdx")
         List<Object[]> countAvailableRoomsByRoomType(@Param("reservedRoomIds") List<Long> reservedRoomIds);
 
-        @Query("SELECT r FROM Reservation r WHERE r.room = :room " +
-                        "AND r.checkOut > :checkInDate " +
-                        "AND r.checkIn < :checkOutDate")
+        @Query("""
+                          SELECT r
+                          FROM Reservation r
+                          WHERE r.room = :room
+                            AND r.status != 'CANCELLED'
+                            AND r.checkOut > :checkInDate
+                            AND r.checkIn < :checkOutDate
+                        """)
         List<Reservation> findOverlappingReservations(
                         @Param("room") Room room,
                         @Param("checkInDate") LocalDate checkInDate,
                         @Param("checkOutDate") LocalDate checkOutDate);
 
         Optional<Reservation> findByReservationNum(String reservationNum);
-List<Reservation> findAllByReservationNum(String reservationNum);
-List<Reservation> findAllByLastNameAndFirstNameAndPhone(String lastName, String firstName, String phone);
 
-        Optional<Reservation> findByLastNameAndFirstNameAndPhone(String lastName, String firstName, String phone);
+        List<Reservation> findAllByReservationNum(String reservationNum);
+
+        @Query("""
+            SELECT r FROM Reservation r
+            WHERE r.lastName = :lastName
+              AND r.firstName = :firstName
+              AND r.phone = :phone
+            ORDER BY r.createdAt DESC
+          """)
+          List<Reservation> findByGuestInfo(
+            @Param("lastName") String lastName,
+            @Param("firstName") String firstName,
+            @Param("phone") String phone
+          );
+
 
         // 선택 사항
         @Modifying

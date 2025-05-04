@@ -45,7 +45,7 @@ public class RoomTypeResponse {
                 .peakWeekPrice(roomType.getPeakWeekPrice())
                 .peakWeekendPrice(roomType.getPeakWeekendPrice())
                 .totalCount(roomType.getTotalCount())
-                .availableCount(0) 
+                .availableCount(availableRoomIdxList.size()) 
                 .availableRoomIdxList(availableRoomIdxList)
                 .build();
     }
