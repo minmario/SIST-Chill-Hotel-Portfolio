@@ -1,5 +1,5 @@
 "use client"
-
+export const dynamic = 'force-dynamic'
 import type React from "react"
 
 import { useState, useEffect } from "react"
@@ -38,7 +38,7 @@ export default function CustomerInfo() {
   const [termsModalOpen, setTermsModalOpen] = useState(false)
   const [bookingInfo, setBookingInfo] = useState<any>(null)
   const [mounted, setMounted] = useState(false) // SSR 오류 방지용
-  const accessToken = localStorage.getItem("accessToken");
+  const [accessToken,setAccessToken] = useState("")
 
   // 회원 등급 할인율 계산 함수
   function getMemberDiscountPercent(idx: number | null | undefined) {
@@ -124,15 +124,16 @@ export default function CustomerInfo() {
   // 로그인 상태 확인
   useEffect(() => {
     if (typeof window === "undefined") return
-
+    
     const loggedIn = localStorage.getItem("isLoggedIn") === "true"
     const email = localStorage.getItem("userEmail") || ""
     const booking = localStorage.getItem("bookingInfo")
 
     setIsLoggedIn(loggedIn)
     setUserEmail(email)
+    
     if (loggedIn) {
-      const accessToken = localStorage.getItem('accessToken');
+      setAccessToken(localStorage.getItem('accessToken') || "")
       let userName = null;
       if (accessToken) {
         try {
