@@ -66,13 +66,10 @@ export default function DiningPage() {
   const fetchRestaurants = async (page: number, keyword: string) => {
     setLoading(true);
     try {
-      const url = new URL("/api/restaurants");
-      url.searchParams.append("page", page.toString());
-      url.searchParams.append("size", "4");
-      if (keyword) url.searchParams.append("keyword", keyword);
-      const res = await fetch(url.toString());
+      const url = `/api/restaurants?page=${page}&size=4${keyword ? `&keyword=${keyword}` : ""}`;
+      const res = await fetch(url);
       const data = await res.json();
-
+  
       if (Array.isArray(data.content)) {
         setRestaurants(data.content);
         setTotalPages(data.totalPages);
@@ -81,12 +78,14 @@ export default function DiningPage() {
         setTotalPages(1);
       }
     } catch (error) {
+      console.error("레스토랑 불러오기 실패:", error);
       setRestaurants([]);
       setTotalPages(1);
     } finally {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchRestaurants(currentPage, keyword);
