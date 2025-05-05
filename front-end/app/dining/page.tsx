@@ -100,7 +100,7 @@ export default function DiningPage() {
   return (
     <div className="container mx-auto py-20 px-4">
       <div className={styles.header + " mb-12 text-center"}>
-        <h1 className="text-3xl font-bold mb-2">다이닝</h1>
+        <h1 className="text-3xl font-bold mb-2">다이닝 1</h1>
         <p className="text-gray-600">럭셔리 호텔의 다양한 다이닝 옵션을 경험해보세요</p>
       </div>
 
