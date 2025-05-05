@@ -75,6 +75,7 @@ export default function AdminDiningSchedulePage() {
 
   useEffect(() => {
     const fetchRestaurants = async () => {
+      console.log("전송할 날짜:", selectedDate)
       const res = await fetch("/api/restaurants", {
         headers: {
           "Content-Type": "application/json",
