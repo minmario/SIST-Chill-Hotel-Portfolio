@@ -12,7 +12,7 @@ import sist.backend.domain.restaurant.service.RestaurantService;
 @RestController
 @RequestMapping("/api/restaurants")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*")
 public class RestaurantController {
 
     private final RestaurantService restaurantService;

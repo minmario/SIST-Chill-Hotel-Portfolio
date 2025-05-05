@@ -123,14 +123,19 @@ export default function DiningReservePage() {
       email,
       request,
     };
-
+  
     try {
+      const token = localStorage.getItem("accessToken");
+  
       const res = await fetch("/api/dining/reservations", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(reservationData),
       });
-
+  
       if (res.ok) {
         const result = await res.json();
         localStorage.setItem("reservationResult", JSON.stringify(result));

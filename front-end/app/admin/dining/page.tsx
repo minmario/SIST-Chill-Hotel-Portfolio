@@ -71,10 +71,15 @@ export default function AdminDiningSchedulePage() {
   const [selectedReservation, setSelectedReservation] = useState<ReservationCell | null>(null)
   const [updating, setUpdating] = useState(false)
   const [viewMode, setViewMode] = useState("table")
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
     const fetchRestaurants = async () => {
       const res = await fetch("/api/restaurants", {
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
         credentials: "include"
       });
       const data = await res.json()

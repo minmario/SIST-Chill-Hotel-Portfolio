@@ -53,7 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").permitAll()
                         .requestMatchers("/api/admin/**").permitAll()
                         .requestMatchers("/api/dining/**").permitAll()
-                        .requestMatchers("/api/retaurants/**").permitAll()
+                        .requestMatchers("/api/restaurants/**").permitAll()
                         .requestMatchers("/api/mypage/**").authenticated()
                         .requestMatchers(
                                 "/api/user/auth/logout",
