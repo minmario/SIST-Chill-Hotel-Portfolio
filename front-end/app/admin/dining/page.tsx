@@ -90,7 +90,7 @@ export default function AdminDiningSchedulePage() {
   }, [])
 
   const fetchSchedule = async (selectedDate: string, restaurants: Restaurant[], setSchedule: (v: TimeSlot[]) => void) => {
-    const res = await fetch(`/admin/dining/schedule?date=${selectedDate}`, {
+    const res = await fetch(`http://13.209.111.149:8080/admin/dining/schedule?date=${selectedDate}`, {
       credentials: "include"
     });
     const data: ApiReservation[] = await res.json()
@@ -137,7 +137,7 @@ export default function AdminDiningSchedulePage() {
     if (!selectedReservation) return
     try {
       setUpdating(true)
-      const res = await fetch("/admin/dining/status", {
+      const res = await fetch("http://13.209.111.149:8080/admin/dining/status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -165,7 +165,7 @@ export default function AdminDiningSchedulePage() {
     if (!confirmed) return
 
     try {
-      const res = await fetch(`/admin/dining/${selectedReservation.reservationNum}`, {
+      const res = await fetch(`http://13.209.111.149:8080/admin/dining/${selectedReservation.reservationNum}`, {
         method: "DELETE",
         credentials: "include"
       })
@@ -195,15 +195,13 @@ export default function AdminDiningSchedulePage() {
         />
       </div>
       <div className="flex items-center justify-between mb-4">
-        {/* 왼쪽: Tabs */}
         <Tabs value={viewMode} onValueChange={setViewMode}>
           <TabsList>
             <TabsTrigger value="table">테이블 뷰</TabsTrigger>
             <TabsTrigger value="list">리스트 뷰</TabsTrigger>
           </TabsList>
         </Tabs>
-      
-        {/* 오른쪽: 예약 상태 표시 */}
+
         <div className="flex gap-4 text-sm items-center ml-auto">
           <div className="flex items-center gap-1">
             <div className="w-4 h-4 rounded bg-blue-200 border border-blue-400"></div>
@@ -219,7 +217,6 @@ export default function AdminDiningSchedulePage() {
           </div>
         </div>
       </div>
-
 
       {viewMode === "table" ? (
         <div className="overflow-x-auto">
@@ -271,19 +268,19 @@ export default function AdminDiningSchedulePage() {
           {schedule.flatMap((slot) =>
             restaurants.map((r) => {
               const cellArray = slot[r.id]
-                if (!Array.isArray(cellArray)) return null
+              if (!Array.isArray(cellArray)) return null
 
-                return cellArray.map((cell) => (
-                  <div
-                    key={cell.reservationNum}
-                    className={`border rounded p-3 ${getStatusColor(cell.status)}`}
-                    onClick={() => setSelectedReservation(cell)}
-                  >
-                    <div className="font-semibold">{slot.time} | {r.name}</div>
-                    <div className="text-sm">👤 {cell.guestName} | 👪 {cell.partySize}명 (성인 {cell.adults} / 어린이 {cell.children})</div>
-                    <div className="text-xs mt-1">상태: {getStatusLabel(cell.status)}</div>
-                  </div>
-                ))
+              return cellArray.map((cell) => (
+                <div
+                  key={cell.reservationNum}
+                  className={`border rounded p-3 ${getStatusColor(cell.status)}`}
+                  onClick={() => setSelectedReservation(cell)}
+                >
+                  <div className="font-semibold">{slot.time} | {r.name}</div>
+                  <div className="text-sm">👤 {cell.guestName} | 👪 {cell.partySize}명 (성인 {cell.adults} / 어린이 {cell.children})</div>
+                  <div className="text-xs mt-1">상태: {getStatusLabel(cell.status)}</div>
+                </div>
+              ))
             })
           )}
         </div>
