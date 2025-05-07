@@ -51,16 +51,16 @@ export default function StaffPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false)
   const [staffForm, setStaffForm] = useState({
-    id: "",                // ✅ ID 추가
+    id: "",
+    password: "",
     name: "",
     email: "",
     phone: "",
     status: "ACTIVE",
-    role: "ADMIN",         // 관리자 추가용이면 기본 admin
-    password: "",          // ✅ 비밀번호 추가
+    role: "STAFF", // 기본 STAFF
     currentPassword: "",
     newPassword: "",
-    confirmPassword: "",
+    confirmPassword: "", // ✅ 여기 추가!
   });
   // 스태프 데이터 로드 (API에서 가져옴)
   useEffect(() => {
@@ -109,7 +109,7 @@ export default function StaffPage() {
     }
   }
   // 스태프 추가 다이얼로그 열기
-  const openAddDialog = (role: "ADMIN" | "staff" = "staff") => {
+  const openAddDialog = (role: "ADMIN" | "STAFF" = "STAFF") => {
     setStaffForm({
       id: "",
       password: "",
@@ -179,6 +179,12 @@ export default function StaffPage() {
     // 3. 비밀번호 길이 검사
     if (password.length < 8) {
       alert("비밀번호는 최소 8자 이상이어야 합니다.");
+      return;
+    }
+    
+    // ✅ 3-1. 비밀번호 일치 검사
+    if (password !== staffForm.confirmPassword) {
+      alert("비밀번호가 일치하지 않습니다.");
       return;
     }
   
@@ -407,11 +413,11 @@ export default function StaffPage() {
             />
           </div>
           <Button
-            onClick={() => openAddDialog("ADMIN")}
+            onClick={() => openAddDialog("STAFF")}
             className="bg-black text-white rounded-lg hover:bg-gray-800"
           >
             <UserPlus className="mr-2 h-4 w-4" />
-            관리자 추가
+            스태프 추가
           </Button>
         </div>
       </div>
@@ -578,6 +584,16 @@ export default function StaffPage() {
               className="col-span-3"
             />
           </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+  <Label htmlFor="confirm-password" className="text-right">비밀번호 확인</Label>
+  <Input
+    id="confirm-password"
+    type="password"
+    value={staffForm.confirmPassword}
+    onChange={(e) => setStaffForm({ ...staffForm, confirmPassword: e.target.value })}
+    className="col-span-3"
+  />
+</div>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="add-name" className="text-right">

@@ -9,6 +9,8 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
+//prod가 무효시킴
+@Profile("prod")
 @Configuration
 public class AwsS3Config {
 

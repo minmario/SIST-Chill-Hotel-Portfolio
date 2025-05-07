@@ -7,6 +7,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { User, CreditCard, LogOut, Award, Gift, Eye, EyeOff, Key, Save } from "lucide-react"
 import styles from "../mypage.module.css"
+import Image from "next/image"
 
 export default function UserInfo() {
   const router = useRouter()
@@ -248,12 +249,26 @@ if (isLoading) return <p>로딩 중...</p>
 
   return (
     <>
-      <div className={styles.header}>
-        <div className="container">
-          <h1>마이페이지 정보 수정</h1>
-          <p>회원님의 정보를 안전하게 확인, 변경하실 수 있습니다.</p>
-        </div>
-      </div>
+      <div className={styles.header} style={{ position: 'relative', width: '100%', height: '300px', marginBottom: '2rem', overflow: 'hidden' }}>
+  <Image
+    src="/images/mypage/mypage-banner.PNG"   // ✅ 이 이미지 그대로 사용
+    alt="마이페이지 배경"
+    fill
+    style={{ objectFit: 'cover' }}
+    priority
+  />
+  <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.45)' }} />
+  <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 2 }}>
+    <div className="container">
+      <h1 style={{ color: '#fff', fontSize: '2.5rem', fontWeight: 700, marginBottom: '1rem', textShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+        마이페이지
+      </h1>
+      <p style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 400, textAlign: 'center', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+        회원님의 정보를 안전하게 확인, 변경하실수 있습니다
+      </p>
+    </div>
+  </div>
+</div>
 
       <section className={styles.mypageSection}>
         <div className="container">
