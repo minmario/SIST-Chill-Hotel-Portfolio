@@ -163,32 +163,27 @@ export default function StaffPage() {
   const handleAddStaff = async () => {
     const { id, password, name, email, phone } = staffForm;
   
-    // 1. 필수 입력값 확인
     if (!id || !password || !name || !email || !phone) {
       alert("모든 필수 입력값을 채워주세요.");
       return;
     }
   
-    // 2. 이메일 형식 확인
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       alert("유효한 이메일 주소를 입력해주세요.");
       return;
     }
   
-    // 3. 비밀번호 길이 검사
     if (password.length < 8) {
       alert("비밀번호는 최소 8자 이상이어야 합니다.");
       return;
     }
-    
-    // ✅ 3-1. 비밀번호 일치 검사
+  
     if (password !== staffForm.confirmPassword) {
       alert("비밀번호가 일치하지 않습니다.");
       return;
     }
   
-    // 4. 전화번호 숫자만 허용 (10~11자리)
     const cleanedPhone = phone.replace(/\D/g, "");
     if (!/^\d{10,11}$/.test(cleanedPhone)) {
       alert("전화번호는 숫자만 10~11자리여야 합니다.");
@@ -196,19 +191,19 @@ export default function StaffPage() {
     }
   
     try {
-      const token = localStorage.getItem("accessToken")
-      await fetch("/api/admin/staff", {
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch("/api/admin/staff", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           id,
           pwd: password,
           name,
           email,
-          phone: cleanedPhone, // 하이픈 제거
+          phone: cleanedPhone,
           role: staffForm.role,
           status: staffForm.status,
         }),
@@ -216,8 +211,6 @@ export default function StaffPage() {
   
       if (!res.ok) {
         const errorText = await res.text();
-        
-        // 서버에서 "중복" 같은 에러 텍스트가 오면 따로 처리
         if (errorText.includes("이미 존재")) {
           alert("이미 사용 중인 ID 또는 이메일입니다.");
         } else {
@@ -227,7 +220,7 @@ export default function StaffPage() {
       }
   
       // 추가 성공 후 목록 다시 불러오기
-      const res = await fetch("/api/admin/staff", {
+      const refreshed = await fetch("/api/admin/staff", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
