@@ -2,7 +2,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [ build_test ]
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -35,8 +35,10 @@ jobs:
           scp -o StrictHostKeyChecking=no .env $EC2_USER@$EC2_HOST:/home/ubuntu/SIST-Chill-Hotel/.env
 
           ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
-            cd /home/ubuntu/SIST-Chill-Hotel          
-            git pull origin build_test
+            cd /home/ubuntu/SIST-Chill-Hotel
+            git switch main
+            git fetch
+            git pull
             docker-compose down
             docker-compose up -d --build
           EOF
