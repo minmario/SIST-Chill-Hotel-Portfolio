@@ -2,7 +2,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [ main ]
+    branches: [ build_test ]
 
 jobs:
   deploy:
@@ -24,19 +24,31 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
           S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          MAIL_NAME: ${{ secrets.MAIL_NAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
         run: |
           # EC2 서버에 .env 파일 생성
           echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" > .env
           echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> .env
           echo "AWS_REGION=$AWS_REGION" >> .env
           echo "S3_BUCKET_NAME=$S3_BUCKET_NAME" >> .env
+          echo "DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD" >> .env
+          echo "DB_USER=$DB_USER" >> .env
+          echo "DB_PASSWORD=$DB_PASSWORD" >> .env
+          echo "JWT_SECRET_KEY=$JWT_SECRET_KEY" >> .env
+          echo "MAIL_NAME=$MAIL_NAME" >> .env
+          echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env
 
           # .env 파일을 EC2로 전송
           scp -o StrictHostKeyChecking=no .env $EC2_USER@$EC2_HOST:/home/ubuntu/SIST-Chill-Hotel/.env
 
           ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
             cd /home/ubuntu/SIST-Chill-Hotel
-            git switch main
+            git switch build_test
             git fetch
             git pull
             docker-compose down

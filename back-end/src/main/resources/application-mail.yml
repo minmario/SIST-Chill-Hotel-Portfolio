@@ -1,5 +1,4 @@
 mail:
   gmail:
-    username: park594664@gmail.com
-    password: hdodcpeqvuaabilq
-
+    username: ${MAIL_NAME}
+    password: ${MAIL_PASSWORD}

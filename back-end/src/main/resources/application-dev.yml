@@ -1,11 +1,9 @@
-server:
-  port: 8080
 spring:
   datasource: 
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://ted19horse.mysql.database.azure.com:3306/chill
-    username: sist
-    password: 1111
+    url: jdbc:mysql://mysql:3306/chill?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
   docker:
     compose:
       enabled: false

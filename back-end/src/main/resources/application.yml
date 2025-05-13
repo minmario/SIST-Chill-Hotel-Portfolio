@@ -7,15 +7,10 @@ spring:
     allow-circular-references: true
   security:
     jwt:
-      secret: 3c1fdk93k9d209fk09sdkf033kd93k90
+      secret: ${JWT_SECRET_KEY}
       expiration: 36000000
       header: Authorization
       prefix: Bearer
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://ted19horse.mysql.database.azure.com:3306/chill?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: sist
-    password: 1111
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     open-in-view: false
