@@ -65,7 +65,7 @@ public class SecurityConfig {
                                 "/api/user/me")
                         .authenticated()
                         .anyRequest().permitAll())
-                // ðŸ”¥ ì—¬ê¸°!! formLogin(), logout() **ì™„ì „ížˆ ì‚­ì œ**
+                // ?”¥ ?¬ê¸°!! formLogin(), logout() **?„ì „???? œ**
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -81,6 +81,11 @@ public class SecurityConfig {
                 "http://3.37.123.6:8080",
                 "http://43.203.34.21:3000",
                 "http://43.203.34.21:8080",
+                "http://3.39.138.132:3000",
+                "http://3.39.138.132:8080"
+                
+                
+                
                 "*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
         configuration.setAllowedHeaders(
