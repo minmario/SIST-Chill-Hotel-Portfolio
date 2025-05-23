@@ -65,7 +65,7 @@ public class SecurityConfig {
                                 "/api/user/me")
                         .authenticated()
                         .anyRequest().permitAll())
-                // ?”¥ ?¬ê¸°!! formLogin(), logout() **?„ì „???? œ**
+                
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -150,7 +150,7 @@ public class SecurityConfig {
                                 "/api/user/me")
                         .authenticated()
                         .anyRequest().permitAll())
-                // ?”¥ ?¬ê¸°!! formLogin(), logout() **?„ì „???? œ**
+                
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
