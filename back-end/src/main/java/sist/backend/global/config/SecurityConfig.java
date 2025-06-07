@@ -48,7 +48,9 @@ public class SecurityConfig {
                                 "/api/user/summary/update",
                                 "/api/user/points/summary",
                                 "/api/user/points",
-                                "/api/user/me")
+                                "/api/user/me",
+                                "/api/user/auth/login",
+                                "/api/user/auth/register")
                         .authenticated()
                         .anyRequest().permitAll())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
