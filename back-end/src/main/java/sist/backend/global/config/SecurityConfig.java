@@ -41,6 +41,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin/**", "/api/admin/**").permitAll()
                         .requestMatchers("/api/dining/**", "/api/restaurants/**").permitAll()
+                        .requestMatchers("/api/user/auth/login",
+                                "/api/user/auth/register")
                         .requestMatchers(
                                 "/api/user/auth/logout",
                                 "/api/mypage/**",
@@ -49,8 +51,7 @@ public class SecurityConfig {
                                 "/api/user/points/summary",
                                 "/api/user/points",
                                 "/api/user/me",
-                                "/api/user/auth/login",
-                                "/api/user/auth/register")
+                                )
                         .authenticated()
                         .anyRequest().permitAll())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
