@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**", "/api/admin/**").permitAll()
                         .requestMatchers("/api/dining/**", "/api/restaurants/**").permitAll()
                         .requestMatchers("/api/user/auth/login",
-                                "/api/user/auth/register")
+                                "/api/user/auth/register").permitAll()
                         .requestMatchers(
                                 "/api/user/auth/logout",
                                 "/api/mypage/**",
@@ -50,7 +50,7 @@ public class SecurityConfig {
                                 "/api/user/summary/update",
                                 "/api/user/points/summary",
                                 "/api/user/points",
-                                "/api/user/me",
+                                "/api/user/me"
                                 )
                         .authenticated()
                         .anyRequest().permitAll())
