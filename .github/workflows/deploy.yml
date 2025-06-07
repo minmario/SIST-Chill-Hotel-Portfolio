@@ -46,7 +46,7 @@ jobs:
           # .env 파일을 EC2로 전송
           scp -o StrictHostKeyChecking=no .env $EC2_USER@$EC2_HOST:/home/ubuntu/SIST-Chill-Hotel/.env
           # ✅ nginx 설정 파일도 EC2로 전송
-          scp -o StrictHostKeyChecking=no -r nginx $EC2_USER@$EC2_HOST:/home/ubuntu/SIST-Chill-Hotel/nginx
+          scp -o StrictHostKeyChecking=no -r nginx $EC2_USER@$EC2_HOST:/home/ubuntu/SIST-Chill-Hotel/nginx/conf.d
 
           ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
             cd /home/ubuntu/SIST-Chill-Hotel
