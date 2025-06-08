@@ -34,10 +34,17 @@ public class UserAuthController {
     private final UserActivityLogService userActivityLogService;
 
     @PostMapping("/login")
-    public ResponseEntity<UserLoginResponse> login(@RequestBody UserLoginRequest request) {
+public ResponseEntity<?> login(@RequestBody UserLoginRequest request) {
+    try {
         UserLoginResponse response = userAuthService.login(request);
         return ResponseEntity.ok(response);
+    } catch (Exception e) {
+        // ✅ 예외 로그 출력
+        e.printStackTrace(); // 또는 log.error(...) 사용
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                             .body("로그인 실패: " + e.getMessage());
     }
+}
 
     @PostMapping("/register")
     public ResponseEntity<UserRegisterResponse> register(@RequestBody UserRegisterRequest request) {
