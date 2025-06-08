@@ -31,7 +31,7 @@ jobs:
           MAIL_NAME: ${{ secrets.MAIL_NAME }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
         run: |
-          # EC2 서버에 .env 파일 생성
+          # 기존 .env 파일 생성
           echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" > .env
           echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> .env
           echo "AWS_REGION=$AWS_REGION" >> .env
@@ -43,11 +43,16 @@ jobs:
           echo "MAIL_NAME=$MAIL_NAME" >> .env
           echo "MAIL_PASSWORD=$MAIL_PASSWORD" >> .env
 
-          # .env 파일을 EC2로 전송
-          scp -o StrictHostKeyChecking=no .env $EC2_USER@$EC2_HOST:/home/ubuntu/SIST-Chill-Hotel/.env
-          # ✅ nginx 설정 파일도 EC2로 전송
-          scp -o StrictHostKeyChecking=no -r nginx $EC2_USER@$EC2_HOST:/home/ubuntu/SIST-Chill-Hotel/nginx/conf.d
+          # ✅ init.sql 내부 환경변수 치환
+          sed -i "s|\${DB_USER}|$DB_USER|g" ./mysql/init/init.sql
+          sed -i "s|\${DB_PASSWORD}|$DB_PASSWORD|g" ./mysql/init/init.sql
 
+          # ✅ .env와 nginx 설정, init.sql 등 업로드
+          scp -o StrictHostKeyChecking=no .env $EC2_USER@$EC2_HOST:/home/ubuntu/SIST-Chill-Hotel/.env
+          scp -o StrictHostKeyChecking=no -r nginx $EC2_USER@$EC2_HOST:/home/ubuntu/SIST-Chill-Hotel/nginx/conf.d
+          scp -o StrictHostKeyChecking=no ./mysql/init/init.sql $EC2_USER@$EC2_HOST:/home/ubuntu/SIST-Chill-Hotel/mysql/init/init.sql
+
+          # ✅ EC2에서 git pull + docker compose
           ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
             cd /home/ubuntu/SIST-Chill-Hotel
             git switch main
