@@ -46,7 +46,7 @@ public class SecurityConfig {
                                               "/user/auth/register",  
                                               "/api/user/auth/login",
                                               "/api/user/auth/register"
-                                          ).permitAll().permitAll()
+                                          ).permitAll()
                         .requestMatchers(
                                 "/api/user/auth/logout",
                                 "/api/mypage/**",
