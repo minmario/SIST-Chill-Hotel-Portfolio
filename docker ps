@@ -1,0 +1,300 @@
+        reservation_time time(6) not null,
+        restaurant_id bigint not null,
+        restaurant_name varchar(100),
+        status varchar(20),
+        updated_at datetime(6),
+        primary key (id)
+    ) engine=InnoDB
+Hibernate: 
+    create table gift_shop (
+        item_idx bigint not null auto_increment,
+        category varchar(50),
+        created_at datetime(6),
+        description TEXT,
+        image_url varchar(500),
+        item_name varchar(100) not null,
+        price decimal(10,2) not null,
+        stock_quantity integer not null,
+        updated_at datetime(6),
+        primary key (item_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table membership (
+        membership_idx bigint not null auto_increment,
+        created_at datetime(6),
+        updated_at datetime(6),
+        membership_number varchar(20) not null,
+        required_point integer not null,
+        required_stays integer not null,
+        save_percent integer,
+        tier enum ('BRONZE','GOLD','SILVER','VIP') not null,
+        primary key (membership_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table membership_discount (
+        membership_discount_idx bigint not null auto_increment,
+        discount_percentage decimal(5,2) not null,
+        tier enum ('BRONZE','GOLD','SILVER','VIP') not null,
+        type enum ('DINING','ROOM','STORE') not null,
+        primary key (membership_discount_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table order_items (
+        order_item_idx bigint not null auto_increment,
+        price decimal(10,2) not null,
+        quantity integer not null,
+        item_idx bigint not null,
+        order_idx bigint not null,
+        primary key (order_item_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table orders (
+        order_idx bigint not null auto_increment,
+        created_at datetime(6),
+        updated_at datetime(6),
+        order_date datetime(6) not null,
+        order_status enum ('CANCELLED','DELIVERED','PAID','PENDING') not null,
+        total_amount decimal(10,2) not null,
+        user_idx bigint not null,
+        primary key (order_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table payment_method (
+        payment_method_idx bigint not null auto_increment,
+        created_at datetime(6),
+        updated_at datetime(6),
+        card_type varchar(50) not null,
+        expire_date date not null,
+        is_default bigint not null,
+        last_four_digits varchar(4) not null,
+        owner_name varchar(100) not null,
+        token varchar(255) not null,
+        user_idx bigint not null,
+        primary key (payment_method_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table point_transaction (
+        point_transaction_idx bigint not null auto_increment,
+        created_at datetime(6),
+        updated_at datetime(6),
+        description varchar(255),
+        expiration_date datetime(6) not null,
+        point integer not null,
+        reference_idx bigint,
+        reference_type enum ('GIFT_SHOP','MEMBERSHIP','ORDERS','OTHERS','QNA','RESERVATION','USERS','USER_ACTIVITY_LOG'),
+        transaction_date datetime(6) not null,
+        user_idx bigint not null,
+        primary key (point_transaction_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table product (
+        id bigint not null auto_increment,
+        description varchar(255),
+        image_url varchar(255),
+        name varchar(255),
+        price integer not null,
+        primary key (id)
+    ) engine=InnoDB
+Hibernate: 
+    create table qna (
+        qna_idx bigint not null auto_increment,
+        answer TEXT,
+        answer_date datetime(6),
+        content TEXT,
+        created_at datetime(6),
+        email varchar(255),
+        status varchar(20),
+        title varchar(255),
+        type varchar(255),
+        updated_at datetime(6),
+        write_date datetime(6),
+        primary key (qna_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table reservation (
+        reservation_idx bigint not null auto_increment,
+        created_at datetime(6),
+        updated_at datetime(6),
+        adult_breakfast_price integer,
+        adults integer not null,
+        bed_type varchar(255),
+        card_expiry varchar(255) not null,
+        card_number varchar(255) not null,
+        check_in date not null,
+        check_out date not null,
+        child_breakfast_price integer,
+        children integer not null,
+        discount integer,
+        email varchar(255) not null,
+        first_name varchar(255) not null,
+        last_name varchar(255) not null,
+        phone varchar(255) not null,
+        reservation_num varchar(255) not null,
+        room_count integer not null,
+        room_price integer not null,
+        special_request TEXT,
+        status enum ('CANCELLED','CHECKED_IN','COMPLETED','CONFIRMED') not null,
+        subtotal integer,
+        total integer,
+        room_idx bigint not null,
+        room_types_idx bigint not null,
+        offer_id bigint,
+        user_idx bigint,
+        primary key (reservation_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table restaurants (
+        restaurants_idx bigint not null auto_increment,
+        breakfast_close time(6),
+        breakfast_open time(6),
+        capacity integer,
+        close time(6),
+        created_at datetime(6),
+        description varchar(255),
+        dinner_close time(6),
+        dinner_open time(6),
+        image varchar(255),
+        location varchar(255),
+        lunch_close time(6),
+        lunch_open time(6),
+        name varchar(100) not null,
+        open time(6),
+        price_adult integer,
+        price_child integer,
+        type varchar(255),
+        updated_at datetime(6),
+        primary key (restaurants_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table room_types (
+        room_types_idx bigint not null auto_increment,
+        description TEXT not null,
+        grade varchar(50) not null,
+        max_people integer not null,
+        peak_week_price decimal(10,2) not null,
+        peak_weekend_price decimal(10,2) not null,
+        room_image varchar(100) not null,
+        room_name varchar(100) not null,
+        size integer not null,
+        total_count integer not null,
+        view_type varchar(50) not null,
+        week_price decimal(10,2) not null,
+        weekend_price decimal(10,2) not null,
+        primary key (room_types_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table rooms (
+        room_idx bigint not null auto_increment,
+        floor integer not null,
+        room_num varchar(10) not null,
+        status enum ('AVAILABLE','MAINTENANCE','OCCUPIED') not null,
+        room_types_idx bigint not null,
+        primary key (room_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table special_offer (
+        id bigint not null auto_increment,
+        created_at datetime(6),
+        end_date date not null,
+        image varchar(255),
+        intro text,
+        price varchar(50),
+        room_idx bigint not null,
+        start_date date not null,
+        subtitle varchar(255),
+        title varchar(100) not null,
+        updated_at datetime(6),
+        primary key (id)
+    ) engine=InnoDB
+Hibernate: 
+    create table user_activity_log (
+        log_idx bigint not null auto_increment,
+        activity_details TEXT,
+        activity_type enum ('ACCOUNT_DELETE','ADMIN_GIFT_CREATE','ADMIN_GIFT_DELETE','ADMIN_GIFT_UPDATE','DINING_RESERVATION','HOTEL_RESERVATION','HOTEL_RESERVATION_CANCEL','LOGIN','LOGOUT','PASSWORD_CHANGE','PAYMENT','PAYMENT_CANCEL','PAYMENT_FAILED') not null,
+        created_at datetime(6) not null,
+        ip_address varchar(45),
+        user_idx bigint not null,
+        primary key (log_idx)
+    ) engine=InnoDB
+Hibernate: 
+    create table users (
+        user_idx bigint not null auto_increment,
+        created_at datetime(6),
+        updated_at datetime(6),
+        email varchar(100) not null,
+        english_first_name varchar(50),
+        english_last_name varchar(50),
+        first_name varchar(20),
+        id varchar(100) not null,
+        last_name varchar(50),
+        name varchar(50) not null,
+        phone varchar(20) not null,
+        pwd varchar(255) not null,
+        role enum ('ADMIN','STAFF','USER') not null,
+        status enum ('ACTIVE','BLOCKED','INACTIVE') not null,
+        total_points integer,
+        total_stays integer,
+        membership_idx bigint,
+        primary key (user_idx)
+    ) engine=InnoDB
+Hibernate: 
+    alter table dining_reservation 
+       drop index UKf71ruexp7xs09y5334o52p756
+Hibernate: 
+    alter table dining_reservation 
+       add constraint UKf71ruexp7xs09y5334o52p756 unique (reservation_num)
+Hibernate: 
+    alter table membership 
+       drop index UKc3joo8mst75bv33sotufgb2tn
+Hibernate: 
+    alter table membership 
+       add constraint UKc3joo8mst75bv33sotufgb2tn unique (membership_number)
+Hibernate: 
+    alter table reservation 
+       drop index UKcycbm5p8nrsmsji6isq4a2pgh
+Hibernate: 
+    alter table reservation 
+       add constraint UKcycbm5p8nrsmsji6isq4a2pgh unique (reservation_num)
+Hibernate: 
+    alter table rooms 
+       drop index UKp5q2pbuavtvgs57smovsb0ou3
+Hibernate: 
+    alter table rooms 
+       add constraint UKp5q2pbuavtvgs57smovsb0ou3 unique (room_num)
+Hibernate: 
+    alter table users 
+       drop index UK6dotkott2kjsp8vw4d0m25fb7
+Hibernate: 
+    alter table users 
+       add constraint UK6dotkott2kjsp8vw4d0m25fb7 unique (email)
+Hibernate: 
+    alter table users 
+       drop index UK6jvqtxgs6xvh0h0t261hurgqo
+Hibernate: 
+    alter table users 
+       add constraint UK6jvqtxgs6xvh0h0t261hurgqo unique (id)
+Hibernate: 
+    alter table cart_items 
+       add constraint FKorqcsji85wlos33p6v7kyfhnp 
+       foreign key (cart_idx) 
+       references carts (cart_idx)
+Hibernate: 
+    alter table cart_items 
+       add constraint FK7lhgi23wnqfdjx9wtpidlb12b 
+       foreign key (item_idx) 
+       references gift_shop (item_idx)
+Hibernate: 
+    alter table carts 
+       add constraint FKtdqrw8oadtx4x3uo93yp46f3o 
+       foreign key (user_idx) 
+       references users (user_idx)
+Hibernate: 
+    alter table order_items 
+       add constraint FK2udy526d565wajan6typwn25b 
+       foreign key (item_idx) 
+       references gift_shop (item_idx)
+Hibernate: 
+    alter table order_items 
+       add constraint FK2r6b4765pjde5dwki1bpfxxet 
+       foreign key (order_idx) 
+       references orders (order_idx)
