@@ -1,5 +1,5 @@
 CREATE DATABASE IF NOT EXISTS chill;
 
-CREATE USER IF NOT EXISTS 'chill_user'@'%' IDENTIFIED BY 'hoteluser123';
-GRANT ALL PRIVILEGES ON chill.* TO 'chill_user'@'%';
+CREATE USER IF NOT EXISTS 'hoteluser'@'%' IDENTIFIED BY 'MySecurePass123!';
+GRANT ALL PRIVILEGES ON chill.* TO 'hoteluser'@'%';
 FLUSH PRIVILEGES;
