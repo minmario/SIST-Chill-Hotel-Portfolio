@@ -42,8 +42,8 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**", "/api/admin/**").permitAll()
                         .requestMatchers("/api/dining/**", "/api/restaurants/**").permitAll()
                         ..requestMatchers(
-                                              "/user/auth/login",     // ?? 추가
-                                              "/user/auth/register",  // ?? 추가
+                                              "/user/auth/login",     
+                                              "/user/auth/register",  
                                               "/api/user/auth/login",
                                               "/api/user/auth/register"
                                           ).permitAll().permitAll()
