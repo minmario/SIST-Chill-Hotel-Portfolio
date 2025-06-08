@@ -40,38 +40,45 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     public UserLoginResponse login(UserLoginRequest request) {
+        log.info("[로그인 시도] id: {}", request.getId());
+    
         User user = userRepository.findById(request.getId())
-                .orElseThrow(() -> new RuntimeException("아이디 또는 비밀번호가 올바르지 않습니다."));
-
+                .orElseThrow(() -> {
+                    log.warn("로그인 실패 - 존재하지 않는 아이디: {}", request.getId());
+                    return new RuntimeException("아이디 또는 비밀번호가 올바르지 않습니다.");
+                });
+    
         if (!passwordEncoder.matches(request.getPwd(), user.getPwd())) {
+            log.warn("로그인 실패 - 비밀번호 불일치: {}", request.getId());
             throw new RuntimeException("아이디 또는 비밀번호가 올바르지 않습니다.");
         }
-
+    
         if (user.getStatus() != UserStatus.ACTIVE) {
+            log.warn("로그인 실패 - 비활성화 계정: {}", request.getId());
             throw new RuntimeException("비활성화된 계정입니다.");
         }
-
+    
         if (user.getRole() != UserRole.USER) {
+            log.warn("로그인 실패 - 일반 사용자가 아님: {}", request.getId());
             throw new IllegalArgumentException("일반 사용자만 로그인할 수 있습니다.");
         }
-
+    
+        log.info("로그인 성공 - id: {}, ip: {}", user.getId(), getClientIp());
+    
         // 로그인 활동 로그 기록
-        ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-        String ipAddress = getClientIp();
-        userActivityLogService.logLogin(user, ipAddress);
-
-        // user.getId()를 JWT subject로 사용
+        userActivityLogService.logLogin(user, getClientIp());
+    
         Long membershipIdx = user.getMembership() != null ? user.getMembership().getMembershipIdx() : null;
         String token = jwtProvider.generateToken(
                 user.getId(),
                 user.getRole().name(),
                 membershipIdx);
-
+    
         return new UserLoginResponse(
                 token,
                 user.getRole().name(),
-                user.getName(), // ✅ 유저 이름
-                user.getEmail() // ✅ 유저 이메일
+                user.getName(),
+                user.getEmail()
         );
     }
 

@@ -41,8 +41,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/admin/**", "/api/admin/**").permitAll()
                         .requestMatchers("/api/dining/**", "/api/restaurants/**").permitAll()
-                        .requestMatchers("/api/user/auth/login",
-                                "/api/user/auth/register").permitAll()
+                        ..requestMatchers(
+                                              "/user/auth/login",     // ?? 추가
+                                              "/user/auth/register",  // ?? 추가
+                                              "/api/user/auth/login",
+                                              "/api/user/auth/register"
+                                          ).permitAll().permitAll()
                         .requestMatchers(
                                 "/api/user/auth/logout",
                                 "/api/mypage/**",
