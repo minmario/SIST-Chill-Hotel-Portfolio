@@ -29,7 +29,7 @@ import sist.backend.global.jwt.JwtProvider;
 
 import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserAuthServiceImpl implements UserAuthService {
