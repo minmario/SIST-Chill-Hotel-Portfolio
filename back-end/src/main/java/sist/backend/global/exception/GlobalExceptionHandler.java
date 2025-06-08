@@ -51,8 +51,15 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGlobalException(Exception ex) {
-        log.error("[Exception] {}", ex.getMessage(), ex); // ������ 여기서 반드시 스택 출력
+    public ResponseEntity<Map<String, String>> handleGlobalException(Exception ex, HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        // actuator 요청이면 Spring 기본 처리로 넘김
+        if (uri.startsWith("/actuator")) {
+            return null;
+        }
+    
+        log.error("[Exception] URI: {} - {}", uri, ex.getMessage(), ex);
+    
         Map<String, String> errorResponse = new HashMap<>();
         if (ex.getMessage() != null && ex.getMessage().contains("Row was updated or deleted by another transaction")) {
             errorResponse.put("message", "이미 처리된 요청이거나, 다른 트랜잭션에 의해 변경된 데이터입니다. 새로고침 후 다시 시도해주세요.");
