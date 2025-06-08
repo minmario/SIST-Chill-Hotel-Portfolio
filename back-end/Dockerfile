@@ -8,6 +8,8 @@ RUN gradle clean build -x test
 
 FROM openjdk:17-jdk-slim
 
+RUN apt-get update && apt-get install -y curl
+
 WORKDIR /app
 
 COPY --from=build /app/build/libs/*.jar app.jar
