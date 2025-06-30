@@ -16,6 +16,7 @@ Spring Boot 기반 호텔 예약 시스템 백엔드 API
 - 마이페이지 구현
 - 관리자 페이지 UI 전체 개발
 - 보안 및 접근제한 로직 구현
+- Nginx 기반 설정, 배포 사이트 도메인 구입 후 연동
 ## 홈페이지
 https://www.sistchillhotel.com/
 ## 🚀 실행 방법 (Docker 기반)
