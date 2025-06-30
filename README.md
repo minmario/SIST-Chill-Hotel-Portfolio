@@ -1,3 +1,5 @@
+#Public 버전이라 배포용 프로젝트는 private으로 따로 있습니다
+
 # SIST Chill Hotel
 Spring Boot 기반 호텔 예약 시스템 백엔드 API
 
@@ -68,3 +70,5 @@ spring:
 
 ### 4. 접속 주소
 - http://localhost:8080
+
+
